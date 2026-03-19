@@ -23,9 +23,17 @@
     <section class="panel controls controls-full">
       <h2>Filters</h2>
       <label>
-        Import One-Tab Cost Export (CSV)
-        <input id="csv-upload" type="file" accept=".csv" />
+        Import One-Tab Cost Export (Excel or CSV)
+        <input id="csv-upload" type="file" accept=".xlsx,.xls,.csv" />
       </label>
+      <label>
+        Paste Table Data (Excel copy/paste)
+        <textarea id="paste-dataset" rows="6" placeholder="Paste header row + data rows here (tab-delimited from Excel is supported)"></textarea>
+      </label>
+      <div class="import-actions">
+        <button id="btn-import-paste" class="ghost" type="button">Import Pasted Data</button>
+        <button id="btn-clear-paste" class="ghost" type="button">Clear Pasted Data</button>
+      </div>
       <p id="data-source-note" class="small">Data source: Built-in BrewCo sample dataset.</p>
       <div class="grid-two">
         <label>
@@ -37,12 +45,64 @@
           <select id="filter-plant"></select>
         </label>
         <label>
+          Plant Desc
+          <select id="filter-plant-desc"></select>
+        </label>
+        <label>
           Product Family
           <select id="filter-family"></select>
         </label>
         <label>
+          Brand
+          <select id="filter-brand"></select>
+        </label>
+        <label>
+          Brand Family
+          <select id="filter-brand-family"></select>
+        </label>
+        <label>
+          Brand Segment
+          <select id="filter-brand-segment"></select>
+        </label>
+        <label>
+          Price Segment
+          <select id="filter-price-segment"></select>
+        </label>
+        <label>
+          OSKU
+          <select id="filter-osku"></select>
+        </label>
+        <label>
+          Plant + OSKU
+          <select id="filter-plant-osku"></select>
+        </label>
+        <label>
+          Orderable SKU Description
+          <select id="filter-orderable-sku-description"></select>
+        </label>
+        <label>
           SKU
           <select id="filter-sku"></select>
+        </label>
+        <label>
+          Container Type
+          <select id="filter-container-type"></select>
+        </label>
+        <label>
+          Container Size
+          <select id="filter-container-size"></select>
+        </label>
+        <label>
+          Smallest Pack
+          <select id="filter-smallest-pack"></select>
+        </label>
+        <label>
+          Alcohol Reporting Group
+          <select id="filter-alcohol-reporting-group"></select>
+        </label>
+        <label>
+          2012 Production BBL by Plant by OSKU
+          <select id="filter-production-bbl"></select>
         </label>
         <label>
           Packaging
@@ -87,9 +147,14 @@
         <thead>
           <tr>
             <th>SKU</th>
+            <th>Description</th>
+            <th>Brand</th>
             <th>Family</th>
+            <th>Price Segment</th>
             <th>Plant</th>
             <th>Packaging</th>
+            <th>Container Size</th>
+            <th>Pack</th>
             <th>Volume</th>
             <th>Revenue</th>
             <th>COGS</th>
@@ -110,6 +175,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

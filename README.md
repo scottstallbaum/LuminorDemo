@@ -12,7 +12,8 @@ This version is optimized around your current positioning:
 - Margin-by-SKU chart and SKU-level detail table
 - Overall cost waterfall for current selection
 - Drill waterfalls by plant, product family, SKU, packaging, or channel
-- CSV upload for one-tab exports (`period` to `operating_cpu`)
+- Excel/CSV upload for one-tab exports (`period` to `operating_cpu`)
+- Tolerant import cleanup for messy headers/cells (extra spaces, case differences, and currency-style number formatting)
 
 ## How to run
 Open `index.html` directly in a browser.
@@ -22,6 +23,21 @@ For best local workflow in VS Code, use a static server extension and open the p
 
 To test import, use:
 - `one-tab-template.csv`
+
+Accepted import types:
+- `.xlsx`
+- `.xls`
+- `.csv`
+
+You can also paste data directly from Excel:
+- Copy the full table including header row
+- Paste into `Paste Table Data (Excel copy/paste)`
+- Click `Import Pasted Data`
+
+Notes for large pasted datasets:
+- 1,700+ rows are supported in-browser
+- Tab-delimited Excel paste is auto-detected
+- Keep the first row as headers for best mapping
 
 ## One-tab input schema (CSV)
 Required columns (lowercase preferred):
@@ -38,6 +54,21 @@ Required columns (lowercase preferred):
 - `freight_cpu`
 - `overhead_cpu`
 - `operating_cpu`
+
+Optional descriptor columns (supported and recommended for richer drilldowns):
+- `plant desc`
+- `osku`
+- `plant + osku`
+- `orderable sku description`
+- `price segment`
+- `brand`
+- `brand family`
+- `brand segment`
+- `container type`
+- `container size`
+- `smallest pack`
+- `alcohol rptng group`
+- `2012 production bbl by plant by osku`
 
 Notes:
 - Each row should represent a single SKU-period slice.

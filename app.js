@@ -15,24 +15,102 @@ const baseData = [
 
 const drillOptions = [
   { value: "plant", label: "Plant" },
+  { value: "plantDesc", label: "Plant Desc" },
   { value: "family", label: "Product Family" },
+  { value: "brand", label: "Brand" },
+  { value: "brandFamily", label: "Brand Family" },
+  { value: "brandSegment", label: "Brand Segment" },
+  { value: "priceSegment", label: "Price Segment" },
+  { value: "osku", label: "OSKU" },
+  { value: "plantOsku", label: "Plant + OSKU" },
+  { value: "orderableSkuDescription", label: "Orderable SKU Description" },
   { value: "sku", label: "SKU" },
+  { value: "containerType", label: "Container Type" },
+  { value: "containerSize", label: "Container Size" },
+  { value: "smallestPack", label: "Smallest Pack" },
+  { value: "alcoholReportingGroup", label: "Alcohol Reporting Group" },
+  { value: "productionBbl", label: "2012 Production BBL by Plant by OSKU" },
   { value: "packaging", label: "Packaging" },
   { value: "channel", label: "Channel" }
 ];
+
+function normalizeKey(value) {
+  return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function getField(row, aliases, fallback = "") {
+  for (const alias of aliases) {
+    const exact = row[alias];
+    if (exact !== undefined && exact !== null && String(exact).trim() !== "") {
+      return exact;
+    }
+  }
+
+  const keyMap = Object.keys(row).reduce((acc, key) => {
+    acc[normalizeKey(key)] = row[key];
+    return acc;
+  }, {});
+
+  for (const alias of aliases) {
+    const value = keyMap[normalizeKey(alias)];
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      return value;
+    }
+  }
+
+  return fallback;
+}
+
+function withDescriptorDefaults(row) {
+  const plantDesc = String(row.plantDesc || row.plant || "Unknown").trim() || "Unknown";
+  const osku = String(row.osku || row.sku || "Unknown").trim() || "Unknown";
+
+  return {
+    ...row,
+    plantDesc,
+    osku,
+    plantOsku: String(row.plantOsku || `${plantDesc}${osku}`).trim() || `${plantDesc}${osku}`,
+    orderableSkuDescription: String(row.orderableSkuDescription || row.sku || "Unknown").trim() || "Unknown",
+    priceSegment: String(row.priceSegment || "Unknown").trim() || "Unknown",
+    brand: String(row.brand || "Unknown").trim() || "Unknown",
+    brandFamily: String(row.brandFamily || row.family || "Unknown").trim() || "Unknown",
+    brandSegment: String(row.brandSegment || "Unknown").trim() || "Unknown",
+    containerType: String(row.containerType || row.packaging || "Unknown").trim() || "Unknown",
+    containerSize: String(row.containerSize || "Unknown").trim() || "Unknown",
+    smallestPack: String(row.smallestPack || "Unknown").trim() || "Unknown",
+    alcoholReportingGroup: String(row.alcoholReportingGroup || "Unknown").trim() || "Unknown",
+    productionBbl: parseNum(row.productionBbl)
+  };
+}
 
 const els = {
   filters: {
     period: document.getElementById("filter-period"),
     plant: document.getElementById("filter-plant"),
+    plantDesc: document.getElementById("filter-plant-desc"),
     family: document.getElementById("filter-family"),
+    brand: document.getElementById("filter-brand"),
+    brandFamily: document.getElementById("filter-brand-family"),
+    brandSegment: document.getElementById("filter-brand-segment"),
+    priceSegment: document.getElementById("filter-price-segment"),
+    osku: document.getElementById("filter-osku"),
+    plantOsku: document.getElementById("filter-plant-osku"),
+    orderableSkuDescription: document.getElementById("filter-orderable-sku-description"),
     sku: document.getElementById("filter-sku"),
+    containerType: document.getElementById("filter-container-type"),
+    containerSize: document.getElementById("filter-container-size"),
+    smallestPack: document.getElementById("filter-smallest-pack"),
+    alcoholReportingGroup: document.getElementById("filter-alcohol-reporting-group"),
+    productionBbl: document.getElementById("filter-production-bbl"),
     packaging: document.getElementById("filter-packaging"),
     channel: document.getElementById("filter-channel")
   },
   drillDimension: document.getElementById("drill-dimension"),
   drillValue: document.getElementById("drill-value"),
   upload: document.getElementById("csv-upload"),
+  pasteDataset: document.getElementById("paste-dataset"),
+  importPaste: document.getElementById("btn-import-paste"),
+  clearPaste: document.getElementById("btn-clear-paste"),
   dataSourceNote: document.getElementById("data-source-note"),
   reset: document.getElementById("btn-reset"),
   kpis: document.getElementById("kpi-cards"),
@@ -43,12 +121,25 @@ const els = {
 };
 
 const state = {
-  records: [...baseData],
+  records: baseData.map(withDescriptorDefaults),
   filters: {
     period: "All",
     plant: "All",
+    plantDesc: "All",
     family: "All",
+    brand: "All",
+    brandFamily: "All",
+    brandSegment: "All",
+    priceSegment: "All",
+    osku: "All",
+    plantOsku: "All",
+    orderableSkuDescription: "All",
     sku: "All",
+    containerType: "All",
+    containerSize: "All",
+    smallestPack: "All",
+    alcoholReportingGroup: "All",
+    productionBbl: "All",
     packaging: "All",
     channel: "All"
   },
@@ -75,25 +166,50 @@ function toPct(value) {
 function parseNum(value) {
   if (typeof value === "number") return value;
   if (!value) return 0;
-  return Number(String(value).replace(/[$,%\s,]/g, "")) || 0;
+  const raw = String(value).trim();
+  if (!raw) return 0;
+  const normalized = raw
+    .replace(/^\((.*)\)$/, "-$1")
+    .replace(/[$,%\s,]/g, "");
+  return Number(normalized) || 0;
+}
+
+function cleanCell(value, fallback = "Unknown") {
+  const cleaned = String(value ?? "").replace(/\s+/g, " ").trim();
+  return cleaned || fallback;
 }
 
 function normalizeImportedRow(row) {
-  return {
-    period: (row.period || row.Period || row.year || row.Year || "Unknown").trim(),
-    plant: (row.plant || row.Plant || "Unknown").trim(),
-    family: (row.family || row.product_family || row.ProductFamily || row.Product_Family || "Unknown").trim(),
-    sku: (row.sku || row.SKU || row.Sku || "Unknown").trim(),
-    packaging: (row.packaging || row.Packaging || "Unknown").trim(),
-    channel: (row.channel || row.Channel || "Unknown").trim(),
-    volume: parseNum(row.volume || row.Volume),
-    asp: parseNum(row.asp || row.price_per_unit || row.avg_selling_price || row.ASP),
-    materialCpu: parseNum(row.material_cpu || row.Material_CPU || row.material_cost_per_unit),
-    laborCpu: parseNum(row.labor_cpu || row.Labor_CPU || row.labor_cost_per_unit),
-    freightCpu: parseNum(row.freight_cpu || row.Freight_CPU || row.freight_cost_per_unit),
-    overheadCpu: parseNum(row.overhead_cpu || row.Overhead_CPU || row.overhead_cost_per_unit),
-    operatingCpu: parseNum(row.operating_cpu || row.Operating_CPU || row.opex_cpu || row.opex_cost_per_unit)
+  const normalized = {
+    period: cleanCell(getField(row, ["period", "Period", "year", "Year"], "Unknown")),
+    plant: cleanCell(getField(row, ["plant", "Plant", "Plant Desc"], "Unknown")),
+    family: cleanCell(getField(row, ["family", "product_family", "ProductFamily", "Product_Family", "Brand Family"], "Unknown")),
+    sku: cleanCell(getField(row, ["sku", "SKU", "Sku", "OSKU", "Plant + OSKU"], "Unknown")),
+    packaging: cleanCell(getField(row, ["packaging", "Packaging", "Container Type"], "Unknown")),
+    channel: cleanCell(getField(row, ["channel", "Channel"], "Unknown")),
+    volume: parseNum(getField(row, ["volume", "Volume"])),
+    asp: parseNum(getField(row, ["asp", "price_per_unit", "avg_selling_price", "ASP"])),
+    materialCpu: parseNum(getField(row, ["material_cpu", "Material_CPU", "material_cost_per_unit"])),
+    laborCpu: parseNum(getField(row, ["labor_cpu", "Labor_CPU", "labor_cost_per_unit"])),
+    freightCpu: parseNum(getField(row, ["freight_cpu", "Freight_CPU", "freight_cost_per_unit"])),
+    overheadCpu: parseNum(getField(row, ["overhead_cpu", "Overhead_CPU", "overhead_cost_per_unit"])),
+    operatingCpu: parseNum(getField(row, ["operating_cpu", "Operating_CPU", "opex_cpu", "opex_cost_per_unit"])),
+    plantDesc: cleanCell(getField(row, ["Plant Desc", "plant_desc", "plantDesc"], "Unknown")),
+    osku: cleanCell(getField(row, ["OSKU", "osku"], "Unknown")),
+    plantOsku: cleanCell(getField(row, ["Plant + OSKU", "plant_osku", "plantOsku"], ""), ""),
+    orderableSkuDescription: cleanCell(getField(row, ["Orderable SKU Description", "orderable_sku_description", "orderableSkuDescription"], ""), ""),
+    priceSegment: cleanCell(getField(row, ["Price Segment", "price_segment", "priceSegment"], "Unknown")),
+    brand: cleanCell(getField(row, ["Brand", "brand"], "Unknown")),
+    brandFamily: cleanCell(getField(row, ["Brand Family", "brand_family", "brandFamily"], "Unknown")),
+    brandSegment: cleanCell(getField(row, ["Brand Segment", "brand_segment", "brandSegment"], "Unknown")),
+    containerType: cleanCell(getField(row, ["Container Type", "container_type", "containerType"], ""), ""),
+    containerSize: cleanCell(getField(row, ["Container Size", "container_size", "containerSize"], "Unknown")),
+    smallestPack: cleanCell(getField(row, ["Smallest Pack", "smallest_pack", "smallestPack"], "Unknown")),
+    alcoholReportingGroup: cleanCell(getField(row, ["Alcohol Rptng Group", "alcohol_rptng_group", "alcoholReportingGroup"], "Unknown")),
+    productionBbl: parseNum(getField(row, ["2012 Production BBL by Plant by OSKU", "production_bbl", "productionBbl"]))
   };
+
+  return withDescriptorDefaults(normalized);
 }
 
 function computeRow(row) {
@@ -164,7 +280,7 @@ function fillSelect(element, values) {
 }
 
 function applyBaseFilters(records) {
-  return records.filter((row) => Object.entries(state.filters).every(([key, value]) => value === "All" || row[key] === value));
+  return records.filter((row) => Object.entries(state.filters).every(([key, value]) => value === "All" || String(row[key]) === value));
 }
 
 function getFilteredRows() {
@@ -239,42 +355,124 @@ function bindReset() {
   });
 }
 
-function bindCsvUpload() {
+function loadImportedRows(rawRows, fileName) {
+  const normalized = rawRows
+    .map(normalizeImportedRow)
+    .filter((row) => row.sku !== "Unknown" && row.volume > 0);
+
+  if (!normalized.length) {
+    alert("No valid rows found. Include SKU and volume plus pricing/cost columns.");
+    return;
+  }
+
+  state.records = normalized;
+  Object.keys(state.filters).forEach((key) => {
+    state.filters[key] = "All";
+  });
+  state.drill.dimension = "plant";
+  state.drill.value = "All";
+
+  updateFilterOptions();
+  els.drillDimension.value = state.drill.dimension;
+  updateDrillValueOptions();
+
+  els.dataSourceNote.textContent = `Data source: ${fileName} (${normalized.length} rows imported).`;
+  render();
+}
+
+function parseCsvFile(file) {
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    transformHeader: (header) => String(header || "").trim(),
+    complete: (result) => {
+      loadImportedRows(result.data || [], file.name);
+    },
+    error: () => {
+      alert("Unable to parse CSV. Verify file format and try again.");
+    }
+  });
+}
+
+function parsePastedData(text) {
+  const trimmed = String(text || "").trim();
+  if (!trimmed) {
+    alert("Paste data first, then click Import Pasted Data.");
+    return;
+  }
+
+  Papa.parse(trimmed, {
+    header: true,
+    delimiter: "",
+    skipEmptyLines: true,
+    transformHeader: (header) => String(header || "").trim(),
+    complete: (result) => {
+      loadImportedRows(result.data || [], "Pasted dataset");
+    },
+    error: () => {
+      alert("Unable to parse pasted data. Paste with a header row and tab/comma delimiters.");
+    }
+  });
+}
+
+function parseExcelFile(file) {
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const data = event.target?.result;
+      const workbook = XLSX.read(data, { type: "array" });
+      const firstSheetName = workbook.SheetNames[0];
+      if (!firstSheetName) {
+        alert("No worksheet found in this Excel file.");
+        return;
+      }
+
+      const worksheet = workbook.Sheets[firstSheetName];
+      const rawRows = XLSX.utils.sheet_to_json(worksheet, {
+        defval: "",
+        raw: false
+      });
+
+      loadImportedRows(rawRows, `${file.name} [${firstSheetName}]`);
+    } catch {
+      alert("Unable to parse Excel file. Try saving it again as .xlsx and re-upload.");
+    }
+  };
+
+  reader.onerror = () => {
+    alert("Unable to read Excel file from disk.");
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+function bindDataUpload() {
   els.upload.addEventListener("change", (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (result) => {
-        const normalized = result.data
-          .map(normalizeImportedRow)
-          .filter((row) => row.sku && row.volume > 0);
+    const name = file.name.toLowerCase();
+    if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
+      parseExcelFile(file);
+      return;
+    }
 
-        if (!normalized.length) {
-          alert("No valid rows found. Include SKU, volume, price, and cost columns.");
-          return;
-        }
+    if (name.endsWith(".csv")) {
+      parseCsvFile(file);
+      return;
+    }
 
-        state.records = normalized;
-        Object.keys(state.filters).forEach((key) => {
-          state.filters[key] = "All";
-        });
-        state.drill.dimension = "plant";
-        state.drill.value = "All";
+    alert("Unsupported file type. Upload .xlsx, .xls, or .csv.");
+  });
+}
 
-        updateFilterOptions();
-        els.drillDimension.value = state.drill.dimension;
-        updateDrillValueOptions();
+function bindPasteImport() {
+  els.importPaste.addEventListener("click", () => {
+    parsePastedData(els.pasteDataset.value);
+  });
 
-        els.dataSourceNote.textContent = `Data source: ${file.name} (${normalized.length} rows imported).`;
-        render();
-      },
-      error: () => {
-        alert("Unable to parse CSV. Verify file format and try again.");
-      }
-    });
+  els.clearPaste.addEventListener("click", () => {
+    els.pasteDataset.value = "";
   });
 }
 
@@ -302,9 +500,14 @@ function renderTable(rows) {
   els.table.innerHTML = sorted.map((row) => `
     <tr>
       <td>${row.sku}</td>
+      <td>${row.orderableSkuDescription}</td>
+      <td>${row.brand}</td>
       <td>${row.family}</td>
+      <td>${row.priceSegment}</td>
       <td>${row.plant}</td>
       <td>${row.packaging}</td>
+      <td>${row.containerSize}</td>
+      <td>${row.smallestPack}</td>
       <td>${row.volume.toLocaleString()}</td>
       <td>${toMoney(row.revenue)}</td>
       <td>${toMoney(row.cogs)}</td>
@@ -463,5 +666,6 @@ updateFilterOptions();
 bindFilterEvents();
 bindDrillEvents();
 bindReset();
-bindCsvUpload();
+bindDataUpload();
+bindPasteImport();
 render();

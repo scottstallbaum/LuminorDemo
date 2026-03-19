@@ -1,5 +1,5 @@
-period,plant,family,sku,packaging,channel,volume,asp,material_cpu,labor_cpu,freight_cpu,overhead_cpu,operating_cpu
-2026-Q2,Denver,Core Lager,LGR-12OZ-6PK,Can,Retail,67000,9.85,2.14,0.79,0.45,1.04,0.93
-2026-Q2,Denver,IPA,IPA-12OZ-6PK,Can,Retail,50000,10.55,2.46,0.83,0.44,1.01,1.04
-2026-Q2,Asheville,Core Lager,LGR-12OZ-6PK,Bottle,Wholesale,61000,9.28,2.37,0.84,0.54,1.08,1.01
-2026-Q2,Asheville,Seasonal,SNS-12OZ-6PK,Keg,On-Premise,15000,138.00,41.50,14.40,8.90,15.00,13.20
+period,plant,family,sku,packaging,channel,volume,asp,material_cpu,labor_cpu,freight_cpu,overhead_cpu,operating_cpu,Plant Desc,OSKU,Plant + OSKU,Orderable SKU Description,Price Segment,Brand,Brand Family,Brand Segment,Container Type,Container Size,Smallest Pack,Alcohol Rptng Group,2012 Production BBL by Plant by OSKU
+2026-Q2,Denver,Core Lager,LGR-12OZ-6PK,Can,Retail,67000,9.85,2.14,0.79,0.45,1.04,0.93,Denver,700005,Denver700005,CORE LGT 12OZ 6PK,Premium,Coors Light,Coors Family,Premium Light,Can,12 OZ,6 Pack,Full Strength,75604
+2026-Q2,Denver,IPA,IPA-12OZ-6PK,Can,Retail,50000,10.55,2.46,0.83,0.44,1.01,1.04,Denver,700089,Denver700089,KEYSTONE LT 12OZ 6PK,Budget,Keystone Light,Keystone Family,Light,Can,12 OZ,6 Pack,Light,5326
+2026-Q2,Asheville,Core Lager,LGR-12OZ-6PK,Bottle,Wholesale,61000,9.28,2.37,0.84,0.54,1.08,1.01,Asheville,700091,Asheville700091,COORS LT 12OZ 6PK BTL,Premium,Coors Light,Coors Family,Premium Light,Bottle,12 OZ,6 Pack,Full Strength,118752
+2026-Q2,Asheville,Seasonal,SNS-12OZ-6PK,Keg,On-Premise,15000,138.00,41.50,14.40,8.90,15.00,13.20,Asheville,700092,Asheville700092,COORS LT 1/2 BBL STD KEG,Premium,Coors Light,Coors Family,Premium Light,Keg,0.5 BBL,Single,Full Strength,252692

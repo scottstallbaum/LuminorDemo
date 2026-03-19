@@ -69,6 +69,22 @@ input[type="file"] {
   border-radius: .5rem;
   padding: .45rem .5rem;
 }
+textarea {
+  width: 100%;
+  background: #0d1528;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+  padding: .55rem .6rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .78rem;
+  resize: vertical;
+}
+.import-actions {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
 .ghost {
   margin-top: .8rem;
   border: 1px solid var(--line);
