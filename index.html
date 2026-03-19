@@ -22,19 +22,6 @@
   <main class="layout">
     <section class="panel controls controls-full">
       <h2>Filters</h2>
-      <label>
-        Import One-Tab Cost Export (Excel or CSV)
-        <input id="csv-upload" type="file" accept=".xlsx,.xls,.csv" />
-      </label>
-      <label>
-        Paste Table Data (Excel copy/paste)
-        <textarea id="paste-dataset" rows="6" placeholder="Paste header row + data rows here (tab-delimited from Excel is supported)"></textarea>
-      </label>
-      <div class="import-actions">
-        <button id="btn-import-paste" class="ghost" type="button">Import Pasted Data</button>
-        <button id="btn-clear-paste" class="ghost" type="button">Clear Pasted Data</button>
-      </div>
-      <p id="data-source-note" class="small">Data source: Built-in BrewCo sample dataset.</p>
       <div class="grid-two">
         <label>
           Period
@@ -170,6 +157,23 @@
     <section class="panel panel-side">
       <h2>Key Insights</h2>
       <ul id="insights"></ul>
+    </section>
+
+    <section class="panel controls controls-full data-admin">
+      <h2>Data Source (Optional)</h2>
+      <p id="data-source-note" class="small">Data source: Built-in BrewCo sample dataset.</p>
+      <label>
+        Import One-Tab Cost Export (Excel or CSV)
+        <input id="csv-upload" type="file" accept=".xlsx,.xls,.csv" />
+      </label>
+      <label>
+        Paste Table Data (Excel copy/paste)
+        <textarea id="paste-dataset" rows="6" placeholder="Paste header row + data rows here (tab-delimited from Excel is supported)"></textarea>
+      </label>
+      <div class="import-actions">
+        <button id="btn-import-paste" class="ghost" type="button">Import Pasted Data</button>
+        <button id="btn-clear-paste" class="ghost" type="button">Clear Pasted Data</button>
+      </div>
     </section>
   </main>
 

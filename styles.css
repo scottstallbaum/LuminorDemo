@@ -85,6 +85,12 @@ textarea {
   gap: .5rem;
   flex-wrap: wrap;
 }
+.data-admin {
+  opacity: .92;
+}
+.data-admin h2 {
+  color: var(--muted);
+}
 .ghost {
   margin-top: .8rem;
   border: 1px solid var(--line);
