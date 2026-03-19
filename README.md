@@ -8,10 +8,10 @@ This version is optimized around your current positioning:
 
 ## What this demo includes
 - Drillable filters: period, plant, family, SKU, packaging, channel
-- KPI cards: revenue, COGS, gross margin, gross margin %, volume
+- Overall KPI view: revenue, COGS, operating expense, gross margin, operating income, GM%, OM%
 - Margin-by-SKU chart and SKU-level detail table
-- Cost mix waterfall (material, labor, freight, overhead)
-- Scenario sliders for pricing and key cost levers (including OpEx)
+- Overall cost waterfall for current selection
+- Drill waterfalls by plant, product family, SKU, packaging, or channel
 - CSV upload for one-tab exports (`period` to `operating_cpu`)
 
 ## How to run

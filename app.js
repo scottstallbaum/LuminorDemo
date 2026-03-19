@@ -13,6 +13,14 @@ const baseData = [
   { period: "2026-Q2", plant: "Asheville", family: "Seasonal", sku: "SNS-12OZ-6PK", packaging: "Keg", channel: "On-Premise", volume: 15000, asp: 138.0, materialCpu: 41.5, laborCpu: 14.4, freightCpu: 8.9, overheadCpu: 15.0, operatingCpu: 13.2 }
 ];
 
+const drillOptions = [
+  { value: "plant", label: "Plant" },
+  { value: "family", label: "Product Family" },
+  { value: "sku", label: "SKU" },
+  { value: "packaging", label: "Packaging" },
+  { value: "channel", label: "Channel" }
+];
+
 const els = {
   filters: {
     period: document.getElementById("filter-period"),
@@ -22,26 +30,15 @@ const els = {
     packaging: document.getElementById("filter-packaging"),
     channel: document.getElementById("filter-channel")
   },
-  sliders: {
-    material: document.getElementById("adj-material"),
-    labor: document.getElementById("adj-labor"),
-    freight: document.getElementById("adj-freight"),
-    price: document.getElementById("adj-price"),
-    opex: document.getElementById("adj-opex")
-  },
-  sliderValues: {
-    material: document.getElementById("adj-material-value"),
-    labor: document.getElementById("adj-labor-value"),
-    freight: document.getElementById("adj-freight-value"),
-    price: document.getElementById("adj-price-value"),
-    opex: document.getElementById("adj-opex-value")
-  },
+  drillDimension: document.getElementById("drill-dimension"),
+  drillValue: document.getElementById("drill-value"),
   upload: document.getElementById("csv-upload"),
   dataSourceNote: document.getElementById("data-source-note"),
   reset: document.getElementById("btn-reset"),
   kpis: document.getElementById("kpi-cards"),
   table: document.getElementById("sku-table"),
   waterfall: document.getElementById("waterfall"),
+  waterfallBreakout: document.getElementById("waterfall-breakout"),
   insights: document.getElementById("insights")
 };
 
@@ -55,103 +52,35 @@ const state = {
     packaging: "All",
     channel: "All"
   },
-  adjustments: { material: 0, labor: 0, freight: 0, price: 0, opex: 0 }
+  drill: {
+    dimension: "plant",
+    value: "All"
+  }
 };
 
 let marginChart;
 
-function toMoney(v) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
+function toMoney(value) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0
+  }).format(value || 0);
 }
 
-function toPct(v) {
-  return `${(v * 100).toFixed(1)}%`;
+function toPct(value) {
+  return `${(value * 100).toFixed(1)}%`;
 }
 
-function computeRow(row) {
-  return computeRowWithAdjustments(row, state.adjustments);
-}
-
-function computeRowWithAdjustments(row, adjustments) {
-  const matFactor = 1 + adjustments.material / 100;
-  const laborFactor = 1 + adjustments.labor / 100;
-  const freightFactor = 1 + adjustments.freight / 100;
-  const priceFactor = 1 + adjustments.price / 100;
-  const opexFactor = 1 + adjustments.opex / 100;
-
-  const price = row.asp * priceFactor;
-  const material = row.materialCpu * matFactor;
-  const labor = row.laborCpu * laborFactor;
-  const freight = row.freightCpu * freightFactor;
-  const overhead = row.overheadCpu;
-  const operating = row.operatingCpu * opexFactor;
-
-  const unitCogs = material + labor + freight + overhead;
-  const revenue = row.volume * price;
-  const cogs = row.volume * unitCogs;
-  const grossMargin = revenue - cogs;
-  const operatingExpense = row.volume * operating;
-  const operatingIncome = grossMargin - operatingExpense;
-
-  return {
-    ...row,
-    revenue,
-    cogs,
-    grossMargin,
-    operatingExpense,
-    operatingIncome,
-    gmPct: revenue ? grossMargin / revenue : 0,
-    omPct: revenue ? operatingIncome / revenue : 0,
-    material,
-    labor,
-    freight,
-    overhead,
-    operating,
-    unitPrice: price,
-    unitCogs
-  };
-}
-
-function getFilteredRows() {
-  return state.records
-    .filter((row) => Object.entries(state.filters).every(([k, v]) => v === "All" || row[k] === v))
-    .map(computeRow);
-}
-
-function uniqueValues(key) {
-  return ["All", ...new Set(state.records.map((row) => row[key]))];
-}
-
-function fillSelect(el, values) {
-  el.innerHTML = values.map((v) => `<option value="${v}">${v}</option>`).join("");
-}
-
-function updateFilterOptions() {
-  fillSelect(els.filters.period, uniqueValues("period"));
-  fillSelect(els.filters.plant, uniqueValues("plant"));
-  fillSelect(els.filters.family, uniqueValues("family"));
-  fillSelect(els.filters.sku, uniqueValues("sku"));
-  fillSelect(els.filters.packaging, uniqueValues("packaging"));
-  fillSelect(els.filters.channel, uniqueValues("channel"));
-
-  Object.entries(els.filters).forEach(([k, el]) => {
-    el.value = state.filters[k];
-    el.addEventListener("change", () => {
-      state.filters[k] = el.value;
-      render();
-    });
-  });
-}
-
-function parseNum(v) {
-  if (typeof v === "number") return v;
-  if (!v) return 0;
-  return Number(String(v).replace(/[$,%\s,]/g, "")) || 0;
+function parseNum(value) {
+  if (typeof value === "number") return value;
+  if (!value) return 0;
+  return Number(String(value).replace(/[$,%\s,]/g, "")) || 0;
 }
 
 function normalizeImportedRow(row) {
   return {
-    period: (row.period || row.Period || "Unknown").trim(),
+    period: (row.period || row.Period || row.year || row.Year || "Unknown").trim(),
     plant: (row.plant || row.Plant || "Unknown").trim(),
     family: (row.family || row.product_family || row.ProductFamily || row.Product_Family || "Unknown").trim(),
     sku: (row.sku || row.SKU || row.Sku || "Unknown").trim(),
@@ -167,60 +96,30 @@ function normalizeImportedRow(row) {
   };
 }
 
-function bindCsvUpload() {
-  els.upload.addEventListener("change", (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+function computeRow(row) {
+  const unitCogs = row.materialCpu + row.laborCpu + row.freightCpu + row.overheadCpu;
+  const revenue = row.volume * row.asp;
+  const cogs = row.volume * unitCogs;
+  const grossMargin = revenue - cogs;
+  const operatingExpense = row.volume * row.operatingCpu;
+  const operatingIncome = grossMargin - operatingExpense;
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (result) => {
-        const normalized = result.data.map(normalizeImportedRow).filter((row) => row.sku && row.volume > 0);
-        if (!normalized.length) {
-          alert("No valid rows found. Please include SKU, volume, and per-unit cost fields.");
-          return;
-        }
-        state.records = normalized;
-        Object.keys(state.filters).forEach((key) => {
-          state.filters[key] = "All";
-        });
-        updateFilterOptions();
-        els.dataSourceNote.textContent = `Data source: ${file.name} (${normalized.length} rows imported).`;
-        render();
-      },
-      error: () => {
-        alert("Unable to parse CSV. Please verify file format and try again.");
-      }
-    });
-  });
-}
-
-function bindScenarioSliders() {
-  Object.entries(els.sliders).forEach(([k, el]) => {
-    const out = els.sliderValues[k];
-    out.textContent = `${el.value}%`;
-    el.addEventListener("input", () => {
-      state.adjustments[k] = Number(el.value);
-      out.textContent = `${el.value}%`;
-      render();
-    });
-  });
-
-  els.reset.addEventListener("click", () => {
-    Object.keys(state.filters).forEach((key) => {
-      state.filters[key] = "All";
-      els.filters[key].value = "All";
-    });
-
-    Object.keys(state.adjustments).forEach((key) => {
-      state.adjustments[key] = 0;
-      els.sliders[key].value = 0;
-      els.sliderValues[key].textContent = "0%";
-    });
-
-    render();
-  });
+  return {
+    ...row,
+    unitCogs,
+    revenue,
+    cogs,
+    grossMargin,
+    operatingExpense,
+    operatingIncome,
+    gmPct: revenue ? grossMargin / revenue : 0,
+    omPct: revenue ? operatingIncome / revenue : 0,
+    materialTotal: row.materialCpu * row.volume,
+    laborTotal: row.laborCpu * row.volume,
+    freightTotal: row.freightCpu * row.volume,
+    overheadTotal: row.overheadCpu * row.volume,
+    operatingTotal: row.operatingCpu * row.volume
+  };
 }
 
 function aggregate(rows) {
@@ -231,44 +130,176 @@ function aggregate(rows) {
     acc.grossMargin += row.grossMargin;
     acc.operatingExpense += row.operatingExpense;
     acc.operatingIncome += row.operatingIncome;
-    acc.material += row.material * row.volume;
-    acc.labor += row.labor * row.volume;
-    acc.freight += row.freight * row.volume;
-    acc.overhead += row.overhead * row.volume;
-    acc.operating += row.operating * row.volume;
+    acc.material += row.materialTotal;
+    acc.labor += row.laborTotal;
+    acc.freight += row.freightTotal;
+    acc.overhead += row.overheadTotal;
+    acc.operating += row.operatingTotal;
     return acc;
-  }, { volume: 0, revenue: 0, cogs: 0, grossMargin: 0, operatingExpense: 0, operatingIncome: 0, material: 0, labor: 0, freight: 0, overhead: 0, operating: 0 });
+  }, {
+    volume: 0,
+    revenue: 0,
+    cogs: 0,
+    grossMargin: 0,
+    operatingExpense: 0,
+    operatingIncome: 0,
+    material: 0,
+    labor: 0,
+    freight: 0,
+    overhead: 0,
+    operating: 0
+  });
 
   totals.gmPct = totals.revenue ? totals.grossMargin / totals.revenue : 0;
   totals.omPct = totals.revenue ? totals.operatingIncome / totals.revenue : 0;
   return totals;
 }
 
-function renderKpis(totals, baselineTotals) {
-  const gmDelta = totals.gmPct - baselineTotals.gmPct;
-  const omDelta = totals.omPct - baselineTotals.omPct;
+function uniqueValues(records, key) {
+  return ["All", ...new Set(records.map((row) => row[key]))];
+}
 
+function fillSelect(element, values) {
+  element.innerHTML = values.map((value) => `<option value="${value}">${value}</option>`).join("");
+}
+
+function applyBaseFilters(records) {
+  return records.filter((row) => Object.entries(state.filters).every(([key, value]) => value === "All" || row[key] === value));
+}
+
+function getFilteredRows() {
+  return applyBaseFilters(state.records)
+    .filter((row) => state.drill.value === "All" || row[state.drill.dimension] === state.drill.value)
+    .map(computeRow);
+}
+
+function updateFilterOptions() {
+  Object.entries(els.filters).forEach(([key, element]) => {
+    fillSelect(element, uniqueValues(state.records, key));
+    element.value = state.filters[key];
+  });
+}
+
+function bindFilterEvents() {
+  Object.entries(els.filters).forEach(([key, element]) => {
+    element.addEventListener("change", () => {
+      state.filters[key] = element.value;
+      updateDrillValueOptions();
+      render();
+    });
+  });
+}
+
+function updateDrillValueOptions() {
+  const baseFiltered = applyBaseFilters(state.records);
+  const values = ["All", ...new Set(baseFiltered.map((row) => row[state.drill.dimension]))];
+  fillSelect(els.drillValue, values);
+
+  if (!values.includes(state.drill.value)) {
+    state.drill.value = "All";
+  }
+  els.drillValue.value = state.drill.value;
+}
+
+function bindDrillEvents() {
+  fillSelect(els.drillDimension, drillOptions.map((option) => option.value));
+  els.drillDimension.innerHTML = drillOptions
+    .map((option) => `<option value="${option.value}">${option.label}</option>`)
+    .join("");
+  els.drillDimension.value = state.drill.dimension;
+
+  els.drillDimension.addEventListener("change", () => {
+    state.drill.dimension = els.drillDimension.value;
+    state.drill.value = "All";
+    updateDrillValueOptions();
+    render();
+  });
+
+  els.drillValue.addEventListener("change", () => {
+    state.drill.value = els.drillValue.value;
+    render();
+  });
+
+  updateDrillValueOptions();
+}
+
+function bindReset() {
+  els.reset.addEventListener("click", () => {
+    Object.keys(state.filters).forEach((key) => {
+      state.filters[key] = "All";
+      els.filters[key].value = "All";
+    });
+
+    state.drill.dimension = "plant";
+    state.drill.value = "All";
+    els.drillDimension.value = "plant";
+
+    updateDrillValueOptions();
+    render();
+  });
+}
+
+function bindCsvUpload() {
+  els.upload.addEventListener("change", (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (result) => {
+        const normalized = result.data
+          .map(normalizeImportedRow)
+          .filter((row) => row.sku && row.volume > 0);
+
+        if (!normalized.length) {
+          alert("No valid rows found. Include SKU, volume, price, and cost columns.");
+          return;
+        }
+
+        state.records = normalized;
+        Object.keys(state.filters).forEach((key) => {
+          state.filters[key] = "All";
+        });
+        state.drill.dimension = "plant";
+        state.drill.value = "All";
+
+        updateFilterOptions();
+        els.drillDimension.value = state.drill.dimension;
+        updateDrillValueOptions();
+
+        els.dataSourceNote.textContent = `Data source: ${file.name} (${normalized.length} rows imported).`;
+        render();
+      },
+      error: () => {
+        alert("Unable to parse CSV. Verify file format and try again.");
+      }
+    });
+  });
+}
+
+function renderKpis(totals) {
   const cards = [
     ["Revenue", toMoney(totals.revenue)],
+    ["COGS", toMoney(totals.cogs)],
+    ["Operating Expense", toMoney(totals.operatingExpense)],
     ["Gross Margin", toMoney(totals.grossMargin)],
     ["Operating Income", toMoney(totals.operatingIncome)],
     ["Gross Margin %", toPct(totals.gmPct)],
     ["Operating Margin %", toPct(totals.omPct)]
   ];
 
-  els.kpis.innerHTML = cards.map(([label, value], i) => `
+  els.kpis.innerHTML = cards.map(([label, value]) => `
     <div class="kpi">
       <p>${label}</p>
       <h3>${value}</h3>
-      ${i === 3 ? `<div class="delta ${gmDelta >= 0 ? "up" : "down"}">${gmDelta >= 0 ? "▲" : "▼"} ${Math.abs(gmDelta * 100).toFixed(2)} pts vs base</div>` : ""}
-      ${i === 4 ? `<div class="delta ${omDelta >= 0 ? "up" : "down"}">${omDelta >= 0 ? "▲" : "▼"} ${Math.abs(omDelta * 100).toFixed(2)} pts vs base</div>` : ""}
     </div>
   `).join("");
 }
 
 function renderTable(rows) {
-  rows.sort((a, b) => b.revenue - a.revenue);
-  els.table.innerHTML = rows.map((row) => `
+  const sorted = [...rows].sort((a, b) => b.revenue - a.revenue);
+  els.table.innerHTML = sorted.map((row) => `
     <tr>
       <td>${row.sku}</td>
       <td>${row.family}</td>
@@ -284,7 +315,7 @@ function renderTable(rows) {
   `).join("");
 }
 
-function renderWaterfall(totals) {
+function renderOverallWaterfall(totals) {
   const components = [
     ["Material", totals.material],
     ["Labor", totals.labor],
@@ -293,7 +324,7 @@ function renderWaterfall(totals) {
     ["Operating", totals.operating]
   ];
 
-  const maxVal = Math.max(...components.map(([, v]) => v), 1);
+  const maxVal = Math.max(...components.map(([, value]) => value), 1);
   els.waterfall.innerHTML = components.map(([name, value]) => `
     <div class="water-row">
       <div>${name}</div>
@@ -303,18 +334,68 @@ function renderWaterfall(totals) {
   `).join("");
 }
 
+function renderBreakoutWaterfalls(rows) {
+  const grouped = rows.reduce((acc, row) => {
+    const key = row[state.drill.dimension];
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(row);
+    return acc;
+  }, {});
+
+  const entries = Object.entries(grouped)
+    .map(([name, groupRows]) => ({ name, totals: aggregate(groupRows) }))
+    .sort((a, b) => b.totals.revenue - a.totals.revenue)
+    .slice(0, 6);
+
+  if (!entries.length) {
+    els.waterfallBreakout.innerHTML = "<p class=\"small\">No records available for current filters.</p>";
+    return;
+  }
+
+  els.waterfallBreakout.innerHTML = entries.map((entry) => {
+    const components = [
+      ["Material", entry.totals.material],
+      ["Labor", entry.totals.labor],
+      ["Freight", entry.totals.freight],
+      ["Overhead", entry.totals.overhead],
+      ["Operating", entry.totals.operating]
+    ];
+    const maxVal = Math.max(...components.map(([, value]) => value), 1);
+
+    return `
+      <article class="breakout-item">
+        <div class="breakout-head">
+          <h3>${entry.name}</h3>
+          <div class="breakout-metrics">
+            <span>Revenue ${toMoney(entry.totals.revenue)}</span>
+            <span>GM ${toPct(entry.totals.gmPct)}</span>
+            <span>OM ${toPct(entry.totals.omPct)}</span>
+          </div>
+        </div>
+        ${components.map(([name, value]) => `
+          <div class="water-row compact">
+            <div>${name}</div>
+            <div class="bar"><span style="width:${(value / maxVal) * 100}%"></span></div>
+            <div>${toMoney(value)}</div>
+          </div>
+        `).join("")}
+      </article>
+    `;
+  }).join("");
+}
+
 function renderChart(rows) {
   const bySku = rows.reduce((acc, row) => {
-    if (!acc[row.sku]) acc[row.sku] = { revenue: 0, gm: 0, op: 0 };
+    if (!acc[row.sku]) acc[row.sku] = { revenue: 0, gm: 0, operating: 0 };
     acc[row.sku].revenue += row.revenue;
     acc[row.sku].gm += row.grossMargin;
-    acc[row.sku].op += row.operatingIncome;
+    acc[row.sku].operating += row.operatingIncome;
     return acc;
   }, {});
 
   const labels = Object.keys(bySku);
   const gmData = labels.map((sku) => bySku[sku].revenue ? (bySku[sku].gm / bySku[sku].revenue) * 100 : 0);
-  const omData = labels.map((sku) => bySku[sku].revenue ? (bySku[sku].op / bySku[sku].revenue) * 100 : 0);
+  const omData = labels.map((sku) => bySku[sku].revenue ? (bySku[sku].operating / bySku[sku].revenue) * 100 : 0);
 
   if (marginChart) marginChart.destroy();
   marginChart = new Chart(document.getElementById("margin-chart"), {
@@ -322,25 +403,15 @@ function renderChart(rows) {
     data: {
       labels,
       datasets: [
-        {
-          label: "GM%",
-          data: gmData,
-          borderRadius: 6,
-          backgroundColor: "rgba(79,159,255,0.8)"
-        },
-        {
-          label: "OM%",
-          data: omData,
-          borderRadius: 6,
-          backgroundColor: "rgba(69,208,162,0.78)"
-        }
+        { label: "GM%", data: gmData, borderRadius: 6, backgroundColor: "rgba(79,159,255,0.8)" },
+        { label: "OM%", data: omData, borderRadius: 6, backgroundColor: "rgba(69,208,162,0.78)" }
       ]
     },
     options: {
       plugins: { legend: { labels: { color: "#9fb0d3" } } },
       scales: {
         y: {
-          ticks: { callback: (v) => `${v}%`, color: "#9fb0d3" },
+          ticks: { callback: (value) => `${value}%`, color: "#9fb0d3" },
           grid: { color: "rgba(159,176,211,.12)" }
         },
         x: {
@@ -358,36 +429,39 @@ function renderInsights(rows, totals) {
     return;
   }
 
-  const sortedByGrossMargin = [...rows].sort((a, b) => b.gmPct - a.gmPct);
-  const sortedByOperatingMargin = [...rows].sort((a, b) => b.omPct - a.omPct);
-  const best = sortedByGrossMargin[0];
-  const worst = sortedByOperatingMargin[sortedByOperatingMargin.length - 1];
+  const sortedByGm = [...rows].sort((a, b) => b.gmPct - a.gmPct);
+  const sortedByOm = [...rows].sort((a, b) => b.omPct - a.omPct);
+  const bestGm = sortedByGm[0];
+  const worstOm = sortedByOm[sortedByOm.length - 1];
+
+  const drillLabel = drillOptions.find((option) => option.value === state.drill.dimension)?.label || state.drill.dimension;
+  const drillScope = state.drill.value === "All" ? `all ${drillLabel.toLowerCase()} values` : state.drill.value;
 
   const messages = [
-    `Highest gross-margin SKU in this slice is ${best.sku} at ${toPct(best.gmPct)} GM%.`,
-    `Lowest operating-margin SKU is ${worst.sku} at ${toPct(worst.omPct)} OM%, useful for action planning.`,
-    `Portfolio is running at ${toPct(totals.gmPct)} GM% and ${toPct(totals.omPct)} OM% on ${toMoney(totals.revenue)} revenue.`,
-    `Scenario shifts: price ${state.adjustments.price}%, material ${state.adjustments.material}%, labor ${state.adjustments.labor}%, freight ${state.adjustments.freight}%, operating expense ${state.adjustments.opex}%.`
+    `Overall slice is ${toPct(totals.gmPct)} GM% and ${toPct(totals.omPct)} OM% on ${toMoney(totals.revenue)} revenue.`,
+    `Best gross-margin SKU is ${bestGm.sku} at ${toPct(bestGm.gmPct)}.`,
+    `Biggest operating-margin pressure is ${worstOm.sku} at ${toPct(worstOm.omPct)}.`,
+    `Waterfall breakout is currently grouped by ${drillLabel}: ${drillScope}.`
   ];
 
-  els.insights.innerHTML = messages.map((m) => `<li>${m}</li>`).join("");
+  els.insights.innerHTML = messages.map((message) => `<li>${message}</li>`).join("");
 }
 
 function render() {
   const rows = getFilteredRows();
   const totals = aggregate(rows);
-  const baselineRows = state.records
-    .filter((row) => Object.entries(state.filters).every(([k, v]) => v === "All" || row[k] === v))
-    .map((row) => computeRowWithAdjustments(row, { material: 0, labor: 0, freight: 0, price: 0, opex: 0 }));
-  const baselineTotals = aggregate(baselineRows);
-  renderKpis(totals, baselineTotals);
-  renderTable(rows);
-  renderWaterfall(totals);
+
+  renderKpis(totals);
   renderChart(rows);
+  renderOverallWaterfall(totals);
+  renderBreakoutWaterfalls(rows);
+  renderTable(rows);
   renderInsights(rows, totals);
 }
 
 updateFilterOptions();
-bindScenarioSliders();
+bindFilterEvents();
+bindDrillEvents();
+bindReset();
 bindCsvUpload();
 render();

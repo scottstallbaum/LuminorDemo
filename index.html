@@ -20,7 +20,7 @@
   </header>
 
   <main class="layout">
-    <section class="panel controls">
+    <section class="panel controls controls-full">
       <h2>Filters</h2>
       <label>
         Import One-Tab Cost Export (CSV)
@@ -52,50 +52,33 @@
           Channel
           <select id="filter-channel"></select>
         </label>
+        <label>
+          Drill Dimension
+          <select id="drill-dimension"></select>
+        </label>
+        <label>
+          Drill Value
+          <select id="drill-value"></select>
+        </label>
       </div>
       <button id="btn-reset" class="ghost">Reset Filters</button>
     </section>
 
-    <section class="panel controls">
-      <h2>Scenario Controls</h2>
-      <p class="small">Pre-baked simulation logic for demo storytelling (not full model recalc).</p>
-      <div class="slider-wrap">
-        <label for="adj-material">Material Cost Shift</label>
-        <input type="range" id="adj-material" min="-10" max="20" value="0" step="1" />
-        <span id="adj-material-value">0%</span>
-      </div>
-      <div class="slider-wrap">
-        <label for="adj-labor">Labor Cost Shift</label>
-        <input type="range" id="adj-labor" min="-10" max="20" value="0" step="1" />
-        <span id="adj-labor-value">0%</span>
-      </div>
-      <div class="slider-wrap">
-        <label for="adj-freight">Freight Cost Shift</label>
-        <input type="range" id="adj-freight" min="-10" max="25" value="0" step="1" />
-        <span id="adj-freight-value">0%</span>
-      </div>
-      <div class="slider-wrap">
-        <label for="adj-price">Avg Selling Price Shift</label>
-        <input type="range" id="adj-price" min="-8" max="12" value="0" step="1" />
-        <span id="adj-price-value">0%</span>
-      </div>
-      <div class="slider-wrap">
-        <label for="adj-opex">Operating Expense Shift</label>
-        <input type="range" id="adj-opex" min="-10" max="20" value="0" step="1" />
-        <span id="adj-opex-value">0%</span>
-      </div>
-    </section>
-
     <section class="kpis" id="kpi-cards"></section>
 
-    <section class="panel">
-      <h2>Margin by SKU</h2>
+    <section class="panel panel-half">
+      <h2>Gross and Operating Margin by SKU</h2>
       <canvas id="margin-chart" height="130"></canvas>
     </section>
 
-    <section class="panel">
-      <h2>Cost Mix Waterfall (Filtered View)</h2>
+    <section class="panel panel-half">
+      <h2>Overall Cost Waterfall (Current Slice)</h2>
       <div id="waterfall" class="waterfall"></div>
+    </section>
+
+    <section class="panel table-panel">
+      <h2>Cost Waterfalls by Drill Selection</h2>
+      <div id="waterfall-breakout" class="waterfall breakout"></div>
     </section>
 
     <section class="panel table-panel">
@@ -119,8 +102,8 @@
       </table>
     </section>
 
-    <section class="panel">
-      <h2>Demo Narrative Callouts</h2>
+    <section class="panel panel-side">
+      <h2>Key Insights</h2>
       <ul id="insights"></ul>
     </section>
   </main>
