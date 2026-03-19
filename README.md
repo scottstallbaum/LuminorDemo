@@ -34,6 +34,12 @@ You can also paste data directly from Excel:
 - Paste into `Paste Table Data (Excel copy/paste)`
 - Click `Import Pasted Data`
 
+SKU descriptor reference is loaded separately (optional):
+- Use `Import SKU Descriptor Table (Excel or CSV)` for a dedicated descriptor master table
+- Or paste descriptor rows into `Paste SKU Descriptor Table`
+- Descriptor matching priority is `Plant + OSKU`, then `OSKU`, then `SKU`
+- Loaded descriptors enrich current and future cost imports automatically
+
 Notes for large pasted datasets:
 - 1,700+ rows are supported in-browser
 - Tab-delimited Excel paste is auto-detected
