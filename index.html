@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Luminor | BrewCo Cost Intelligence Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Luminor Demo</p>
+      <h1>BrewCo Margin Intelligence</h1>
+      <p class="subtitle">Interactive client preview for SKU, product family, plant, and packaging profitability.</p>
+    </div>
+    <div class="pill">Single Client Demo</div>
+  </header>
+
+  <main class="layout">
+    <section class="panel controls">
+      <h2>Filters</h2>
+      <label>
+        Import One-Tab Cost Export (CSV)
+        <input id="csv-upload" type="file" accept=".csv" />
+      </label>
+      <p id="data-source-note" class="small">Data source: Built-in BrewCo sample dataset.</p>
+      <div class="grid-two">
+        <label>
+          Period
+          <select id="filter-period"></select>
+        </label>
+        <label>
+          Plant
+          <select id="filter-plant"></select>
+        </label>
+        <label>
+          Product Family
+          <select id="filter-family"></select>
+        </label>
+        <label>
+          SKU
+          <select id="filter-sku"></select>
+        </label>
+        <label>
+          Packaging
+          <select id="filter-packaging"></select>
+        </label>
+        <label>
+          Channel
+          <select id="filter-channel"></select>
+        </label>
+      </div>
+      <button id="btn-reset" class="ghost">Reset Filters</button>
+    </section>
+
+    <section class="panel controls">
+      <h2>Scenario Controls</h2>
+      <p class="small">Pre-baked simulation logic for demo storytelling (not full model recalc).</p>
+      <div class="slider-wrap">
+        <label for="adj-material">Material Cost Shift</label>
+        <input type="range" id="adj-material" min="-10" max="20" value="0" step="1" />
+        <span id="adj-material-value">0%</span>
+      </div>
+      <div class="slider-wrap">
+        <label for="adj-labor">Labor Cost Shift</label>
+        <input type="range" id="adj-labor" min="-10" max="20" value="0" step="1" />
+        <span id="adj-labor-value">0%</span>
+      </div>
+      <div class="slider-wrap">
+        <label for="adj-freight">Freight Cost Shift</label>
+        <input type="range" id="adj-freight" min="-10" max="25" value="0" step="1" />
+        <span id="adj-freight-value">0%</span>
+      </div>
+      <div class="slider-wrap">
+        <label for="adj-price">Avg Selling Price Shift</label>
+        <input type="range" id="adj-price" min="-8" max="12" value="0" step="1" />
+        <span id="adj-price-value">0%</span>
+      </div>
+      <div class="slider-wrap">
+        <label for="adj-opex">Operating Expense Shift</label>
+        <input type="range" id="adj-opex" min="-10" max="20" value="0" step="1" />
+        <span id="adj-opex-value">0%</span>
+      </div>
+    </section>
+
+    <section class="kpis" id="kpi-cards"></section>
+
+    <section class="panel">
+      <h2>Margin by SKU</h2>
+      <canvas id="margin-chart" height="130"></canvas>
+    </section>
+
+    <section class="panel">
+      <h2>Cost Mix Waterfall (Filtered View)</h2>
+      <div id="waterfall" class="waterfall"></div>
+    </section>
+
+    <section class="panel table-panel">
+      <h2>SKU Detail</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Family</th>
+            <th>Plant</th>
+            <th>Packaging</th>
+            <th>Volume</th>
+            <th>Revenue</th>
+            <th>COGS</th>
+            <th>OpEx</th>
+            <th>GM%</th>
+            <th>OM%</th>
+          </tr>
+        </thead>
+        <tbody id="sku-table"></tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Demo Narrative Callouts</h2>
+      <ul id="insights"></ul>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
