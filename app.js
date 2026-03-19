@@ -259,6 +259,30 @@ function descriptorLookupKeys(row) {
   return keys;
 }
 
+function looksLikeDescriptorOnlyDataset(rawRows) {
+  const sample = (rawRows || []).slice(0, 25);
+  if (!sample.length) return false;
+
+  const hasDescriptorSignal = sample.some((row) => {
+    const descriptor = normalizeDescriptorRow(row);
+    return Boolean(
+      descriptor.plantOsku ||
+      (descriptor.osku && descriptor.osku !== "Unknown") ||
+      (descriptor.orderableSkuDescription && descriptor.orderableSkuDescription !== "Unknown")
+    );
+  });
+
+  const hasCostSignal = sample.some((row) => {
+    const volume = parseNum(getField(row, ["volume", "Volume"]));
+    const asp = parseNum(getField(row, ["asp", "price_per_unit", "avg_selling_price", "ASP"]));
+    const material = parseNum(getField(row, ["material_cpu", "Material_CPU", "material_cost_per_unit"]));
+    const operating = parseNum(getField(row, ["operating_cpu", "Operating_CPU", "opex_cpu", "opex_cost_per_unit"]));
+    return volume > 0 || asp > 0 || material > 0 || operating > 0;
+  });
+
+  return hasDescriptorSignal && !hasCostSignal;
+}
+
 function buildDescriptorLookup(descriptorRows) {
   return descriptorRows.reduce((acc, descriptor) => {
     descriptorLookupKeys(descriptor).forEach((key) => {
@@ -448,6 +472,12 @@ function loadImportedRows(rawRows, fileName) {
     .filter((row) => row.sku !== "Unknown" && row.volume > 0);
 
   if (!normalized.length) {
+    if (looksLikeDescriptorOnlyDataset(rawRows)) {
+      loadDescriptorRows(rawRows, `${fileName} (auto-detected descriptor reference)`);
+      alert("Detected a descriptor-only table. Loaded it into SKU Descriptor Reference automatically.");
+      return;
+    }
+
     alert("No valid rows found. Include SKU and volume plus pricing/cost columns.");
     return;
   }
