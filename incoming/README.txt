@@ -1,4 +1,6 @@
 Drop your source files here for conversion into static demo data.
+Treat this folder as local-only working input.
+Do not commit raw source files when the repository is public.
 
 Expected source files:
 - Cost dataset (Excel or CSV)
