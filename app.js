@@ -126,7 +126,7 @@ function withDescriptorDefaults(row) {
 const els = {
   filters: {
     plant: document.getElementById("filter-plant"),
-    family: document.getElementById("filter-family"),
+    priceSegment: document.getElementById("filter-price-segment"),
     packaging: document.getElementById("filter-packaging")
   },
   drillDimension: document.getElementById("drill-dimension"),
@@ -140,7 +140,7 @@ const state = {
   descriptorLookup: {},
   filters: {
     plant: "All",
-    family: "All",
+    priceSegment: "All",
     packaging: "All"
   },
   drill: {
@@ -692,8 +692,8 @@ function renderOverallWaterfall(totals) {
   const minVal = Math.min(...values, 0);
 
   const width = 1100;
-  const height = 500;
-  const margin = { top: 58, right: 24, bottom: 132, left: 88 };
+  const height = 360;
+  const margin = { top: 42, right: 18, bottom: 76, left: 88 };
   const plotW = width - margin.left - margin.right;
   const plotH = height - margin.top - margin.bottom;
   const count = Math.max(plotSteps.length, 1);
@@ -729,15 +729,16 @@ function renderOverallWaterfall(totals) {
     const cls = `wf-bar wf-${step.kind}`;
 
     const labelLines = splitWaterfallLabel(step.label);
-    const valueY = margin.top - 24;
-    const pctY = margin.top - 9;
+    const valueY = margin.top - 16;
+    const pctY = margin.top - 2;
+    const labelBaseY = height - 26;
 
     return `
       <g>
         <rect class="${cls}" x="${x.toFixed(2)}" y="${rectY.toFixed(2)}" width="${barW.toFixed(2)}" height="${rectH.toFixed(2)}" rx="5" />
         <text class="wf-value" x="${cx.toFixed(2)}" y="${valueY.toFixed(2)}" text-anchor="middle">${toSignedMoney(step.displayValue)}</text>
         <text class="wf-pct" x="${cx.toFixed(2)}" y="${pctY.toFixed(2)}" text-anchor="middle">(${toPct(step.pct)})</text>
-        ${labelLines.map((line, i) => `<text class="wf-label" x="${cx.toFixed(2)}" y="${(height - 58 + (i * 14)).toFixed(2)}" text-anchor="middle">${line}</text>`).join("")}
+        ${labelLines.map((line, i) => `<text class="wf-label" x="${cx.toFixed(2)}" y="${(labelBaseY + (i * 13)).toFixed(2)}" text-anchor="middle">${line}</text>`).join("")}
       </g>
     `;
   }).join("");
