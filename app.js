@@ -154,6 +154,11 @@ const els = {
     priceSegment: document.getElementById("filter-price-segment"),
     packaging: document.getElementById("filter-packaging")
   },
+  comparisonFilters: {
+    plant: document.getElementById("compare-plant"),
+    priceSegment: document.getElementById("compare-price-segment"),
+    packaging: document.getElementById("compare-packaging")
+  },
   drillDimension: document.getElementById("drill-dimension"),
   drillValue: document.getElementById("drill-value"),
   axisMode: document.getElementById("axis-mode"),
@@ -161,6 +166,12 @@ const els = {
   comparisonSetup: document.getElementById("comparison-setup"),
   comparisonStatus: document.getElementById("comparison-status"),
   reset: document.getElementById("btn-reset"),
+  singleWaterfallPanel: document.getElementById("single-waterfall-panel"),
+  comparisonPanel: document.getElementById("comparison-panel"),
+  comparisonCurrentWaterfall: document.getElementById("comparison-current-waterfall"),
+  comparisonCompareWaterfall: document.getElementById("comparison-compare-waterfall"),
+  comparisonCurrentSummary: document.getElementById("comparison-current-summary"),
+  comparisonCompareSummary: document.getElementById("comparison-compare-summary"),
   waterfallShell: document.querySelector(".waterfall-shell"),
   waterfall: document.getElementById("waterfall"),
   breakdownTitle: document.getElementById("breakdown-title"),
@@ -176,6 +187,11 @@ const state = {
   records: staticCostData.map(normalizeStaticCostRow).map(withDescriptorDefaults),
   descriptorLookup: {},
   filters: {
+    plant: "All",
+    priceSegment: "All",
+    packaging: "All"
+  },
+  comparisonFilters: {
     plant: "All",
     priceSegment: "All",
     packaging: "All"
@@ -688,8 +704,12 @@ function fillSelect(element, values) {
   element.innerHTML = values.map((value) => `<option value="${value}">${value}</option>`).join("");
 }
 
+function applyFilters(records, filters) {
+  return records.filter((row) => Object.entries(filters).every(([key, value]) => value === "All" || String(row[key]) === value));
+}
+
 function applyBaseFilters(records) {
-  return records.filter((row) => Object.entries(state.filters).every(([key, value]) => value === "All" || String(row[key]) === value));
+  return applyFilters(records, state.filters);
 }
 
 function getBaseFilteredRows() {
@@ -705,6 +725,14 @@ function updateFilterOptions() {
   Object.entries(els.filters).forEach(([key, element]) => {
     fillSelect(element, uniqueValues(state.records, key));
     element.value = state.filters[key];
+  });
+}
+
+function updateComparisonFilterOptions() {
+  Object.entries(els.comparisonFilters).forEach(([key, element]) => {
+    if (!element) return;
+    fillSelect(element, uniqueValues(state.records, key));
+    element.value = state.comparisonFilters[key];
   });
 }
 
@@ -724,6 +752,16 @@ function bindFilterEvents() {
       render();
     });
   }
+}
+
+function bindComparisonFilterEvents() {
+  Object.entries(els.comparisonFilters).forEach(([key, element]) => {
+    if (!element) return;
+    element.addEventListener("change", () => {
+      state.comparisonFilters[key] = element.value;
+      render();
+    });
+  });
 }
 
 function updateDrillValueOptions() {
@@ -766,14 +804,22 @@ function bindReset() {
       els.filters[key].value = "All";
     });
 
+    Object.keys(state.comparisonFilters).forEach((key) => {
+      state.comparisonFilters[key] = "All";
+      if (els.comparisonFilters[key]) els.comparisonFilters[key].value = "All";
+    });
+
     state.drill.dimension = "plant";
     state.drill.value = "All";
     els.drillDimension.value = "plant";
     state.axisMode = "dollar";
     if (els.axisMode) els.axisMode.value = "dollar";
     state.comparisonMode = false;
+    state.breakdown.stepKey = null;
+    state.breakdown.expandOther = false;
     if (els.comparisonBtn) els.comparisonBtn.textContent = "Enter Comparison";
     if (els.comparisonSetup) els.comparisonSetup.classList.add("is-hidden");
+    if (els.comparisonStatus) els.comparisonStatus.textContent = "Comparison mode is on. Choose a comparison slice below.";
 
     updateDrillValueOptions();
     render();
@@ -785,6 +831,8 @@ function bindComparisonButton() {
 
   els.comparisonBtn.addEventListener("click", () => {
     state.comparisonMode = !state.comparisonMode;
+    state.breakdown.stepKey = null;
+    state.breakdown.expandOther = false;
     els.comparisonBtn.textContent = state.comparisonMode ? "Exit Comparison" : "Enter Comparison";
     if (els.comparisonSetup) {
       els.comparisonSetup.classList.toggle("is-hidden", !state.comparisonMode);
@@ -792,9 +840,11 @@ function bindComparisonButton() {
 
     if (els.comparisonStatus) {
       els.comparisonStatus.textContent = state.comparisonMode
-        ? "Comparison mode is on. Next step: choose baseline and comparison slice."
+        ? "Comparison mode is on. Choose a comparison slice below."
         : "";
     }
+
+    render();
   });
 }
 
@@ -972,7 +1022,7 @@ function renderTable(rows) {
   `).join("");
 }
 
-function renderOverallWaterfall(totals) {
+function getWaterfallPlotSteps(totals) {
   const steps = buildWaterfallSteps(totals);
   const revenue = totals.revenue || 0;
   const percentMode = state.axisMode === "percent";
@@ -1031,9 +1081,26 @@ function renderOverallWaterfall(totals) {
     });
   });
 
-  const values = plotSteps.flatMap((step) => [step.beforeMetric, step.afterMetric, 0]);
-  const maxVal = Math.max(...values, 1);
-  const minVal = Math.min(...values, 0);
+  return { plotSteps, revenue, percentMode };
+}
+
+function getWaterfallScaleBounds(groups) {
+  const values = groups.flatMap((group) => group.plotSteps.flatMap((step) => [step.beforeMetric, step.afterMetric, 0]));
+  return {
+    maxVal: Math.max(...values, 1),
+    minVal: Math.min(...values, 0)
+  };
+}
+
+function renderWaterfall(target, totals, options = {}) {
+  if (!target) return;
+
+  const { plotSteps, percentMode } = getWaterfallPlotSteps(totals);
+  const scaleBounds = options.scaleBounds || getWaterfallScaleBounds([{ plotSteps }]);
+  const interactive = Boolean(options.interactive);
+  const activeStepKey = options.activeStepKey || null;
+
+  const { maxVal, minVal } = scaleBounds;
 
   const width = 1100;
   const height = 360;
@@ -1081,8 +1148,8 @@ function renderOverallWaterfall(totals) {
     const pctY = margin.top - 2;
     const labelBaseY = margin.top + plotH + 14;
 
-    const isClickable = BREAKDOWN_CLICKABLE_KEYS.includes(step.key);
-    const isActive = state.breakdown.stepKey === step.key;
+    const isClickable = interactive && BREAKDOWN_CLICKABLE_KEYS.includes(step.key);
+    const isActive = interactive && activeStepKey === step.key;
 
     const detailLine1Y = Math.min(height - 20, rectY + rectH + 10);
     const detailLine2Y = Math.min(height - 8, detailLine1Y + 11);
@@ -1104,11 +1171,11 @@ function renderOverallWaterfall(totals) {
 
     const x1 = margin.left + (index + 0.5) * slot + barW / 2;
     const x2 = margin.left + (index + 1.5) * slot - barW / 2;
-    const yLine = y(step.after);
+    const yLine = y(step.afterMetric);
     return `<line class="wf-connector" x1="${x1.toFixed(2)}" y1="${yLine.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${yLine.toFixed(2)}" />`;
   }).join("");
 
-  els.waterfall.innerHTML = `
+  target.innerHTML = `
     <svg class="wf-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Revenue to Operating Income waterfall chart">
       ${grid}
       <line class="wf-zero" x1="${margin.left}" y1="${zeroY.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${zeroY.toFixed(2)}" />
@@ -1117,7 +1184,9 @@ function renderOverallWaterfall(totals) {
     </svg>
   `;
 
-  els.waterfall.querySelectorAll("[data-step-key]").forEach((node) => {
+  if (!interactive) return;
+
+  target.querySelectorAll("[data-step-key]").forEach((node) => {
     node.addEventListener("click", () => {
       const stepKey = node.getAttribute("data-step-key");
       if (!BREAKDOWN_CLICKABLE_KEYS.includes(stepKey)) return;
@@ -1127,6 +1196,56 @@ function renderOverallWaterfall(totals) {
       render();
     });
   });
+}
+
+function renderOverallWaterfall(totals) {
+  renderWaterfall(els.waterfall, totals, {
+    interactive: true,
+    activeStepKey: state.breakdown.stepKey
+  });
+}
+
+function summarizeFilters(filters) {
+  const labels = {
+    plant: "Plant",
+    priceSegment: "Price Segment",
+    packaging: "Packaging"
+  };
+
+  const parts = Object.entries(filters)
+    .filter(([, value]) => value !== "All")
+    .map(([key, value]) => `${labels[key]}: ${value}`);
+
+  return parts.length ? parts.join(" | ") : "All products";
+}
+
+function renderComparisonMode(primaryTotals, comparisonTotals) {
+  els.singleWaterfallPanel?.classList.add("is-hidden");
+  els.comparisonPanel?.classList.remove("is-hidden");
+
+  if (els.comparisonCurrentSummary) {
+    const drillPart = state.drill.value !== "All"
+      ? ` | ${state.drill.dimension}: ${state.drill.value}`
+      : "";
+    els.comparisonCurrentSummary.textContent = `${summarizeFilters(state.filters)}${drillPart}`;
+  }
+
+  if (els.comparisonCompareSummary) {
+    els.comparisonCompareSummary.textContent = summarizeFilters(state.comparisonFilters);
+  }
+
+  const primaryGroup = getWaterfallPlotSteps(primaryTotals);
+  const comparisonGroup = getWaterfallPlotSteps(comparisonTotals);
+  const scaleBounds = getWaterfallScaleBounds([primaryGroup, comparisonGroup]);
+
+  renderWaterfall(els.comparisonCurrentWaterfall, primaryTotals, { scaleBounds });
+  renderWaterfall(els.comparisonCompareWaterfall, comparisonTotals, { scaleBounds });
+}
+
+function renderSingleMode(totals) {
+  els.singleWaterfallPanel?.classList.remove("is-hidden");
+  els.comparisonPanel?.classList.add("is-hidden");
+  renderOverallWaterfall(totals);
 }
 
 function splitWaterfallLabel(label) {
@@ -1281,12 +1400,22 @@ function render() {
   const totals = aggregate(focusedRows);
   state.breakdown.totals = totals;
 
-  renderOverallWaterfall(totals);
+  if (state.comparisonMode) {
+    const comparisonRows = applyFilters(state.records, state.comparisonFilters).map(computeRow);
+    const comparisonTotals = aggregate(comparisonRows);
+    renderComparisonMode(totals, comparisonTotals);
+    renderBreakdownPanel(totals);
+    return;
+  }
+
+  renderSingleMode(totals);
   renderBreakdownPanel(totals);
 }
 
 updateFilterOptions();
+updateComparisonFilterOptions();
 bindFilterEvents();
+bindComparisonFilterEvents();
 bindDrillEvents();
 bindReset();
 bindComparisonButton();
