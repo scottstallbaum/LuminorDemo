@@ -182,7 +182,8 @@ const state = {
   },
   breakdown: {
     stepKey: null,
-    totals: null
+    totals: null,
+    expandOther: false
   }
 };
 
@@ -759,6 +760,7 @@ function bindBreakdownEvents() {
   if (!els.breakdownClose) return;
   els.breakdownClose.addEventListener("click", () => {
     state.breakdown.stepKey = null;
+    state.breakdown.expandOther = false;
     render();
   });
 }
@@ -811,15 +813,33 @@ function renderBreakdownPanel(totals) {
 
   const clickedLabel = stepKey === "conversion" ? "Conversion Costs" : "SG&A";
   const clickedTotal = stepKey === "conversion" ? (totals.conversion || 0) : (totals.sga || 0);
-  let entries = getBreakdownEntries(stepKey, totals)
+  const allEntries = getBreakdownEntries(stepKey, totals)
     .filter((entry) => entry.value > 0)
     .sort((a, b) => b.value - a.value);
 
+  let entries = [...allEntries];
+  let hasOther = false;
+  let hiddenEntries = [];
+  let otherTotal = 0;
+
   const maxLegendItems = 8;
-  if (entries.length > maxLegendItems) {
-    const visible = entries.slice(0, maxLegendItems - 1);
-    const otherTotal = entries.slice(maxLegendItems - 1).reduce((sum, entry) => sum + entry.value, 0);
-    entries = [...visible, { label: "Other", value: otherTotal }];
+  if (allEntries.length > maxLegendItems) {
+    const visible = allEntries.slice(0, maxLegendItems - 1);
+    hiddenEntries = allEntries.slice(maxLegendItems - 1);
+    otherTotal = hiddenEntries.reduce((sum, entry) => sum + entry.value, 0);
+    hasOther = hiddenEntries.length > 0;
+
+    if (state.breakdown.expandOther && hasOther) {
+      entries = [
+        ...visible,
+        { label: "Other (click to collapse)", value: otherTotal, isOtherToggle: true },
+        ...hiddenEntries.map((entry) => ({ ...entry, fromOther: true }))
+      ];
+    } else {
+      entries = [...visible, { label: "Other (click to expand)", value: otherTotal, isOtherToggle: true }];
+    }
+  } else {
+    state.breakdown.expandOther = false;
   }
 
   els.waterfallShell?.classList.add("has-breakdown");
@@ -846,8 +866,9 @@ function renderBreakdownPanel(totals) {
 
   els.breakdownLegend.innerHTML = entries.map((entry, index) => {
     const pctOfClicked = clickedTotal ? entry.value / clickedTotal : 0;
+    const isOtherToggle = Boolean(entry.isOtherToggle && hasOther);
     return `
-      <div class="breakdown-item">
+      <div class="breakdown-item${entry.fromOther ? " breakdown-item-other" : ""}${isOtherToggle ? " breakdown-item-toggle" : ""}" ${isOtherToggle ? "data-other-toggle=\"true\"" : ""}>
         <span class="breakdown-dot" style="background:${colors[index]}"></span>
         <div class="breakdown-text">
           <div class="breakdown-name">${entry.label}</div>
@@ -856,6 +877,15 @@ function renderBreakdownPanel(totals) {
       </div>
     `;
   }).join("");
+
+  if (hasOther) {
+    els.breakdownLegend.querySelectorAll("[data-other-toggle='true']").forEach((node) => {
+      node.addEventListener("click", () => {
+        state.breakdown.expandOther = !state.breakdown.expandOther;
+        render();
+      });
+    });
+  }
 }
 
 function renderKpis(totals) {
@@ -1033,7 +1063,9 @@ function renderOverallWaterfall(totals) {
     node.addEventListener("click", () => {
       const stepKey = node.getAttribute("data-step-key");
       if (!BREAKDOWN_CLICKABLE_KEYS.includes(stepKey)) return;
+      const changedStep = state.breakdown.stepKey !== stepKey;
       state.breakdown.stepKey = stepKey;
+      if (changedStep) state.breakdown.expandOther = false;
       render();
     });
   });

@@ -300,6 +300,18 @@ th { color: var(--muted); font-weight: 600; }
   gap: .45rem;
   align-items: start;
 }
+.breakdown-item-toggle {
+  cursor: pointer;
+  border: 1px dashed rgba(159, 176, 211, .35);
+  border-radius: .45rem;
+  padding: .3rem .35rem;
+}
+.breakdown-item-toggle:hover {
+  background: rgba(159, 176, 211, .08);
+}
+.breakdown-item-other {
+  margin-left: .55rem;
+}
 .breakdown-dot {
   width: 10px;
   height: 10px;
