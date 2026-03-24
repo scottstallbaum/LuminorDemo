@@ -21,7 +21,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 1.25rem 1.5rem;
+  padding: 1.05rem 1.5rem;
   border-bottom: 1px solid var(--line);
 }
 .eyebrow { text-transform: uppercase; color: var(--accent); letter-spacing: .08em; font-size: .75rem; margin: 0 0 .35rem; }
@@ -38,7 +38,7 @@ h1 { margin: 0; font-size: 1.55rem; }
 }
 
 .layout {
-  padding: 1rem 1.25rem 1.5rem;
+  padding: .9rem 1.25rem 1.25rem;
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: .9rem;
@@ -47,7 +47,7 @@ h1 { margin: 0; font-size: 1.55rem; }
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: .85rem;
-  padding: .85rem .95rem;
+  padding: .95rem 1rem;
 }
 .panel h2 { margin: 0 0 .75rem; font-size: .95rem; }
 .controls-full { grid-column: span 12; }
@@ -134,10 +134,14 @@ textarea {
 .panel-side { grid-column: span 4; }
 .panel-wide { grid-column: span 12; }
 .compact-controls {
-  padding-bottom: .7rem;
+  padding-bottom: .6rem;
 }
 .compact-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.compact-controls .ghost {
+  margin-top: .55rem;
 }
 
 table { width: 100%; border-collapse: collapse; font-size: .82rem; }
@@ -147,47 +151,60 @@ th { color: var(--muted); font-weight: 600; }
 .waterfall {
   display: grid;
   gap: .45rem;
+  padding: .35rem .3rem .15rem;
+  border: 1px solid rgba(159, 176, 211, .14);
+  border-radius: .7rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .02), rgba(255, 255, 255, .005));
 }
 .wf-chart {
   width: 100%;
   height: auto;
   display: block;
 }
-.wf-zero {
-  stroke: rgba(159, 176, 211, .35);
+.wf-grid {
+  stroke: rgba(159, 176, 211, .14);
   stroke-width: 1;
+}
+.wf-zero {
+  stroke: rgba(159, 176, 211, .5);
+  stroke-width: 1.2;
 }
 .wf-connector {
   stroke: rgba(159, 176, 211, .55);
   stroke-width: 1;
   stroke-dasharray: 4 3;
 }
+.wf-axis {
+  fill: var(--muted);
+  font-size: 10px;
+}
 .wf-bar {
   stroke: rgba(255, 255, 255, .15);
   stroke-width: 1;
 }
 .wf-base {
-  fill: #4f9fff;
+  fill: #5da8ff;
 }
 .wf-cost {
-  fill: #ff7a6d;
+  fill: #ff8c7a;
 }
 .wf-subtotal,
 .wf-final {
-  fill: #45d0a2;
+  fill: #43c99a;
 }
 .wf-label {
   fill: var(--text);
-  font-size: 11px;
+  font-size: 10.5px;
+  font-weight: 500;
 }
 .wf-pct {
   fill: var(--muted);
-  font-size: 11px;
+  font-size: 10.5px;
 }
 .wf-value {
   fill: var(--text);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 700;
 }
 .water-row {
   display: grid;
@@ -251,7 +268,7 @@ th { color: var(--muted); font-weight: 600; }
 
 @media (max-width: 1200px) {
   .grid-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .compact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .compact-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 

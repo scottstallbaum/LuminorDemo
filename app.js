@@ -691,9 +691,9 @@ function renderOverallWaterfall(totals) {
   const maxVal = Math.max(...values, 1);
   const minVal = Math.min(...values, 0);
 
-  const width = 1040;
-  const height = 430;
-  const margin = { top: 28, right: 24, bottom: 105, left: 70 };
+  const width = 1100;
+  const height = 500;
+  const margin = { top: 26, right: 24, bottom: 160, left: 88 };
   const plotW = width - margin.left - margin.right;
   const plotH = height - margin.top - margin.bottom;
   const count = Math.max(plotSteps.length, 1);
@@ -707,6 +707,15 @@ function renderOverallWaterfall(totals) {
 
   const zeroY = y(0);
 
+  const tickValues = [maxVal, (maxVal + minVal) / 2, 0].filter((v, i, arr) => arr.findIndex((x) => Math.abs(x - v) < 0.0001) === i);
+  const grid = tickValues.map((tick) => {
+    const yTick = y(tick);
+    return `
+      <line class="wf-grid" x1="${margin.left}" y1="${yTick.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${yTick.toFixed(2)}" />
+      <text class="wf-axis" x="${(margin.left - 10).toFixed(2)}" y="${(yTick + 4).toFixed(2)}" text-anchor="end">${toMoney(tick)}</text>
+    `;
+  }).join("");
+
   const bars = plotSteps.map((step, index) => {
     const cx = margin.left + (index + 0.5) * slot;
     const x = cx - barW / 2;
@@ -719,15 +728,14 @@ function renderOverallWaterfall(totals) {
     const rectH = Math.max(2, Math.abs(y2 - y1));
     const cls = `wf-bar wf-${step.kind}`;
 
-    const valueY = step.displayValue < 0 ? rectY + rectH + 14 : rectY - 8;
     const labelLines = splitWaterfallLabel(step.label);
 
     return `
       <g>
         <rect class="${cls}" x="${x.toFixed(2)}" y="${rectY.toFixed(2)}" width="${barW.toFixed(2)}" height="${rectH.toFixed(2)}" rx="5" />
-        <text class="wf-value" x="${cx.toFixed(2)}" y="${valueY.toFixed(2)}" text-anchor="middle">${toSignedMoney(step.displayValue)}</text>
-        ${labelLines.map((line, i) => `<text class="wf-label" x="${cx.toFixed(2)}" y="${(height - 48 + (i * 14)).toFixed(2)}" text-anchor="middle">${line}</text>`).join("")}
-        <text class="wf-pct" x="${cx.toFixed(2)}" y="${(height - 18).toFixed(2)}" text-anchor="middle">(${toPct(step.pct)})</text>
+        ${labelLines.map((line, i) => `<text class="wf-label" x="${cx.toFixed(2)}" y="${(height - 90 + (i * 14)).toFixed(2)}" text-anchor="middle">${line}</text>`).join("")}
+        <text class="wf-value" x="${cx.toFixed(2)}" y="${(height - 50).toFixed(2)}" text-anchor="middle">${toSignedMoney(step.displayValue)}</text>
+        <text class="wf-pct" x="${cx.toFixed(2)}" y="${(height - 28).toFixed(2)}" text-anchor="middle">(${toPct(step.pct)})</text>
       </g>
     `;
   }).join("");
@@ -744,6 +752,7 @@ function renderOverallWaterfall(totals) {
 
   els.waterfall.innerHTML = `
     <svg class="wf-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Revenue to Operating Income waterfall chart">
+      ${grid}
       <line class="wf-zero" x1="${margin.left}" y1="${zeroY.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${zeroY.toFixed(2)}" />
       ${connectors}
       ${bars}
