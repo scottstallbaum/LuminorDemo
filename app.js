@@ -127,41 +127,14 @@ const els = {
   filters: {
     period: document.getElementById("filter-period"),
     plant: document.getElementById("filter-plant"),
-    plantDesc: document.getElementById("filter-plant-desc"),
     family: document.getElementById("filter-family"),
-    brand: document.getElementById("filter-brand"),
-    brandFamily: document.getElementById("filter-brand-family"),
-    brandSegment: document.getElementById("filter-brand-segment"),
-    priceSegment: document.getElementById("filter-price-segment"),
-    osku: document.getElementById("filter-osku"),
-    plantOsku: document.getElementById("filter-plant-osku"),
-    orderableSkuDescription: document.getElementById("filter-orderable-sku-description"),
-    sku: document.getElementById("filter-sku"),
-    containerType: document.getElementById("filter-container-type"),
-    containerSize: document.getElementById("filter-container-size"),
-    smallestPack: document.getElementById("filter-smallest-pack"),
-    alcoholReportingGroup: document.getElementById("filter-alcohol-reporting-group"),
-    productionBbl: document.getElementById("filter-production-bbl"),
     packaging: document.getElementById("filter-packaging")
   },
   drillDimension: document.getElementById("drill-dimension"),
   drillValue: document.getElementById("drill-value"),
   reset: document.getElementById("btn-reset"),
-  upload: document.getElementById("upload-data"),
-  descriptorUpload: document.getElementById("upload-descriptor-data"),
-  dataSourceNote: document.getElementById("data-source-note"),
-  descriptorSourceNote: document.getElementById("descriptor-source-note"),
-  pasteDataset: document.getElementById("paste-dataset"),
-  pasteDescriptors: document.getElementById("paste-descriptors"),
-  importPaste: document.getElementById("btn-import-paste"),
-  clearPaste: document.getElementById("btn-clear-paste"),
-  importDescriptorsPaste: document.getElementById("btn-import-descriptors-paste"),
-  clearDescriptorsPaste: document.getElementById("btn-clear-descriptors-paste"),
-  kpis: document.getElementById("kpi-cards"),
-  table: document.getElementById("sku-table"),
   waterfall: document.getElementById("waterfall"),
-  waterfallBreakout: document.getElementById("waterfall-breakout"),
-  insights: document.getElementById("insights")
+  waterfallBreakout: document.getElementById("waterfall-breakout")
 };
 
 const state = {
@@ -170,21 +143,7 @@ const state = {
   filters: {
     period: "All",
     plant: "All",
-    plantDesc: "All",
     family: "All",
-    brand: "All",
-    brandFamily: "All",
-    brandSegment: "All",
-    priceSegment: "All",
-    osku: "All",
-    plantOsku: "All",
-    orderableSkuDescription: "All",
-    sku: "All",
-    containerType: "All",
-    containerSize: "All",
-    smallestPack: "All",
-    alcoholReportingGroup: "All",
-    productionBbl: "All",
     packaging: "All"
   },
   drill: {
@@ -634,228 +593,6 @@ function bindReset() {
   });
 }
 
-function loadImportedRows(rawRows, fileName) {
-  const normalized = rawRows
-    .map(normalizeImportedRow)
-    .filter((row) => row.sku !== "Unknown" && row.volume > 0);
-
-  if (!normalized.length) {
-    if (looksLikeDescriptorOnlyDataset(rawRows)) {
-      loadDescriptorRows(rawRows, `${fileName} (auto-detected descriptor reference)`);
-      alert("Detected a descriptor-only table. Loaded it into SKU Descriptor Reference automatically.");
-      return;
-    }
-
-    alert("No valid rows found. Include SKU and volume plus pricing/cost columns.");
-    return;
-  }
-
-  state.records = applyDescriptorLookup(normalized);
-  Object.keys(state.filters).forEach((key) => {
-    state.filters[key] = "All";
-  });
-  state.drill.dimension = "plant";
-  state.drill.value = "All";
-
-  updateFilterOptions();
-  els.drillDimension.value = state.drill.dimension;
-  updateDrillValueOptions();
-
-  els.dataSourceNote.textContent = `Data source: ${fileName} (${normalized.length} rows imported).`;
-  render();
-}
-
-function loadDescriptorRows(rawRows, sourceName) {
-  const normalized = rawRows
-    .map(normalizeDescriptorRow)
-    .filter((row) => row.sku !== "Unknown" || row.osku !== "Unknown" || row.plantOsku);
-
-  if (!normalized.length) {
-    alert("No valid descriptor rows found. Include SKU/OSKU or Plant + OSKU columns.");
-    return;
-  }
-
-  state.descriptorLookup = buildDescriptorLookup(normalized);
-  state.records = applyDescriptorLookup(state.records);
-  updateFilterOptions();
-  updateDrillValueOptions();
-  els.descriptorSourceNote.textContent = `SKU descriptors: ${sourceName} (${normalized.length} rows loaded).`;
-  render();
-}
-
-function parseCsvFile(file) {
-  Papa.parse(file, {
-    header: true,
-    skipEmptyLines: true,
-    transformHeader: (header) => String(header || "").trim(),
-    complete: (result) => {
-      loadImportedRows(result.data || [], file.name);
-    },
-    error: () => {
-      alert("Unable to parse CSV. Verify file format and try again.");
-    }
-  });
-}
-
-function parsePastedData(text) {
-  const trimmed = String(text || "").trim();
-  if (!trimmed) {
-    alert("Paste data first, then click Import Pasted Data.");
-    return;
-  }
-
-  Papa.parse(trimmed, {
-    header: true,
-    delimiter: "",
-    skipEmptyLines: true,
-    transformHeader: (header) => String(header || "").trim(),
-    complete: (result) => {
-      loadImportedRows(result.data || [], "Pasted dataset");
-    },
-    error: () => {
-      alert("Unable to parse pasted data. Paste with a header row and tab/comma delimiters.");
-    }
-  });
-}
-
-function parsePastedDescriptors(text) {
-  const trimmed = String(text || "").trim();
-  if (!trimmed) {
-    alert("Paste descriptor data first, then click Import Pasted Descriptors.");
-    return;
-  }
-
-  Papa.parse(trimmed, {
-    header: true,
-    delimiter: "",
-    skipEmptyLines: true,
-    transformHeader: (header) => String(header || "").trim(),
-    complete: (result) => {
-      loadDescriptorRows(result.data || [], "Pasted descriptors");
-    },
-    error: () => {
-      alert("Unable to parse pasted descriptor data. Paste with a header row and tab/comma delimiters.");
-    }
-  });
-}
-
-function parseExcelFile(file) {
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    try {
-      const data = event.target?.result;
-      const workbook = XLSX.read(data, { type: "array" });
-      const selected = pickWorksheet(workbook, "cost");
-      if (!selected) {
-        alert("No worksheet found in this Excel file.");
-        return;
-      }
-
-      loadImportedRows(selected.rows, `${file.name} [${selected.name}]`);
-    } catch {
-      alert("Unable to parse Excel file. Try saving it again as .xlsx and re-upload.");
-    }
-  };
-
-  reader.onerror = () => {
-    alert("Unable to read Excel file from disk.");
-  };
-
-  reader.readAsArrayBuffer(file);
-}
-
-function bindDataUpload() {
-  if (!els.upload) return;
-
-  els.upload.addEventListener("change", (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const name = file.name.toLowerCase();
-    if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
-      parseExcelFile(file);
-      return;
-    }
-
-    if (name.endsWith(".csv")) {
-      parseCsvFile(file);
-      return;
-    }
-
-    alert("Unsupported file type. Upload .xlsx, .xls, or .csv.");
-  });
-}
-
-function bindDescriptorUpload() {
-  if (!els.descriptorUpload) return;
-
-  els.descriptorUpload.addEventListener("change", (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const name = file.name.toLowerCase();
-    if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
-      const reader = new FileReader();
-      reader.onload = (loadEvent) => {
-        try {
-          const data = loadEvent.target?.result;
-          const workbook = XLSX.read(data, { type: "array" });
-          const selected = pickWorksheet(workbook, "descriptor");
-          if (!selected) {
-            alert("No worksheet found in descriptor file.");
-            return;
-          }
-          loadDescriptorRows(selected.rows, `${file.name} [${selected.name}]`);
-        } catch {
-          alert("Unable to parse descriptor Excel file.");
-        }
-      };
-      reader.onerror = () => alert("Unable to read descriptor Excel file from disk.");
-      reader.readAsArrayBuffer(file);
-      return;
-    }
-
-    if (name.endsWith(".csv")) {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        transformHeader: (header) => String(header || "").trim(),
-        complete: (result) => {
-          loadDescriptorRows(result.data || [], file.name);
-        },
-        error: () => {
-          alert("Unable to parse descriptor CSV. Verify file format and try again.");
-        }
-      });
-      return;
-    }
-
-    alert("Unsupported descriptor file type. Upload .xlsx, .xls, or .csv.");
-  });
-}
-
-function bindPasteImport() {
-  if (!els.importPaste || !els.clearPaste || !els.importDescriptorsPaste || !els.clearDescriptorsPaste || !els.pasteDataset || !els.pasteDescriptors) {
-    return;
-  }
-
-  els.importPaste.addEventListener("click", () => {
-    parsePastedData(els.pasteDataset.value);
-  });
-
-  els.clearPaste.addEventListener("click", () => {
-    els.pasteDataset.value = "";
-  });
-
-  els.importDescriptorsPaste.addEventListener("click", () => {
-    parsePastedDescriptors(els.pasteDescriptors.value);
-  });
-
-  els.clearDescriptorsPaste.addEventListener("click", () => {
-    els.pasteDescriptors.value = "";
-  });
-}
-
 function renderKpis(totals) {
   const cards = [
     ["Revenue", toMoney(totals.revenue)],
@@ -1050,19 +787,12 @@ function render() {
   const rows = getFilteredRows();
   const totals = aggregate(rows);
 
-  renderKpis(totals);
-  renderChart(rows);
   renderOverallWaterfall(totals);
   renderBreakoutWaterfalls(rows);
-  renderTable(rows);
-  renderInsights(rows, totals);
 }
 
 updateFilterOptions();
 bindFilterEvents();
 bindDrillEvents();
 bindReset();
-bindDataUpload();
-bindDescriptorUpload();
-bindPasteImport();
 render();

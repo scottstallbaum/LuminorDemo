@@ -132,6 +132,13 @@ textarea {
 .panel-half { grid-column: span 6; }
 .table-panel { grid-column: span 8; overflow-x: auto; }
 .panel-side { grid-column: span 4; }
+.panel-wide { grid-column: span 12; }
+.compact-controls {
+  padding-bottom: .7rem;
+}
+.compact-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 
 table { width: 100%; border-collapse: collapse; font-size: .82rem; }
 th, td { padding: .45rem .4rem; border-bottom: 1px solid var(--line); text-align: left; }
@@ -203,6 +210,7 @@ th { color: var(--muted); font-weight: 600; }
 
 @media (max-width: 1200px) {
   .grid-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .compact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
@@ -219,6 +227,7 @@ th { color: var(--muted); font-weight: 600; }
 
 @media (max-width: 700px) {
   .grid-two { grid-template-columns: 1fr; }
+  .compact-grid { grid-template-columns: 1fr; }
   .kpis { grid-template-columns: 1fr; }
   .breakout-head { flex-direction: column; align-items: flex-start; }
 }
