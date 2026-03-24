@@ -43,8 +43,21 @@
           Drill Value
           <select id="drill-value"></select>
         </label>
+        <label>
+          Y Axis Mode
+          <select id="axis-mode">
+            <option value="dollar">$</option>
+            <option value="percent">%</option>
+          </select>
+        </label>
       </div>
-      <button id="btn-reset" class="ghost">Reset Filters</button>
+      <div class="control-actions">
+        <button id="btn-comparison" class="ghost" type="button">Enter Comparison</button>
+        <button id="btn-reset" class="ghost" type="button">Reset Filters</button>
+      </div>
+      <div id="comparison-setup" class="comparison-setup is-hidden">
+        <p id="comparison-status" class="small">Comparison mode is on. Next step: choose baseline and comparison slice.</p>
+      </div>
     </section>
 
     <section class="panel panel-wide">
@@ -71,6 +84,6 @@
   <script src="data/demo-cost-data.js"></script>
   <script src="data/demo-descriptor-data.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=20260324-9"></script>
+  <script src="app.js?v=20260324-12"></script>
 </body>
 </html>

@@ -156,6 +156,10 @@ const els = {
   },
   drillDimension: document.getElementById("drill-dimension"),
   drillValue: document.getElementById("drill-value"),
+  axisMode: document.getElementById("axis-mode"),
+  comparisonBtn: document.getElementById("btn-comparison"),
+  comparisonSetup: document.getElementById("comparison-setup"),
+  comparisonStatus: document.getElementById("comparison-status"),
   reset: document.getElementById("btn-reset"),
   waterfallShell: document.querySelector(".waterfall-shell"),
   waterfall: document.getElementById("waterfall"),
@@ -180,6 +184,8 @@ const state = {
     dimension: "plant",
     value: "All"
   },
+  axisMode: "dollar",
+  comparisonMode: false,
   breakdown: {
     stepKey: null,
     totals: null,
@@ -253,6 +259,11 @@ function toMoney(value) {
 
 function toPct(value) {
   return `${(value * 100).toFixed(1)}%`;
+}
+
+function toSignedPct(value) {
+  if ((value || 0) < 0) return `-${toPct(Math.abs(value || 0))}`;
+  return toPct(value || 0);
 }
 
 function toSignedMoney(value) {
@@ -705,6 +716,14 @@ function bindFilterEvents() {
       render();
     });
   });
+
+  if (els.axisMode) {
+    els.axisMode.value = state.axisMode;
+    els.axisMode.addEventListener("change", () => {
+      state.axisMode = els.axisMode.value;
+      render();
+    });
+  }
 }
 
 function updateDrillValueOptions() {
@@ -750,9 +769,32 @@ function bindReset() {
     state.drill.dimension = "plant";
     state.drill.value = "All";
     els.drillDimension.value = "plant";
+    state.axisMode = "dollar";
+    if (els.axisMode) els.axisMode.value = "dollar";
+    state.comparisonMode = false;
+    if (els.comparisonBtn) els.comparisonBtn.textContent = "Enter Comparison";
+    if (els.comparisonSetup) els.comparisonSetup.classList.add("is-hidden");
 
     updateDrillValueOptions();
     render();
+  });
+}
+
+function bindComparisonButton() {
+  if (!els.comparisonBtn) return;
+
+  els.comparisonBtn.addEventListener("click", () => {
+    state.comparisonMode = !state.comparisonMode;
+    els.comparisonBtn.textContent = state.comparisonMode ? "Exit Comparison" : "Enter Comparison";
+    if (els.comparisonSetup) {
+      els.comparisonSetup.classList.toggle("is-hidden", !state.comparisonMode);
+    }
+
+    if (els.comparisonStatus) {
+      els.comparisonStatus.textContent = state.comparisonMode
+        ? "Comparison mode is on. Next step: choose baseline and comparison slice."
+        : "";
+    }
   });
 }
 
@@ -933,6 +975,12 @@ function renderTable(rows) {
 function renderOverallWaterfall(totals) {
   const steps = buildWaterfallSteps(totals);
   const revenue = totals.revenue || 0;
+  const percentMode = state.axisMode === "percent";
+  const asMetric = (value) => {
+    if (!percentMode) return value || 0;
+    if (!revenue) return 0;
+    return (value || 0) / revenue;
+  };
 
   const plotSteps = [];
   let cumulative = 0;
@@ -944,6 +992,8 @@ function renderOverallWaterfall(totals) {
         ...step,
         before: 0,
         after: cumulative,
+        beforeMetric: asMetric(0),
+        afterMetric: asMetric(cumulative),
         delta: cumulative,
         displayValue: cumulative,
         pct: revenue ? cumulative / revenue : 0
@@ -960,6 +1010,8 @@ function renderOverallWaterfall(totals) {
         ...step,
         before,
         after,
+        beforeMetric: asMetric(before),
+        afterMetric: asMetric(after),
         delta,
         displayValue: delta,
         pct: revenue ? delta / revenue : 0
@@ -971,13 +1023,15 @@ function renderOverallWaterfall(totals) {
       ...step,
       before: cumulative,
       after: cumulative,
+      beforeMetric: asMetric(cumulative),
+      afterMetric: asMetric(cumulative),
       delta: 0,
       displayValue: cumulative,
       pct: revenue ? cumulative / revenue : 0
     });
   });
 
-  const values = plotSteps.flatMap((step) => [step.before, step.after, 0]);
+  const values = plotSteps.flatMap((step) => [step.beforeMetric, step.afterMetric, 0]);
   const maxVal = Math.max(...values, 1);
   const minVal = Math.min(...values, 0);
 
@@ -1000,9 +1054,10 @@ function renderOverallWaterfall(totals) {
   const tickValues = [maxVal, (maxVal + minVal) / 2, 0].filter((v, i, arr) => arr.findIndex((x) => Math.abs(x - v) < 0.0001) === i);
   const grid = tickValues.map((tick) => {
     const yTick = y(tick);
+    const axisLabel = percentMode ? toPct(tick) : toMoney(tick);
     return `
       <line class="wf-grid" x1="${margin.left}" y1="${yTick.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${yTick.toFixed(2)}" />
-      <text class="wf-axis" x="${(margin.left - 10).toFixed(2)}" y="${(yTick + 4).toFixed(2)}" text-anchor="end">${toMoney(tick)}</text>
+      <text class="wf-axis" x="${(margin.left - 10).toFixed(2)}" y="${(yTick + 4).toFixed(2)}" text-anchor="end">${axisLabel}</text>
     `;
   }).join("");
 
@@ -1010,13 +1065,16 @@ function renderOverallWaterfall(totals) {
     const cx = margin.left + (index + 0.5) * slot;
     const x = cx - barW / 2;
 
-    const barFrom = step.kind === "cost" ? step.before : 0;
-    const barTo = step.after;
+    const barFrom = step.kind === "cost" ? step.beforeMetric : 0;
+    const barTo = step.afterMetric;
     const y1 = y(barFrom);
     const y2 = y(barTo);
     const rectY = Math.min(y1, y2);
     const rectH = Math.max(2, Math.abs(y2 - y1));
     const cls = `wf-bar wf-${step.kind}`;
+
+    const displayMetric = percentMode ? step.pct : step.displayValue;
+    const valueLabel = percentMode ? toSignedPct(displayMetric) : toSignedMoney(displayMetric);
 
     const labelLines = splitWaterfallLabel(step.label);
     const valueY = margin.top - 16;
@@ -1032,7 +1090,7 @@ function renderOverallWaterfall(totals) {
     return `
       <g>
         <rect class="${cls}${isClickable ? " wf-clickable" : ""}${isActive ? " wf-active" : ""}" data-step-key="${step.key || ""}" x="${x.toFixed(2)}" y="${rectY.toFixed(2)}" width="${barW.toFixed(2)}" height="${rectH.toFixed(2)}" rx="5" ${isClickable ? 'title="Click for breakdown"' : ""} />
-        <text class="wf-value" x="${cx.toFixed(2)}" y="${valueY.toFixed(2)}" text-anchor="middle">${toSignedMoney(step.displayValue)}</text>
+        <text class="wf-value" x="${cx.toFixed(2)}" y="${valueY.toFixed(2)}" text-anchor="middle">${valueLabel}</text>
         <text class="wf-pct" x="${cx.toFixed(2)}" y="${pctY.toFixed(2)}" text-anchor="middle">(${toPct(step.pct)})</text>
         ${labelLines.map((line, i) => `<text class="wf-label" x="${cx.toFixed(2)}" y="${(labelBaseY + (i * 13)).toFixed(2)}" text-anchor="middle">${line}</text>`).join("")}
         ${isClickable ? `<g class="wf-clickable-label" data-step-key="${step.key}"><text class="wf-detail-tag" x="${cx.toFixed(2)}" y="${detailLine1Y.toFixed(2)}" text-anchor="middle">click for detailed</text><text class="wf-detail-tag" x="${cx.toFixed(2)}" y="${detailLine2Y.toFixed(2)}" text-anchor="middle">breakdown</text></g>` : ""}
@@ -1231,5 +1289,6 @@ updateFilterOptions();
 bindFilterEvents();
 bindDrillEvents();
 bindReset();
+bindComparisonButton();
 bindBreakdownEvents();
 render();

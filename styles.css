@@ -152,11 +152,21 @@ textarea {
   padding-bottom: .45rem;
 }
 .compact-grid {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
 .compact-controls .ghost {
   margin-top: .4rem;
+}
+
+.control-actions {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+.comparison-setup {
+  margin-top: .35rem;
 }
 
 table { width: 100%; border-collapse: collapse; font-size: .82rem; }
