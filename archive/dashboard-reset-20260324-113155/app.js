@@ -899,23 +899,22 @@ function renderTable(rows) {
 }
 
 function renderOverallWaterfall(totals) {
-  const steps = buildWaterfallSteps(totals);
-  const maxVal = Math.max(...steps.map((step) => Math.abs(step.value)), 1);
+  const components = [
+    ["Material", totals.material],
+    ["Labor", totals.labor],
+    ["Freight", totals.freight],
+    ["Overhead", totals.overhead],
+    ["Operating", totals.operating]
+  ];
 
-  els.waterfall.innerHTML = steps.map((step) => {
-    const width = (Math.abs(step.value) / maxVal) * 100;
-    const pct = totals.revenue ? (step.value / totals.revenue) : 0;
-    const displayValue = step.kind === "cost" ? -Math.abs(step.value) : step.value;
-    const pctLabel = step.kind === "cost" ? `-${toPct(Math.abs(pct))}` : toPct(pct);
-
-    return `
-      <div class="water-row ${step.kind}">
-        <div>${step.label}</div>
-        <div class="bar"><span style="width:${width}%"></span></div>
-        <div>${toMoney(displayValue)} <span class="water-pct">(${pctLabel})</span></div>
-      </div>
-    `;
-  }).join("");
+  const maxVal = Math.max(...components.map(([, value]) => value), 1);
+  els.waterfall.innerHTML = components.map(([name, value]) => `
+    <div class="water-row">
+      <div>${name}</div>
+      <div class="bar"><span style="width:${(value / maxVal) * 100}%"></span></div>
+      <div>${toMoney(value)}</div>
+    </div>
+  `).join("");
 }
 
 function renderBreakoutWaterfalls(rows) {
@@ -937,8 +936,14 @@ function renderBreakoutWaterfalls(rows) {
   }
 
   els.waterfallBreakout.innerHTML = entries.map((entry) => {
-    const steps = buildWaterfallSteps(entry.totals);
-    const maxVal = Math.max(...steps.map((step) => Math.abs(step.value)), 1);
+    const components = [
+      ["Material", entry.totals.material],
+      ["Labor", entry.totals.labor],
+      ["Freight", entry.totals.freight],
+      ["Overhead", entry.totals.overhead],
+      ["Operating", entry.totals.operating]
+    ];
+    const maxVal = Math.max(...components.map(([, value]) => value), 1);
 
     return `
       <article class="breakout-item">
@@ -950,37 +955,16 @@ function renderBreakoutWaterfalls(rows) {
             <span>OM ${toPct(entry.totals.omPct)}</span>
           </div>
         </div>
-        ${steps.map((step) => {
-          const width = (Math.abs(step.value) / maxVal) * 100;
-          const pct = entry.totals.revenue ? (step.value / entry.totals.revenue) : 0;
-          const displayValue = step.kind === "cost" ? -Math.abs(step.value) : step.value;
-          const pctLabel = step.kind === "cost" ? `-${toPct(Math.abs(pct))}` : toPct(pct);
-
-          return `
-            <div class="water-row compact ${step.kind}">
-              <div>${step.label}</div>
-              <div class="bar"><span style="width:${width}%"></span></div>
-              <div>${toMoney(displayValue)} <span class="water-pct">(${pctLabel})</span></div>
-            </div>
-          `;
-        }).join("")}
+        ${components.map(([name, value]) => `
+          <div class="water-row compact">
+            <div>${name}</div>
+            <div class="bar"><span style="width:${(value / maxVal) * 100}%"></span></div>
+            <div>${toMoney(value)}</div>
+          </div>
+        `).join("")}
       </article>
     `;
   }).join("");
-}
-
-function buildWaterfallSteps(totals) {
-  return [
-    { label: "Revenue", value: totals.revenue || 0, kind: "base" },
-    { label: "Brewing Materials", value: totals.brewMat || 0, kind: "cost" },
-    { label: "Packaging Materials", value: totals.pkgMat || 0, kind: "cost" },
-    { label: "Conversion Costs", value: totals.conversion || 0, kind: "cost" },
-    { label: "Gross Margin", value: totals.grossMargin || 0, kind: "subtotal" },
-    { label: "Distribution / Freight", value: totals.freight || 0, kind: "cost" },
-    { label: "Marketing", value: totals.marketing || 0, kind: "cost" },
-    { label: "SG&A", value: totals.sga || 0, kind: "cost" },
-    { label: "Operating Income", value: totals.operatingIncome || 0, kind: "final" }
-  ];
 }
 
 function renderChart(rows) {

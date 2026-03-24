@@ -4,49 +4,36 @@ Interactive web app demo representing what prospects would get from Luminor cost
 
 This version is optimized around your current positioning:
 - Primary metrics: **Gross Margin** and **Operating Margin**
-- Data source: one detailed tab exported from external cost analyses
+- Data source: **static demo files only** (no in-app upload/import UI)
 
 ## What this demo includes
-- Drillable filters: period, plant, family, SKU, packaging, channel
+- Drillable filters: period, plant, descriptor fields, SKU, packaging, channel
 - Overall KPI view: revenue, COGS, operating expense, gross margin, operating income, GM%, OM%
 - Margin-by-SKU chart and SKU-level detail table
 - Overall cost waterfall for current selection
 - Drill waterfalls by plant, product family, SKU, packaging, or channel
-- Excel/CSV upload for one-tab exports (`period` to `operating_cpu`)
-- Tolerant import cleanup for messy headers/cells (extra spaces, case differences, and currency-style number formatting)
+- Descriptor enrichment support using `Plant + OSKU`, then `OSKU`, then `SKU`
 
 ## How to run
 Open `index.html` directly in a browser.
 
-For best local workflow in VS Code, use a static server extension and open the project folder:
-- `luminor-brew-demo`
+## How to add your final data
+This demo now reads only these two files:
+- `data/demo-cost-data.js`
+- `data/demo-descriptor-data.js`
 
-To test import, use:
-- `one-tab-template.csv`
+### Option A (easiest): give me the Excel/CSV files and I will wire them for you
+1. Put your source files anywhere in this repo (for example, `incoming/`).
+2. Tell me the filenames.
+3. I will convert them into `data/demo-cost-data.js` and `data/demo-descriptor-data.js` and validate the app.
 
-Accepted import types:
-- `.xlsx`
-- `.xls`
-- `.csv`
+### Option B (manual): edit static files directly
+1. Open `data/demo-cost-data.js` and replace `window.DEMO_COST_DATA = [...]` with your full cost row array.
+2. Open `data/demo-descriptor-data.js` and replace `window.DEMO_DESCRIPTOR_DATA = [...]` with your full descriptor row array.
+3. Save and refresh `index.html`.
 
-You can also paste data directly from Excel:
-- Copy the full table including header row
-- Paste into `Paste Table Data (Excel copy/paste)`
-- Click `Import Pasted Data`
-
-SKU descriptor reference is loaded separately (optional):
-- Use `Import SKU Descriptor Table (Excel or CSV)` for a dedicated descriptor master table
-- Or paste descriptor rows into `Paste SKU Descriptor Table`
-- Descriptor matching priority is `Plant + OSKU`, then `OSKU`, then `SKU`
-- Loaded descriptors enrich current and future cost imports automatically
-
-Notes for large pasted datasets:
-- 1,700+ rows are supported in-browser
-- Tab-delimited Excel paste is auto-detected
-- Keep the first row as headers for best mapping
-
-## One-tab input schema (CSV)
-Required columns (lowercase preferred):
+## Cost data schema (`data/demo-cost-data.js`)
+Required fields per row:
 - `period`
 - `plant`
 - `family`
@@ -61,7 +48,10 @@ Required columns (lowercase preferred):
 - `overhead_cpu`
 - `operating_cpu`
 
-Optional descriptor columns (supported and recommended for richer drilldowns):
+Supported alias style in JS object rows:
+- You can use camelCase (`materialCpu`) or snake_case (`material_cpu`) for cost CPU fields.
+
+Optional descriptor fields in cost rows:
 - `plant desc`
 - `osku`
 - `plant + osku`
@@ -80,6 +70,22 @@ Notes:
 - Each row should represent a single SKU-period slice.
 - CPU fields are cost-per-unit values.
 - `operating_cpu` is used to calculate operating margin.
+
+## Descriptor schema (`data/demo-descriptor-data.js`)
+Recommended fields:
+- `Plant Desc`
+- `OSKU`
+- `Plant + OSKU`
+- `Orderable SKU Description`
+- `Price Segment`
+- `Brand`
+- `Brand Family`
+- `Brand Segment`
+- `Container Type`
+- `Container Size`
+- `Smallest Pack`
+- `Alcohol Rptng Group`
+- `2012 Production BBL by Plant by OSKU`
 
 ## Demo storyline for prospects
 1. Start at all-company view to show enterprise margin health.

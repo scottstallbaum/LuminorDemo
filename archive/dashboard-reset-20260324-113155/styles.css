@@ -161,17 +161,6 @@ th { color: var(--muted); font-weight: 600; }
   height: 100%;
   background: linear-gradient(90deg, #4f9fff, #45d0a2);
 }
-.water-row.cost .bar > span {
-  background: linear-gradient(90deg, #ff9a62, #ff6d6d);
-}
-.water-row.subtotal .bar > span,
-.water-row.final .bar > span {
-  background: linear-gradient(90deg, #45d0a2, #7ce3c2);
-}
-.water-pct {
-  color: var(--muted);
-  font-size: .76rem;
-}
 .breakout {
   margin-bottom: 1rem;
 }
