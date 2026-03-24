@@ -56,20 +56,42 @@
         <button id="btn-reset" class="ghost" type="button">Reset Filters</button>
       </div>
       <div id="comparison-setup" class="comparison-setup is-hidden">
-        <p id="comparison-status" class="small">Comparison mode is on. Next step: choose baseline and comparison slice.</p>
-        <div class="grid-two comparison-grid">
-          <label>
-            Compare Plant
-            <select id="compare-plant"></select>
-          </label>
-          <label>
-            Compare Price Segment
-            <select id="compare-price-segment"></select>
-          </label>
-          <label>
-            Compare Packaging
-            <select id="compare-packaging"></select>
-          </label>
+        <p id="comparison-status" class="small">Comparison mode is on. Set matching filters for the base case and the comparison case.</p>
+        <div class="comparison-filter-groups">
+          <section class="comparison-filter-group">
+            <h3>Base Case</h3>
+            <div class="grid-two comparison-grid">
+              <label>
+                Plant
+                <select id="base-plant"></select>
+              </label>
+              <label>
+                Price Segment
+                <select id="base-price-segment"></select>
+              </label>
+              <label>
+                Packaging
+                <select id="base-packaging"></select>
+              </label>
+            </div>
+          </section>
+          <section class="comparison-filter-group">
+            <h3>Comparison Case</h3>
+            <div class="grid-two comparison-grid">
+              <label>
+                Plant
+                <select id="compare-plant"></select>
+              </label>
+              <label>
+                Price Segment
+                <select id="compare-price-segment"></select>
+              </label>
+              <label>
+                Packaging
+                <select id="compare-packaging"></select>
+              </label>
+            </div>
+          </section>
         </div>
       </div>
     </section>
@@ -118,6 +140,6 @@
   <script src="data/demo-cost-data.js"></script>
   <script src="data/demo-descriptor-data.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=20260324-13"></script>
+  <script src="app.js?v=20260324-14"></script>
 </body>
 </html>

@@ -154,6 +154,11 @@ const els = {
     priceSegment: document.getElementById("filter-price-segment"),
     packaging: document.getElementById("filter-packaging")
   },
+  comparisonBaseFilters: {
+    plant: document.getElementById("base-plant"),
+    priceSegment: document.getElementById("base-price-segment"),
+    packaging: document.getElementById("base-packaging")
+  },
   comparisonFilters: {
     plant: document.getElementById("compare-plant"),
     priceSegment: document.getElementById("compare-price-segment"),
@@ -187,6 +192,11 @@ const state = {
   records: staticCostData.map(normalizeStaticCostRow).map(withDescriptorDefaults),
   descriptorLookup: {},
   filters: {
+    plant: "All",
+    priceSegment: "All",
+    packaging: "All"
+  },
+  comparisonBaseFilters: {
     plant: "All",
     priceSegment: "All",
     packaging: "All"
@@ -729,6 +739,12 @@ function updateFilterOptions() {
 }
 
 function updateComparisonFilterOptions() {
+  Object.entries(els.comparisonBaseFilters).forEach(([key, element]) => {
+    if (!element) return;
+    fillSelect(element, uniqueValues(state.records, key));
+    element.value = state.comparisonBaseFilters[key];
+  });
+
   Object.entries(els.comparisonFilters).forEach(([key, element]) => {
     if (!element) return;
     fillSelect(element, uniqueValues(state.records, key));
@@ -755,6 +771,14 @@ function bindFilterEvents() {
 }
 
 function bindComparisonFilterEvents() {
+  Object.entries(els.comparisonBaseFilters).forEach(([key, element]) => {
+    if (!element) return;
+    element.addEventListener("change", () => {
+      state.comparisonBaseFilters[key] = element.value;
+      render();
+    });
+  });
+
   Object.entries(els.comparisonFilters).forEach(([key, element]) => {
     if (!element) return;
     element.addEventListener("change", () => {
@@ -809,6 +833,11 @@ function bindReset() {
       if (els.comparisonFilters[key]) els.comparisonFilters[key].value = "All";
     });
 
+    Object.keys(state.comparisonBaseFilters).forEach((key) => {
+      state.comparisonBaseFilters[key] = "All";
+      if (els.comparisonBaseFilters[key]) els.comparisonBaseFilters[key].value = "All";
+    });
+
     state.drill.dimension = "plant";
     state.drill.value = "All";
     els.drillDimension.value = "plant";
@@ -833,6 +862,12 @@ function bindComparisonButton() {
     state.comparisonMode = !state.comparisonMode;
     state.breakdown.stepKey = null;
     state.breakdown.expandOther = false;
+    if (state.comparisonMode) {
+      state.comparisonBaseFilters = { ...state.filters };
+      Object.entries(els.comparisonBaseFilters).forEach(([key, element]) => {
+        if (element) element.value = state.comparisonBaseFilters[key];
+      });
+    }
     els.comparisonBtn.textContent = state.comparisonMode ? "Exit Comparison" : "Enter Comparison";
     if (els.comparisonSetup) {
       els.comparisonSetup.classList.toggle("is-hidden", !state.comparisonMode);
@@ -1227,7 +1262,7 @@ function renderComparisonMode(primaryTotals, comparisonTotals) {
     const drillPart = state.drill.value !== "All"
       ? ` | ${state.drill.dimension}: ${state.drill.value}`
       : "";
-    els.comparisonCurrentSummary.textContent = `${summarizeFilters(state.filters)}${drillPart}`;
+    els.comparisonCurrentSummary.textContent = `${summarizeFilters(state.comparisonBaseFilters)}${drillPart}`;
   }
 
   if (els.comparisonCompareSummary) {
@@ -1395,7 +1430,8 @@ function renderInsights(rows, totals) {
 }
 
 function render() {
-  const baseRows = getBaseFilteredRows();
+  const baseFilterState = state.comparisonMode ? state.comparisonBaseFilters : state.filters;
+  const baseRows = applyFilters(state.records, baseFilterState).map(computeRow);
   const focusedRows = getFocusedRows(baseRows);
   const totals = aggregate(focusedRows);
   state.breakdown.totals = totals;
