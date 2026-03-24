@@ -125,7 +125,6 @@ function withDescriptorDefaults(row) {
 
 const els = {
   filters: {
-    period: document.getElementById("filter-period"),
     plant: document.getElementById("filter-plant"),
     family: document.getElementById("filter-family"),
     packaging: document.getElementById("filter-packaging")
@@ -133,15 +132,13 @@ const els = {
   drillDimension: document.getElementById("drill-dimension"),
   drillValue: document.getElementById("drill-value"),
   reset: document.getElementById("btn-reset"),
-  waterfall: document.getElementById("waterfall"),
-  waterfallBreakout: document.getElementById("waterfall-breakout")
+  waterfall: document.getElementById("waterfall")
 };
 
 const state = {
   records: staticCostData.map(normalizeStaticCostRow).map(withDescriptorDefaults),
   descriptorLookup: {},
   filters: {
-    period: "All",
     plant: "All",
     family: "All",
     packaging: "All"
@@ -169,6 +166,11 @@ function toMoney(value) {
 
 function toPct(value) {
   return `${(value * 100).toFixed(1)}%`;
+}
+
+function toSignedMoney(value) {
+  const abs = toMoney(Math.abs(value || 0));
+  return value < 0 ? `-${abs}` : abs;
 }
 
 function parseNum(value) {
@@ -521,10 +523,13 @@ function applyBaseFilters(records) {
   return records.filter((row) => Object.entries(state.filters).every(([key, value]) => value === "All" || String(row[key]) === value));
 }
 
-function getFilteredRows() {
-  return applyBaseFilters(state.records)
-    .filter((row) => state.drill.value === "All" || row[state.drill.dimension] === state.drill.value)
-    .map(computeRow);
+function getBaseFilteredRows() {
+  return applyBaseFilters(state.records).map(computeRow);
+}
+
+function getFocusedRows(rows) {
+  if (state.drill.value === "All") return rows;
+  return rows.filter((row) => row[state.drill.dimension] === state.drill.value);
 }
 
 function updateFilterOptions() {
@@ -637,22 +642,131 @@ function renderTable(rows) {
 
 function renderOverallWaterfall(totals) {
   const steps = buildWaterfallSteps(totals);
-  const maxVal = Math.max(...steps.map((step) => Math.abs(step.value)), 1);
+  const revenue = totals.revenue || 0;
 
-  els.waterfall.innerHTML = steps.map((step) => {
-    const width = (Math.abs(step.value) / maxVal) * 100;
-    const pct = totals.revenue ? (step.value / totals.revenue) : 0;
-    const displayValue = step.kind === "cost" ? -Math.abs(step.value) : step.value;
-    const pctLabel = step.kind === "cost" ? `-${toPct(Math.abs(pct))}` : toPct(pct);
+  const plotSteps = [];
+  let cumulative = 0;
+
+  steps.forEach((step) => {
+    if (step.kind === "base") {
+      cumulative = step.value || 0;
+      plotSteps.push({
+        ...step,
+        before: 0,
+        after: cumulative,
+        delta: cumulative,
+        displayValue: cumulative,
+        pct: revenue ? cumulative / revenue : 0
+      });
+      return;
+    }
+
+    if (step.kind === "cost") {
+      const delta = -Math.abs(step.value || 0);
+      const before = cumulative;
+      const after = before + delta;
+      cumulative = after;
+      plotSteps.push({
+        ...step,
+        before,
+        after,
+        delta,
+        displayValue: delta,
+        pct: revenue ? delta / revenue : 0
+      });
+      return;
+    }
+
+    plotSteps.push({
+      ...step,
+      before: cumulative,
+      after: cumulative,
+      delta: 0,
+      displayValue: cumulative,
+      pct: revenue ? cumulative / revenue : 0
+    });
+  });
+
+  const values = plotSteps.flatMap((step) => [step.before, step.after, 0]);
+  const maxVal = Math.max(...values, 1);
+  const minVal = Math.min(...values, 0);
+
+  const width = 1040;
+  const height = 430;
+  const margin = { top: 28, right: 24, bottom: 105, left: 70 };
+  const plotW = width - margin.left - margin.right;
+  const plotH = height - margin.top - margin.bottom;
+  const count = Math.max(plotSteps.length, 1);
+  const slot = plotW / count;
+  const barW = Math.min(68, slot * 0.62);
+
+  const y = (value) => {
+    if (maxVal === minVal) return margin.top + plotH / 2;
+    return margin.top + ((maxVal - value) / (maxVal - minVal)) * plotH;
+  };
+
+  const zeroY = y(0);
+
+  const bars = plotSteps.map((step, index) => {
+    const cx = margin.left + (index + 0.5) * slot;
+    const x = cx - barW / 2;
+
+    const barFrom = step.kind === "cost" ? step.before : 0;
+    const barTo = step.after;
+    const y1 = y(barFrom);
+    const y2 = y(barTo);
+    const rectY = Math.min(y1, y2);
+    const rectH = Math.max(2, Math.abs(y2 - y1));
+    const cls = `wf-bar wf-${step.kind}`;
+
+    const valueY = step.displayValue < 0 ? rectY + rectH + 14 : rectY - 8;
+    const labelLines = splitWaterfallLabel(step.label);
 
     return `
-      <div class="water-row ${step.kind}">
-        <div>${step.label}</div>
-        <div class="bar"><span style="width:${width}%"></span></div>
-        <div>${toMoney(displayValue)} <span class="water-pct">(${pctLabel})</span></div>
-      </div>
+      <g>
+        <rect class="${cls}" x="${x.toFixed(2)}" y="${rectY.toFixed(2)}" width="${barW.toFixed(2)}" height="${rectH.toFixed(2)}" rx="5" />
+        <text class="wf-value" x="${cx.toFixed(2)}" y="${valueY.toFixed(2)}" text-anchor="middle">${toSignedMoney(step.displayValue)}</text>
+        ${labelLines.map((line, i) => `<text class="wf-label" x="${cx.toFixed(2)}" y="${(height - 48 + (i * 14)).toFixed(2)}" text-anchor="middle">${line}</text>`).join("")}
+        <text class="wf-pct" x="${cx.toFixed(2)}" y="${(height - 18).toFixed(2)}" text-anchor="middle">(${toPct(step.pct)})</text>
+      </g>
     `;
   }).join("");
+
+  const connectors = plotSteps.slice(0, -1).map((step, index) => {
+    const next = plotSteps[index + 1];
+    if (!next || next.kind !== "cost") return "";
+
+    const x1 = margin.left + (index + 0.5) * slot + barW / 2;
+    const x2 = margin.left + (index + 1.5) * slot - barW / 2;
+    const yLine = y(step.after);
+    return `<line class="wf-connector" x1="${x1.toFixed(2)}" y1="${yLine.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${yLine.toFixed(2)}" />`;
+  }).join("");
+
+  els.waterfall.innerHTML = `
+    <svg class="wf-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Revenue to Operating Income waterfall chart">
+      <line class="wf-zero" x1="${margin.left}" y1="${zeroY.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${zeroY.toFixed(2)}" />
+      ${connectors}
+      ${bars}
+    </svg>
+  `;
+}
+
+function splitWaterfallLabel(label) {
+  const text = String(label || "").trim();
+  if (text.length <= 16) return [text];
+
+  const parts = text.split(" ");
+  const line1 = [];
+  const line2 = [];
+  parts.forEach((part) => {
+    if ((line1.join(" ") + " " + part).trim().length <= 16) {
+      line1.push(part);
+    } else {
+      line2.push(part);
+    }
+  });
+
+  return [line1.join(" "), line2.join(" ")].filter(Boolean);
 }
 
 function renderBreakoutWaterfalls(rows) {
@@ -784,11 +898,11 @@ function renderInsights(rows, totals) {
 }
 
 function render() {
-  const rows = getFilteredRows();
-  const totals = aggregate(rows);
+  const baseRows = getBaseFilteredRows();
+  const focusedRows = getFocusedRows(baseRows);
+  const totals = aggregate(focusedRows);
 
   renderOverallWaterfall(totals);
-  renderBreakoutWaterfalls(rows);
 }
 
 updateFilterOptions();

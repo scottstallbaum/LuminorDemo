@@ -148,6 +148,47 @@ th { color: var(--muted); font-weight: 600; }
   display: grid;
   gap: .45rem;
 }
+.wf-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.wf-zero {
+  stroke: rgba(159, 176, 211, .35);
+  stroke-width: 1;
+}
+.wf-connector {
+  stroke: rgba(159, 176, 211, .55);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+.wf-bar {
+  stroke: rgba(255, 255, 255, .15);
+  stroke-width: 1;
+}
+.wf-base {
+  fill: #4f9fff;
+}
+.wf-cost {
+  fill: #ff7a6d;
+}
+.wf-subtotal,
+.wf-final {
+  fill: #45d0a2;
+}
+.wf-label {
+  fill: var(--text);
+  font-size: 11px;
+}
+.wf-pct {
+  fill: var(--muted);
+  font-size: 11px;
+}
+.wf-value {
+  fill: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+}
 .water-row {
   display: grid;
   grid-template-columns: 150px 1fr 90px;
