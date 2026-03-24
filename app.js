@@ -996,7 +996,7 @@ function renderOverallWaterfall(totals) {
     const isClickable = BREAKDOWN_CLICKABLE_KEYS.includes(step.key);
     const isActive = state.breakdown.stepKey === step.key;
 
-    const detailTagY = labelBaseY + (labelLines.length * 13) + 10;
+    const detailTagY = Math.min(height - 8, Math.max(rectY + rectH + 12, margin.top + plotH + 12));
 
     return `
       <g>
@@ -1004,7 +1004,7 @@ function renderOverallWaterfall(totals) {
         <text class="wf-value" x="${cx.toFixed(2)}" y="${valueY.toFixed(2)}" text-anchor="middle">${toSignedMoney(step.displayValue)}</text>
         <text class="wf-pct" x="${cx.toFixed(2)}" y="${pctY.toFixed(2)}" text-anchor="middle">(${toPct(step.pct)})</text>
         ${labelLines.map((line, i) => `<text class="wf-label" x="${cx.toFixed(2)}" y="${(labelBaseY + (i * 13)).toFixed(2)}" text-anchor="middle">${line}</text>`).join("")}
-        ${isClickable ? `<text class="wf-detail-tag" x="${cx.toFixed(2)}" y="${detailTagY.toFixed(2)}" text-anchor="middle">details</text>` : ""}
+        ${isClickable ? `<text class="wf-detail-tag wf-clickable-label" data-step-key="${step.key}" x="${cx.toFixed(2)}" y="${detailTagY.toFixed(2)}" text-anchor="middle">click for detailed breakdown</text>` : ""}
       </g>
     `;
   }).join("");

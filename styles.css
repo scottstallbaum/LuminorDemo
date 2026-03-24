@@ -234,9 +234,14 @@ th { color: var(--muted); font-weight: 600; }
 }
 .wf-detail-tag {
   fill: #9fc8ff;
-  font-size: 9px;
+  font-size: 8.6px;
   font-weight: 600;
   letter-spacing: .02em;
+}
+.wf-clickable-label {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 1px;
 }
 
 .breakdown-panel {
