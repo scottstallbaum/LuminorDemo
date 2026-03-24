@@ -157,6 +157,7 @@ const els = {
   drillDimension: document.getElementById("drill-dimension"),
   drillValue: document.getElementById("drill-value"),
   reset: document.getElementById("btn-reset"),
+  waterfallShell: document.querySelector(".waterfall-shell"),
   waterfall: document.getElementById("waterfall"),
   breakdownTitle: document.getElementById("breakdown-title"),
   breakdownSubtitle: document.getElementById("breakdown-subtitle"),
@@ -796,6 +797,7 @@ function renderBreakdownPanel(totals) {
 
   const stepKey = state.breakdown.stepKey;
   if (!stepKey) {
+    els.waterfallShell?.classList.remove("has-breakdown");
     els.breakdownTitle.textContent = "Breakdown";
     els.breakdownSubtitle.textContent = "Click Conversion Costs or SG&A in the waterfall to see breakdown details.";
     els.breakdownEmpty.classList.remove("is-hidden");
@@ -809,10 +811,18 @@ function renderBreakdownPanel(totals) {
 
   const clickedLabel = stepKey === "conversion" ? "Conversion Costs" : "SG&A";
   const clickedTotal = stepKey === "conversion" ? (totals.conversion || 0) : (totals.sga || 0);
-  const entries = getBreakdownEntries(stepKey, totals)
+  let entries = getBreakdownEntries(stepKey, totals)
     .filter((entry) => entry.value > 0)
     .sort((a, b) => b.value - a.value);
 
+  const maxLegendItems = 8;
+  if (entries.length > maxLegendItems) {
+    const visible = entries.slice(0, maxLegendItems - 1);
+    const otherTotal = entries.slice(maxLegendItems - 1).reduce((sum, entry) => sum + entry.value, 0);
+    entries = [...visible, { label: "Other", value: otherTotal }];
+  }
+
+  els.waterfallShell?.classList.add("has-breakdown");
   els.breakdownTitle.textContent = `${clickedLabel} Breakdown`;
   els.breakdownSubtitle.textContent = `${toMoney(clickedTotal)} total`;
   els.breakdownEmpty.classList.add("is-hidden");
@@ -986,12 +996,15 @@ function renderOverallWaterfall(totals) {
     const isClickable = BREAKDOWN_CLICKABLE_KEYS.includes(step.key);
     const isActive = state.breakdown.stepKey === step.key;
 
+    const detailTagY = labelBaseY + (labelLines.length * 13) + 10;
+
     return `
       <g>
-        <rect class="${cls}${isClickable ? " wf-clickable" : ""}${isActive ? " wf-active" : ""}" data-step-key="${step.key || ""}" x="${x.toFixed(2)}" y="${rectY.toFixed(2)}" width="${barW.toFixed(2)}" height="${rectH.toFixed(2)}" rx="5" />
+        <rect class="${cls}${isClickable ? " wf-clickable" : ""}${isActive ? " wf-active" : ""}" data-step-key="${step.key || ""}" x="${x.toFixed(2)}" y="${rectY.toFixed(2)}" width="${barW.toFixed(2)}" height="${rectH.toFixed(2)}" rx="5" ${isClickable ? 'title="Click for breakdown"' : ""} />
         <text class="wf-value" x="${cx.toFixed(2)}" y="${valueY.toFixed(2)}" text-anchor="middle">${toSignedMoney(step.displayValue)}</text>
         <text class="wf-pct" x="${cx.toFixed(2)}" y="${pctY.toFixed(2)}" text-anchor="middle">(${toPct(step.pct)})</text>
         ${labelLines.map((line, i) => `<text class="wf-label" x="${cx.toFixed(2)}" y="${(labelBaseY + (i * 13)).toFixed(2)}" text-anchor="middle">${line}</text>`).join("")}
+        ${isClickable ? `<text class="wf-detail-tag" x="${cx.toFixed(2)}" y="${detailTagY.toFixed(2)}" text-anchor="middle">details</text>` : ""}
       </g>
     `;
   }).join("");

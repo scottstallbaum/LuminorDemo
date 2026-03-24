@@ -135,9 +135,18 @@ textarea {
 .panel-wide { grid-column: span 12; }
 .waterfall-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: 1fr;
   gap: .75rem;
   align-items: start;
+}
+.waterfall-shell .breakdown-panel {
+  display: none;
+}
+.waterfall-shell.has-breakdown {
+  grid-template-columns: minmax(0, 1fr) 320px;
+}
+.waterfall-shell.has-breakdown .breakdown-panel {
+  display: block;
 }
 .compact-controls {
   padding-bottom: .45rem;
@@ -223,6 +232,12 @@ th { color: var(--muted); font-weight: 600; }
   font-size: 10.5px;
   font-weight: 700;
 }
+.wf-detail-tag {
+  fill: #9fc8ff;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
 
 .breakdown-panel {
   border: 1px solid rgba(159, 176, 211, .18);
@@ -263,6 +278,16 @@ th { color: var(--muted); font-weight: 600; }
   margin-top: .55rem;
   display: grid;
   gap: .35rem;
+  max-height: 230px;
+  overflow-y: auto;
+  padding-right: .25rem;
+}
+.breakdown-legend::-webkit-scrollbar {
+  width: 6px;
+}
+.breakdown-legend::-webkit-scrollbar-thumb {
+  background: rgba(159, 176, 211, .45);
+  border-radius: 999px;
 }
 .breakdown-item {
   display: grid;
@@ -365,6 +390,9 @@ th { color: var(--muted); font-weight: 600; }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .waterfall-shell {
     grid-template-columns: 1fr;
+  }
+  .waterfall-shell .breakdown-panel {
+    display: block;
   }
 }
 
