@@ -212,6 +212,22 @@ textarea {
   margin-top: .2rem;
 }
 
+#comparison-panel .wf-axis {
+  font-size: 11px;
+}
+
+#comparison-panel .wf-label {
+  font-size: 12px;
+}
+
+#comparison-panel .wf-pct {
+  font-size: 11px;
+}
+
+#comparison-panel .wf-value {
+  font-size: 12.5px;
+}
+
 .panel-head-inline {
   display: flex;
   justify-content: space-between;
