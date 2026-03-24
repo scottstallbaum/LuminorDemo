@@ -991,7 +991,7 @@ function renderOverallWaterfall(totals) {
     const labelLines = splitWaterfallLabel(step.label);
     const valueY = margin.top - 16;
     const pctY = margin.top - 2;
-    const labelBaseY = height - 26;
+    const labelBaseY = margin.top + plotH + 14;
 
     const isClickable = BREAKDOWN_CLICKABLE_KEYS.includes(step.key);
     const isActive = state.breakdown.stepKey === step.key;
