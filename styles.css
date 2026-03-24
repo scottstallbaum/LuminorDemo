@@ -133,6 +133,12 @@ textarea {
 .table-panel { grid-column: span 8; overflow-x: auto; }
 .panel-side { grid-column: span 4; }
 .panel-wide { grid-column: span 12; }
+.waterfall-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: .75rem;
+  align-items: start;
+}
 .compact-controls {
   padding-bottom: .45rem;
 }
@@ -182,6 +188,17 @@ th { color: var(--muted); font-weight: 600; }
   stroke: rgba(255, 255, 255, .15);
   stroke-width: 1;
 }
+.wf-clickable {
+  cursor: pointer;
+}
+.wf-clickable:hover {
+  stroke: rgba(255, 255, 255, .55);
+  stroke-width: 1.2;
+}
+.wf-active {
+  stroke: #ffffff;
+  stroke-width: 1.6;
+}
 .wf-base {
   fill: #5da8ff;
 }
@@ -205,6 +222,71 @@ th { color: var(--muted); font-weight: 600; }
   fill: var(--text);
   font-size: 10.5px;
   font-weight: 700;
+}
+
+.breakdown-panel {
+  border: 1px solid rgba(159, 176, 211, .18);
+  border-radius: .7rem;
+  padding: .7rem .75rem;
+  background: #0f1a2d;
+}
+.breakdown-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .5rem;
+}
+.breakdown-head h3 {
+  margin: 0;
+  font-size: .9rem;
+}
+.breakdown-close {
+  margin-top: 0;
+  padding: .25rem .5rem;
+  font-size: .75rem;
+}
+.breakdown-empty {
+  border: 1px dashed var(--line);
+  border-radius: .55rem;
+  padding: .6rem;
+  color: var(--muted);
+  font-size: .82rem;
+  margin-top: .55rem;
+}
+.breakdown-content {
+  margin-top: .45rem;
+}
+.is-hidden {
+  display: none;
+}
+.breakdown-legend {
+  margin-top: .55rem;
+  display: grid;
+  gap: .35rem;
+}
+.breakdown-item {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  gap: .45rem;
+  align-items: start;
+}
+.breakdown-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  margin-top: .2rem;
+}
+.breakdown-text {
+  display: grid;
+  gap: .15rem;
+}
+.breakdown-name {
+  color: var(--text);
+  font-size: .8rem;
+}
+.breakdown-metrics {
+  color: var(--muted);
+  font-size: .76rem;
 }
 .water-row {
   display: grid;
@@ -281,6 +363,9 @@ th { color: var(--muted); font-weight: 600; }
     grid-column: span 12;
   }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .waterfall-shell {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 700px) {

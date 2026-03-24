@@ -49,7 +49,21 @@
 
     <section class="panel panel-wide">
       <h2>Revenue to Operating Income Waterfall (Current Slice)</h2>
-      <div id="waterfall" class="waterfall"></div>
+      <div class="waterfall-shell">
+        <div id="waterfall" class="waterfall"></div>
+        <aside class="breakdown-panel" aria-live="polite">
+          <div class="breakdown-head">
+            <h3 id="breakdown-title">Breakdown</h3>
+            <button id="breakdown-close" class="ghost breakdown-close" type="button" aria-label="Close breakdown">Close</button>
+          </div>
+          <p id="breakdown-subtitle" class="small">Click Conversion Costs or SG&amp;A in the waterfall to see breakdown details.</p>
+          <div id="breakdown-empty" class="breakdown-empty">No breakdown selected.</div>
+          <div id="breakdown-content" class="breakdown-content is-hidden">
+            <canvas id="breakdown-chart" height="220"></canvas>
+            <div id="breakdown-legend" class="breakdown-legend"></div>
+          </div>
+        </aside>
+      </div>
     </section>
 
   </main>

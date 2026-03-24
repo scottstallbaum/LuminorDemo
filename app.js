@@ -34,9 +34,34 @@ function normalizeStaticCostRow(row) {
     pkgMatCpu: parseNum(getField(row, ["pkgMatCpu", "pkg_mat_cpu", "Pkg Mat $/bbl"])),
     freightCpu: parseNum(getField(row, ["freightCpu", "freight_cpu", "Freight_CPU", "freight_cost_per_unit"])),
     marketingCpu: parseNum(getField(row, ["marketingCpu", "marketing_cpu", "Marketing $/bbl"])),
+    brewingLaborCpu: parseNum(getField(row, ["brewingLaborCpu", "brewing_labor_cpu"])),
+    packagingLaborCpu: parseNum(getField(row, ["packagingLaborCpu", "packaging_labor_cpu"])),
+    distributionLaborCpu: parseNum(getField(row, ["distributionLaborCpu", "distribution_labor_cpu"])),
+    otherLaborCpu: parseNum(getField(row, ["otherLaborCpu", "other_labor_cpu"])),
+    salariedLaborCpu: parseNum(getField(row, ["salariedLaborCpu", "salaried_labor_cpu"])),
+    utilitiesCpu: parseNum(getField(row, ["utilitiesCpu", "utilities_cpu"])),
+    maintenanceCpu: parseNum(getField(row, ["maintenanceCpu", "maintenance_cpu"])),
+    productionSuppliesCpu: parseNum(getField(row, ["productionSuppliesCpu", "production_supplies_cpu"])),
+    breweryOverheadCpu: parseNum(getField(row, ["breweryOverheadCpu", "brewery_overhead_cpu"])),
+    kegDepreciationCpu: parseNum(getField(row, ["kegDepreciationCpu", "keg_depreciation_cpu"])),
+    depAmorCpu: parseNum(getField(row, ["depAmorCpu", "dep_amor_cpu"])),
+    wasteCpu: parseNum(getField(row, ["wasteCpu", "waste_cpu"])),
     laborCpu: parseNum(getField(row, ["laborCpu", "labor_cpu", "Labor_CPU", "labor_cost_per_unit"])),
     overheadCpu: parseNum(getField(row, ["overheadCpu", "overhead_cpu", "Overhead_CPU", "overhead_cost_per_unit"])),
     conversionCpu: parseNum(getField(row, ["conversionCpu", "conversion_cpu"])),
+    salesAdminCpu: parseNum(getField(row, ["salesAdminCpu", "sales_admin_cpu"])),
+    marketingAdminCpu: parseNum(getField(row, ["marketingAdminCpu", "marketing_admin_cpu"])),
+    tenthAndBlakeCpu: parseNum(getField(row, ["tenthAndBlakeCpu", "tenth_and_blake_cpu"])),
+    integratedSupplyChainCpu: parseNum(getField(row, ["integratedSupplyChainCpu", "integrated_supply_chain_cpu"])),
+    bisCpu: parseNum(getField(row, ["bisCpu", "bis_cpu"])),
+    acgBrewingCpu: parseNum(getField(row, ["acgBrewingCpu", "acg_brewing_cpu"])),
+    paCommCpu: parseNum(getField(row, ["paCommCpu", "pa_comm_cpu"])),
+    hrCpu: parseNum(getField(row, ["hrCpu", "hr_cpu"])),
+    legalCpu: parseNum(getField(row, ["legalCpu", "legal_cpu"])),
+    financeCpu: parseNum(getField(row, ["financeCpu", "finance_cpu"])),
+    procurementCpu: parseNum(getField(row, ["procurementCpu", "procurement_cpu"])),
+    fostersCpu: parseNum(getField(row, ["fostersCpu", "fosters_cpu"])),
+    executiveCpu: parseNum(getField(row, ["executiveCpu", "executive_cpu"])),
     sgaCpu: parseNum(getField(row, ["sgaCpu", "sga_cpu"])),
     plantDesc: cleanCell(getField(row, ["Plant Desc", "plant_desc", "plantDesc"], "Unknown")),
     osku: cleanCell(getField(row, ["OSKU", "osku"], "Unknown")),
@@ -132,7 +157,14 @@ const els = {
   drillDimension: document.getElementById("drill-dimension"),
   drillValue: document.getElementById("drill-value"),
   reset: document.getElementById("btn-reset"),
-  waterfall: document.getElementById("waterfall")
+  waterfall: document.getElementById("waterfall"),
+  breakdownTitle: document.getElementById("breakdown-title"),
+  breakdownSubtitle: document.getElementById("breakdown-subtitle"),
+  breakdownEmpty: document.getElementById("breakdown-empty"),
+  breakdownContent: document.getElementById("breakdown-content"),
+  breakdownChart: document.getElementById("breakdown-chart"),
+  breakdownLegend: document.getElementById("breakdown-legend"),
+  breakdownClose: document.getElementById("breakdown-close")
 };
 
 const state = {
@@ -146,6 +178,10 @@ const state = {
   drill: {
     dimension: "plant",
     value: "All"
+  },
+  breakdown: {
+    stepKey: null,
+    totals: null
   }
 };
 
@@ -155,6 +191,55 @@ if (staticDescriptorData.length) {
 }
 
 let marginChart;
+let breakdownChart;
+
+const BREAKDOWN_CLICKABLE_KEYS = ["conversion", "sga"];
+const PIE_COLORS = [
+  "#45d0a2",
+  "#4f9fff",
+  "#ffae57",
+  "#ff8c7a",
+  "#b28cff",
+  "#7cd3ff",
+  "#c7e76a",
+  "#f77fb8",
+  "#ffd966",
+  "#8bd3c7",
+  "#a7b5ff",
+  "#d7a86e",
+  "#87c38f"
+];
+
+const CONVERSION_BUCKETS = [
+  { key: "brewingLabor", label: "Brewing Labor" },
+  { key: "packagingLabor", label: "Packaging Labor" },
+  { key: "distributionLabor", label: "Distribution Labor" },
+  { key: "otherLabor", label: "Other Labor" },
+  { key: "salariedLabor", label: "Salaried Labor" },
+  { key: "utilities", label: "Utilities" },
+  { key: "maintenance", label: "Maintenance" },
+  { key: "productionSupplies", label: "Production Supplies" },
+  { key: "breweryOverhead", label: "Brewery Overhead" },
+  { key: "kegDepreciation", label: "Keg Depreciation" },
+  { key: "depAmor", label: "Dep/Amor" },
+  { key: "waste", label: "Waste" }
+];
+
+const SGA_BUCKETS = [
+  { key: "salesAdmin", label: "Sales Admin" },
+  { key: "marketingAdmin", label: "Marketing Admin" },
+  { key: "tenthAndBlake", label: "10th & Blake" },
+  { key: "integratedSupplyChain", label: "Integrated Supply Chain" },
+  { key: "bis", label: "BIS" },
+  { key: "acgBrewing", label: "ACG Brewing" },
+  { key: "paComm", label: "PA & Comm" },
+  { key: "hr", label: "HR" },
+  { key: "legal", label: "Legal" },
+  { key: "finance", label: "Finance" },
+  { key: "procurement", label: "Procurement" },
+  { key: "fosters", label: "Foster's" },
+  { key: "executive", label: "Executive" }
+];
 
 function toMoney(value) {
   return new Intl.NumberFormat("en-US", {
@@ -201,9 +286,34 @@ function normalizeImportedRow(row) {
     brewMatCpu: parseNum(getField(row, ["brewMatCpu", "brew_mat_cpu", "Brew Mat $/bbl"])),
     pkgMatCpu: parseNum(getField(row, ["pkgMatCpu", "pkg_mat_cpu", "Pkg Mat $/bbl"])),
     freightCpu: parseNum(getField(row, ["freight_cpu", "Freight_CPU", "freight_cost_per_unit"])),
+    brewingLaborCpu: parseNum(getField(row, ["brewingLaborCpu", "brewing_labor_cpu"])),
+    packagingLaborCpu: parseNum(getField(row, ["packagingLaborCpu", "packaging_labor_cpu"])),
+    distributionLaborCpu: parseNum(getField(row, ["distributionLaborCpu", "distribution_labor_cpu"])),
+    otherLaborCpu: parseNum(getField(row, ["otherLaborCpu", "other_labor_cpu"])),
+    salariedLaborCpu: parseNum(getField(row, ["salariedLaborCpu", "salaried_labor_cpu"])),
+    utilitiesCpu: parseNum(getField(row, ["utilitiesCpu", "utilities_cpu"])),
+    maintenanceCpu: parseNum(getField(row, ["maintenanceCpu", "maintenance_cpu"])),
+    productionSuppliesCpu: parseNum(getField(row, ["productionSuppliesCpu", "production_supplies_cpu"])),
+    breweryOverheadCpu: parseNum(getField(row, ["breweryOverheadCpu", "brewery_overhead_cpu"])),
+    kegDepreciationCpu: parseNum(getField(row, ["kegDepreciationCpu", "keg_depreciation_cpu"])),
+    depAmorCpu: parseNum(getField(row, ["depAmorCpu", "dep_amor_cpu"])),
+    wasteCpu: parseNum(getField(row, ["wasteCpu", "waste_cpu"])),
     laborCpu: parseNum(getField(row, ["labor_cpu", "Labor_CPU", "labor_cost_per_unit"])),
     overheadCpu: parseNum(getField(row, ["overhead_cpu", "Overhead_CPU", "overhead_cost_per_unit"])),
     conversionCpu: parseNum(getField(row, ["conversionCpu", "conversion_cpu"])),
+    salesAdminCpu: parseNum(getField(row, ["salesAdminCpu", "sales_admin_cpu"])),
+    marketingAdminCpu: parseNum(getField(row, ["marketingAdminCpu", "marketing_admin_cpu"])),
+    tenthAndBlakeCpu: parseNum(getField(row, ["tenthAndBlakeCpu", "tenth_and_blake_cpu"])),
+    integratedSupplyChainCpu: parseNum(getField(row, ["integratedSupplyChainCpu", "integrated_supply_chain_cpu"])),
+    bisCpu: parseNum(getField(row, ["bisCpu", "bis_cpu"])),
+    acgBrewingCpu: parseNum(getField(row, ["acgBrewingCpu", "acg_brewing_cpu"])),
+    paCommCpu: parseNum(getField(row, ["paCommCpu", "pa_comm_cpu"])),
+    hrCpu: parseNum(getField(row, ["hrCpu", "hr_cpu"])),
+    legalCpu: parseNum(getField(row, ["legalCpu", "legal_cpu"])),
+    financeCpu: parseNum(getField(row, ["financeCpu", "finance_cpu"])),
+    procurementCpu: parseNum(getField(row, ["procurementCpu", "procurement_cpu"])),
+    fostersCpu: parseNum(getField(row, ["fostersCpu", "fosters_cpu"])),
+    executiveCpu: parseNum(getField(row, ["executiveCpu", "executive_cpu"])),
     sgaCpu: parseNum(getField(row, ["sgaCpu", "sga_cpu"])),
     plantDesc: cleanCell(getField(row, ["Plant Desc", "plant_desc", "plantDesc"], "Unknown")),
     osku: cleanCell(getField(row, ["OSKU", "osku"], "Unknown")),
@@ -452,6 +562,38 @@ function computeRow(row) {
   const freight = row.freightCpu || 0;
   const marketing = row.marketingCpu || 0;
   const sga = row.sgaCpu || 0;
+
+  const conversionBuckets = {
+    brewingLabor: (row.brewingLaborCpu || 0) * row.volume,
+    packagingLabor: (row.packagingLaborCpu || 0) * row.volume,
+    distributionLabor: (row.distributionLaborCpu || 0) * row.volume,
+    otherLabor: (row.otherLaborCpu || 0) * row.volume,
+    salariedLabor: (row.salariedLaborCpu || 0) * row.volume,
+    utilities: (row.utilitiesCpu || 0) * row.volume,
+    maintenance: (row.maintenanceCpu || 0) * row.volume,
+    productionSupplies: (row.productionSuppliesCpu || 0) * row.volume,
+    breweryOverhead: (row.breweryOverheadCpu || 0) * row.volume,
+    kegDepreciation: (row.kegDepreciationCpu || 0) * row.volume,
+    depAmor: (row.depAmorCpu || 0) * row.volume,
+    waste: (row.wasteCpu || 0) * row.volume
+  };
+
+  const sgaBuckets = {
+    salesAdmin: (row.salesAdminCpu || 0) * row.volume,
+    marketingAdmin: (row.marketingAdminCpu || 0) * row.volume,
+    tenthAndBlake: (row.tenthAndBlakeCpu || 0) * row.volume,
+    integratedSupplyChain: (row.integratedSupplyChainCpu || 0) * row.volume,
+    bis: (row.bisCpu || 0) * row.volume,
+    acgBrewing: (row.acgBrewingCpu || 0) * row.volume,
+    paComm: (row.paCommCpu || 0) * row.volume,
+    hr: (row.hrCpu || 0) * row.volume,
+    legal: (row.legalCpu || 0) * row.volume,
+    finance: (row.financeCpu || 0) * row.volume,
+    procurement: (row.procurementCpu || 0) * row.volume,
+    fosters: (row.fostersCpu || 0) * row.volume,
+    executive: (row.executiveCpu || 0) * row.volume
+  };
+
   const unitOpex = freight + marketing + sga;
   const operatingExpense = row.volume * unitOpex;
   const operatingIncome = grossMargin - operatingExpense;
@@ -472,7 +614,9 @@ function computeRow(row) {
     conversionTotal: conversion * row.volume,
     freightTotal: freight * row.volume,
     marketingTotal: marketing * row.volume,
-    sgaTotal: sga * row.volume
+    sgaTotal: sga * row.volume,
+    conversionBuckets,
+    sgaBuckets
   };
 }
 
@@ -503,7 +647,19 @@ function aggregate(rows) {
     conversion: 0,
     freight: 0,
     marketing: 0,
-    sga: 0
+    sga: 0,
+    conversionBuckets: {},
+    sgaBuckets: {}
+  });
+
+  rows.forEach((row) => {
+    Object.entries(row.conversionBuckets || {}).forEach(([key, value]) => {
+      totals.conversionBuckets[key] = (totals.conversionBuckets[key] || 0) + (value || 0);
+    });
+
+    Object.entries(row.sgaBuckets || {}).forEach(([key, value]) => {
+      totals.sgaBuckets[key] = (totals.sgaBuckets[key] || 0) + (value || 0);
+    });
   });
 
   totals.gmPct = totals.revenue ? totals.grossMargin / totals.revenue : 0;
@@ -596,6 +752,100 @@ function bindReset() {
     updateDrillValueOptions();
     render();
   });
+}
+
+function bindBreakdownEvents() {
+  if (!els.breakdownClose) return;
+  els.breakdownClose.addEventListener("click", () => {
+    state.breakdown.stepKey = null;
+    render();
+  });
+}
+
+function getBreakdownEntries(stepKey, totals) {
+  if (stepKey === "conversion") {
+    const entries = CONVERSION_BUCKETS
+      .map((bucket) => ({ label: bucket.label, value: totals.conversionBuckets?.[bucket.key] || 0 }))
+      .filter((entry) => Math.abs(entry.value) > 0.0001);
+
+    if (entries.length) return entries;
+
+    return [
+      { label: "Labor", value: (totals.conversion || 0) * 0.5 },
+      { label: "Overhead", value: (totals.conversion || 0) * 0.5 }
+    ];
+  }
+
+  if (stepKey === "sga") {
+    const entries = SGA_BUCKETS
+      .map((bucket) => ({ label: bucket.label, value: totals.sgaBuckets?.[bucket.key] || 0 }))
+      .filter((entry) => Math.abs(entry.value) > 0.0001);
+
+    if (entries.length) return entries;
+
+    return [{ label: "SG&A", value: totals.sga || 0 }];
+  }
+
+  return [];
+}
+
+function renderBreakdownPanel(totals) {
+  if (!els.breakdownTitle || !els.breakdownSubtitle || !els.breakdownEmpty || !els.breakdownContent || !els.breakdownLegend || !els.breakdownChart) {
+    return;
+  }
+
+  const stepKey = state.breakdown.stepKey;
+  if (!stepKey) {
+    els.breakdownTitle.textContent = "Breakdown";
+    els.breakdownSubtitle.textContent = "Click Conversion Costs or SG&A in the waterfall to see breakdown details.";
+    els.breakdownEmpty.classList.remove("is-hidden");
+    els.breakdownContent.classList.add("is-hidden");
+    if (breakdownChart) {
+      breakdownChart.destroy();
+      breakdownChart = null;
+    }
+    return;
+  }
+
+  const clickedLabel = stepKey === "conversion" ? "Conversion Costs" : "SG&A";
+  const clickedTotal = stepKey === "conversion" ? (totals.conversion || 0) : (totals.sga || 0);
+  const entries = getBreakdownEntries(stepKey, totals)
+    .filter((entry) => entry.value > 0)
+    .sort((a, b) => b.value - a.value);
+
+  els.breakdownTitle.textContent = `${clickedLabel} Breakdown`;
+  els.breakdownSubtitle.textContent = `${toMoney(clickedTotal)} total`;
+  els.breakdownEmpty.classList.add("is-hidden");
+  els.breakdownContent.classList.remove("is-hidden");
+
+  const labels = entries.map((entry) => entry.label);
+  const data = entries.map((entry) => entry.value);
+  const colors = entries.map((_, i) => PIE_COLORS[i % PIE_COLORS.length]);
+
+  if (breakdownChart) breakdownChart.destroy();
+  breakdownChart = new Chart(els.breakdownChart, {
+    type: "pie",
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: colors, borderColor: "#0f1a2d", borderWidth: 1 }]
+    },
+    options: {
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  els.breakdownLegend.innerHTML = entries.map((entry, index) => {
+    const pctOfClicked = clickedTotal ? entry.value / clickedTotal : 0;
+    return `
+      <div class="breakdown-item">
+        <span class="breakdown-dot" style="background:${colors[index]}"></span>
+        <div class="breakdown-text">
+          <div class="breakdown-name">${entry.label}</div>
+          <div class="breakdown-metrics">${toMoney(entry.value)} (${toPct(pctOfClicked)})</div>
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
 function renderKpis(totals) {
@@ -733,9 +983,12 @@ function renderOverallWaterfall(totals) {
     const pctY = margin.top - 2;
     const labelBaseY = height - 26;
 
+    const isClickable = BREAKDOWN_CLICKABLE_KEYS.includes(step.key);
+    const isActive = state.breakdown.stepKey === step.key;
+
     return `
       <g>
-        <rect class="${cls}" x="${x.toFixed(2)}" y="${rectY.toFixed(2)}" width="${barW.toFixed(2)}" height="${rectH.toFixed(2)}" rx="5" />
+        <rect class="${cls}${isClickable ? " wf-clickable" : ""}${isActive ? " wf-active" : ""}" data-step-key="${step.key || ""}" x="${x.toFixed(2)}" y="${rectY.toFixed(2)}" width="${barW.toFixed(2)}" height="${rectH.toFixed(2)}" rx="5" />
         <text class="wf-value" x="${cx.toFixed(2)}" y="${valueY.toFixed(2)}" text-anchor="middle">${toSignedMoney(step.displayValue)}</text>
         <text class="wf-pct" x="${cx.toFixed(2)}" y="${pctY.toFixed(2)}" text-anchor="middle">(${toPct(step.pct)})</text>
         ${labelLines.map((line, i) => `<text class="wf-label" x="${cx.toFixed(2)}" y="${(labelBaseY + (i * 13)).toFixed(2)}" text-anchor="middle">${line}</text>`).join("")}
@@ -761,6 +1014,15 @@ function renderOverallWaterfall(totals) {
       ${bars}
     </svg>
   `;
+
+  els.waterfall.querySelectorAll("[data-step-key]").forEach((node) => {
+    node.addEventListener("click", () => {
+      const stepKey = node.getAttribute("data-step-key");
+      if (!BREAKDOWN_CLICKABLE_KEYS.includes(stepKey)) return;
+      state.breakdown.stepKey = stepKey;
+      render();
+    });
+  });
 }
 
 function splitWaterfallLabel(label) {
@@ -834,15 +1096,15 @@ function renderBreakoutWaterfalls(rows) {
 
 function buildWaterfallSteps(totals) {
   return [
-    { label: "Revenue", value: totals.revenue || 0, kind: "base" },
-    { label: "Brewing Materials", value: totals.brewMat || 0, kind: "cost" },
-    { label: "Packaging Materials", value: totals.pkgMat || 0, kind: "cost" },
-    { label: "Conversion Costs", value: totals.conversion || 0, kind: "cost" },
-    { label: "Gross Margin", value: totals.grossMargin || 0, kind: "subtotal" },
-    { label: "Distribution / Freight", value: totals.freight || 0, kind: "cost" },
-    { label: "Marketing", value: totals.marketing || 0, kind: "cost" },
-    { label: "SG&A", value: totals.sga || 0, kind: "cost" },
-    { label: "Operating Income", value: totals.operatingIncome || 0, kind: "final" }
+    { key: "revenue", label: "Revenue", value: totals.revenue || 0, kind: "base" },
+    { key: "brewMat", label: "Brewing Materials", value: totals.brewMat || 0, kind: "cost" },
+    { key: "pkgMat", label: "Packaging Materials", value: totals.pkgMat || 0, kind: "cost" },
+    { key: "conversion", label: "Conversion Costs", value: totals.conversion || 0, kind: "cost" },
+    { key: "grossMargin", label: "Gross Margin", value: totals.grossMargin || 0, kind: "subtotal" },
+    { key: "freight", label: "Distribution / Freight", value: totals.freight || 0, kind: "cost" },
+    { key: "marketing", label: "Marketing", value: totals.marketing || 0, kind: "cost" },
+    { key: "sga", label: "SG&A", value: totals.sga || 0, kind: "cost" },
+    { key: "operatingIncome", label: "Operating Income", value: totals.operatingIncome || 0, kind: "final" }
   ];
 }
 
@@ -913,12 +1175,15 @@ function render() {
   const baseRows = getBaseFilteredRows();
   const focusedRows = getFocusedRows(baseRows);
   const totals = aggregate(focusedRows);
+  state.breakdown.totals = totals;
 
   renderOverallWaterfall(totals);
+  renderBreakdownPanel(totals);
 }
 
 updateFilterOptions();
 bindFilterEvents();
 bindDrillEvents();
 bindReset();
+bindBreakdownEvents();
 render();
