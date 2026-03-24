@@ -15,3 +15,10 @@ incoming/*.log
 .env.*
 *.pem
 *.key
+
+# Keep local authoring artifacts out of the public repo.
+archive/
+scripts/
+one-tab-template.csv
+README.md
+incoming/README.txt
