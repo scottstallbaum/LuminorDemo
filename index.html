@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Luminor | BrewCo Cost Intelligence Demo</title>
+  <title>Luminor Insight Demo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,10 +13,8 @@
   <header class="topbar">
     <div>
       <p class="eyebrow">Luminor Demo</p>
-      <h1>BrewCo Margin Intelligence</h1>
-      <p class="subtitle">Interactive client preview for SKU, product family, plant, and packaging profitability.</p>
+      <h1>Luminor Insight Demo</h1>
     </div>
-    <div class="pill">Single Client Demo</div>
   </header>
 
   <main class="layout">
@@ -90,7 +88,7 @@
     </section>
 
     <section id="single-waterfall-panel" class="panel panel-wide">
-      <h2>Revenue to Operating Income Waterfall (Current Slice)</h2>
+      <h2>Revenue to Operating Income Waterfall</h2>
       <div class="waterfall-shell">
         <div id="waterfall" class="waterfall"></div>
         <aside class="breakdown-panel" aria-live="polite">
@@ -122,14 +120,14 @@
       <div class="comparison-waterfalls">
         <article class="comparison-card">
           <div class="comparison-card-head">
-            <h3>Current Slice</h3>
+            <h3>Base Case</h3>
             <p id="comparison-current-summary" class="small"></p>
           </div>
           <div id="comparison-current-waterfall" class="waterfall"></div>
         </article>
         <article class="comparison-card">
           <div class="comparison-card-head">
-            <h3>Comparison Slice</h3>
+            <h3>Comparison Case</h3>
             <p id="comparison-compare-summary" class="small"></p>
           </div>
           <div id="comparison-compare-waterfall" class="waterfall"></div>
@@ -142,6 +140,6 @@
   <script src="data/demo-cost-data.js"></script>
   <script src="data/demo-descriptor-data.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=20260324-16"></script>
+  <script src="app.js?v=20260324-17"></script>
 </body>
 </html>

@@ -848,7 +848,7 @@ function bindReset() {
     state.breakdown.expandOther = false;
     if (els.comparisonBtn) els.comparisonBtn.textContent = "Enter Comparison";
     if (els.comparisonSetup) els.comparisonSetup.classList.add("is-hidden");
-    if (els.comparisonStatus) els.comparisonStatus.textContent = "Comparison mode is on. Choose a comparison slice below.";
+    if (els.comparisonStatus) els.comparisonStatus.textContent = "Comparison mode is on. Choose a comparison case below.";
 
     updateDrillValueOptions();
     render();
@@ -875,7 +875,7 @@ function bindComparisonButton() {
 
     if (els.comparisonStatus) {
       els.comparisonStatus.textContent = state.comparisonMode
-        ? "Comparison mode is on. Choose a comparison slice below."
+        ? "Comparison mode is on. Choose a comparison case below."
         : "";
     }
 
@@ -1420,7 +1420,7 @@ function renderInsights(rows, totals) {
   const drillScope = state.drill.value === "All" ? `all ${drillLabel.toLowerCase()} values` : state.drill.value;
 
   const messages = [
-    `Overall slice is ${toPct(totals.gmPct)} GM% and ${toPct(totals.omPct)} OM% on ${toMoney(totals.revenue)} revenue.`,
+    `Overall view is ${toPct(totals.gmPct)} GM% and ${toPct(totals.omPct)} OM% on ${toMoney(totals.revenue)} revenue.`,
     `Best gross-margin SKU is ${bestGm.sku} at ${toPct(bestGm.gmPct)}.`,
     `Biggest operating-margin pressure is ${worstOm.sku} at ${toPct(worstOm.omPct)}.`,
     `Waterfall breakout is currently grouped by ${drillLabel}: ${drillScope}.`
