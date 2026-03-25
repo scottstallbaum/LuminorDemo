@@ -1679,6 +1679,12 @@ function renderWhaleCurve(rows) {
   // Color segments: green up to peak, red after
   const peakX = points[peakIndex]?.x * 100 || 100;
 
+  // Build highlighted selection markers
+  const selMarkers = [];
+  const { point1: sel1, point2: sel2 } = state.whaleCurveSelection;
+  if (sel1 !== null) { const sp1 = points[sel1 + 1]; if (sp1) selMarkers.push({ x: sp1.x * 100, y: sp1.y }); }
+  if (sel2 !== null) { const sp2 = points[sel2 + 1]; if (sp2) selMarkers.push({ x: sp2.x * 100, y: sp2.y }); }
+
   if (whaleCurveChart) {
     whaleCurveChart.destroy();
     whaleCurveChart = null;
@@ -1710,6 +1716,18 @@ function renderWhaleCurve(rows) {
           pointRadius: 7,
           pointHoverRadius: 9,
           type: "scatter"
+        },
+        {
+          label: "Selection",
+          data: selMarkers,
+          type: "scatter",
+          backgroundColor: "#ffffff",
+          borderColor: "#0f1a2d",
+          borderWidth: 2,
+          pointRadius: 8,
+          pointHoverRadius: 10,
+          pointStyle: "circle",
+          order: -1
         }
       ]
     },
