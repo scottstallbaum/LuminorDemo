@@ -344,8 +344,13 @@ textarea {
   font-size: .82rem;
 }
 
-.sku-detail-panel {
-  margin-top: .75rem;
+.sku-detail-inline-row td {
+  padding: 0;
+  border-bottom: 0;
+}
+
+.sku-detail-inline-cell {
+  padding: .5rem 0 .75rem !important;
 }
 
 .sku-detail-shell {

@@ -184,9 +184,6 @@ const els = {
   skuRankingMetric: document.getElementById("sku-ranking-metric"),
   skuTopList: document.getElementById("sku-top-list"),
   skuBottomList: document.getElementById("sku-bottom-list"),
-  skuDetailPanel: document.getElementById("sku-detail-panel"),
-  comparisonCurrentSkuDetail: document.getElementById("comparison-current-sku-detail"),
-  comparisonCompareSkuDetail: document.getElementById("comparison-compare-sku-detail"),
   waterfallShell: document.querySelector(".waterfall-shell"),
   waterfall: document.getElementById("waterfall"),
   breakdownTitle: document.getElementById("breakdown-title"),
@@ -1412,62 +1409,6 @@ function getSkuDetailTotals(rows, sku) {
   };
 }
 
-function renderSkuDetailPanel(target, rows, scope) {
-  if (!target) return;
-
-  const activeSku = state.skuDetail.scope === scope ? state.skuDetail.sku : null;
-  if (!activeSku) {
-    target.innerHTML = "";
-    return;
-  }
-
-  const detail = getSkuDetailTotals(rows, activeSku);
-  if (!detail) {
-    target.innerHTML = "";
-    return;
-  }
-
-  const lines = [
-    ["Revenue", toMoney(detail.revenue), "base"],
-    ["Brewing Materials", toSignedMoney(-Math.abs(detail.brewMat)), "cost"],
-    ["Packaging Materials", toSignedMoney(-Math.abs(detail.pkgMat)), "cost"],
-    ["Conversion Costs", toSignedMoney(-Math.abs(detail.conversion)), "cost"],
-    ["Gross Margin", `${toSignedMoney(detail.grossMargin)} (${toPct(detail.gmPct)})`, "subtotal"],
-    ["Distribution / Freight", toSignedMoney(-Math.abs(detail.freight)), "cost"],
-    ["Marketing", toSignedMoney(-Math.abs(detail.marketing)), "cost"],
-    ["SG&A", toSignedMoney(-Math.abs(detail.sga)), "cost"],
-    ["Operating Income", `${toSignedMoney(detail.operatingIncome)} (${toPct(detail.omPct)})`, "final"]
-  ];
-
-  target.innerHTML = `
-    <div class="sku-detail-shell">
-      <div class="sku-detail-head">
-        <div>
-          <h4>${detail.sku}</h4>
-          <p>${detail.description}</p>
-        </div>
-        <button class="ghost sku-detail-close" type="button" data-sku-detail-close="${scope}">Close</button>
-      </div>
-      <div class="sku-detail-list">
-        ${lines.map(([label, value, type]) => `
-          <div class="sku-detail-row sku-detail-row-${type}">
-            <span>${label}</span>
-            <strong>${value}</strong>
-          </div>
-        `).join("")}
-      </div>
-    </div>
-  `;
-
-  target.querySelectorAll("[data-sku-detail-close]").forEach((closeNode) => {
-    closeNode.addEventListener("click", () => {
-      state.skuDetail.sku = null;
-      state.skuDetail.scope = scope;
-      render();
-    });
-  });
-}
-
 function getRankedSkuRows(rows) {
   const metric = SKU_RANKING_METRICS[state.skuRankingMetric] || SKU_RANKING_METRICS.revenue;
   const aggregatedRows = aggregateSkuRows(rows)
@@ -1487,13 +1428,53 @@ function getRankedSkuRows(rows) {
   };
 }
 
-function renderSkuRankingTable(target, rows, metric) {
+function renderSkuRankingTable(target, rows, metric, allRows, scope) {
   if (!target) return;
 
   if (!rows.length) {
     target.innerHTML = '<div class="sku-ranking-empty">No SKUs available for current filters.</div>';
     return;
   }
+
+  const activeSku = state.skuDetail.scope === scope ? state.skuDetail.sku : null;
+  const detail = activeSku ? getSkuDetailTotals(allRows, activeSku) : null;
+
+  const detailRowMarkup = detail ? (() => {
+    const lines = [
+      ["Revenue", toMoney(detail.revenue), "base"],
+      ["Brewing Materials", toSignedMoney(-Math.abs(detail.brewMat)), "cost"],
+      ["Packaging Materials", toSignedMoney(-Math.abs(detail.pkgMat)), "cost"],
+      ["Conversion Costs", toSignedMoney(-Math.abs(detail.conversion)), "cost"],
+      ["Gross Margin", `${toSignedMoney(detail.grossMargin)} (${toPct(detail.gmPct)})`, "subtotal"],
+      ["Distribution / Freight", toSignedMoney(-Math.abs(detail.freight)), "cost"],
+      ["Marketing", toSignedMoney(-Math.abs(detail.marketing)), "cost"],
+      ["SG&A", toSignedMoney(-Math.abs(detail.sga)), "cost"],
+      ["Operating Income", `${toSignedMoney(detail.operatingIncome)} (${toPct(detail.omPct)})`, "final"]
+    ];
+    return `
+      <tr class="sku-detail-inline-row">
+        <td colspan="3" class="sku-detail-inline-cell">
+          <div class="sku-detail-shell">
+            <div class="sku-detail-head">
+              <div>
+                <h4>${detail.sku}</h4>
+                <p>${detail.description}</p>
+              </div>
+              <button class="ghost sku-detail-close" type="button" data-sku-detail-close="${scope}">Close</button>
+            </div>
+            <div class="sku-detail-list">
+              ${lines.map(([label, value, type]) => `
+                <div class="sku-detail-row sku-detail-row-${type}">
+                  <span>${label}</span>
+                  <strong>${value}</strong>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  })() : "";
 
   target.innerHTML = `
     <table class="sku-ranking-table">
@@ -1508,13 +1489,14 @@ function renderSkuRankingTable(target, rows, metric) {
         ${rows.map((row) => {
           const metricValue = metric.value(row);
           const toneClass = metric.className(metricValue);
-          const isActive = state.skuDetail.sku === row.sku;
+          const isActive = activeSku === row.sku;
           return `
             <tr class="${isActive ? "sku-row-active" : ""}">
               <td class="sku-cell"><button class="sku-link" type="button" data-sku="${row.sku}">${row.sku}</button></td>
               <td class="sku-description">${row.description || row.sku}</td>
               <td class="sku-metric ${toneClass}">${metric.format(metricValue)}</td>
             </tr>
+            ${isActive ? detailRowMarkup : ""}
           `;
         }).join("")}
       </tbody>
@@ -1524,13 +1506,11 @@ function renderSkuRankingTable(target, rows, metric) {
 
 function renderSkuRanking(rows, targets = {}) {
   const { metric, top, bottom } = getRankedSkuRows(rows);
+  const scope = targets.scope || "single";
   const topTarget = targets.top || els.skuTopList;
   const bottomTarget = targets.bottom || els.skuBottomList;
-  renderSkuRankingTable(topTarget, top, metric);
-  renderSkuRankingTable(bottomTarget, bottom, metric);
-
-  const scope = targets.scope || "single";
-  renderSkuDetailPanel(targets.detail || null, rows, scope);
+  renderSkuRankingTable(topTarget, top, metric, rows, scope);
+  renderSkuRankingTable(bottomTarget, bottom, metric, rows, scope);
 
   [topTarget, bottomTarget].forEach((listTarget) => {
     listTarget?.querySelectorAll("[data-sku]").forEach((node) => {
@@ -1538,6 +1518,13 @@ function renderSkuRanking(rows, targets = {}) {
         const nextSku = node.getAttribute("data-sku");
         const isSameSelection = state.skuDetail.scope === scope && state.skuDetail.sku === nextSku;
         state.skuDetail.sku = isSameSelection ? null : nextSku;
+        state.skuDetail.scope = scope;
+        render();
+      });
+    });
+    listTarget?.querySelectorAll("[data-sku-detail-close]").forEach((closeNode) => {
+      closeNode.addEventListener("click", () => {
+        state.skuDetail.sku = null;
         state.skuDetail.scope = scope;
         render();
       });
@@ -1705,14 +1692,12 @@ function render() {
     renderSkuRanking(focusedRows, {
       top: els.comparisonCurrentTopList,
       bottom: els.comparisonCurrentBottomList,
-      scope: "comparison-base",
-      detail: els.comparisonCurrentSkuDetail
+      scope: "comparison-base"
     });
     renderSkuRanking(comparisonRows, {
       top: els.comparisonCompareTopList,
       bottom: els.comparisonCompareBottomList,
-      scope: "comparison-case",
-      detail: els.comparisonCompareSkuDetail
+      scope: "comparison-case"
     });
     renderBreakdownPanel(totals);
     return;
@@ -1720,8 +1705,7 @@ function render() {
 
   renderSingleMode(totals);
   renderSkuRanking(focusedRows, {
-    scope: "single",
-    detail: els.skuDetailPanel
+    scope: "single"
   });
   renderBreakdownPanel(totals);
 }
