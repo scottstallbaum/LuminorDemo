@@ -433,11 +433,6 @@ textarea {
   height: 340px;
 }
 
-.whale-curve-shell canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
 table { width: 100%; border-collapse: collapse; font-size: .82rem; }
 th, td { padding: .45rem .4rem; border-bottom: 1px solid var(--line); text-align: left; }
 th { color: var(--muted); font-weight: 600; }
