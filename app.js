@@ -171,6 +171,11 @@ const els = {
   comparisonSetup: document.getElementById("comparison-setup"),
   comparisonStatus: document.getElementById("comparison-status"),
   reset: document.getElementById("btn-reset"),
+  summaryKpis: document.getElementById("summary-kpis"),
+  kpiRevenue: document.getElementById("kpi-revenue"),
+  kpiGrossMargin: document.getElementById("kpi-gross-margin"),
+  kpiOperatingIncome: document.getElementById("kpi-operating-income"),
+  kpiVolume: document.getElementById("kpi-volume"),
   singleWaterfallPanel: document.getElementById("single-waterfall-panel"),
   insightStripPanel: document.getElementById("insight-strip-panel"),
   insightStrip: document.getElementById("insight-strip"),
@@ -1351,11 +1356,23 @@ function renderComparisonMode(primaryTotals, comparisonTotals) {
 }
 
 function renderSingleMode(totals) {
+  els.summaryKpis?.classList.remove("is-hidden");
   els.singleWaterfallPanel?.classList.remove("is-hidden");
   els.insightStripPanel?.classList.remove("is-hidden");
   els.comparisonPanel?.classList.add("is-hidden");
   document.getElementById("sku-ranking-panel")?.classList.remove("is-hidden");
   renderOverallWaterfall(totals);
+}
+
+function renderSummaryKpis(totals) {
+  if (!els.summaryKpis) return;
+  els.kpiRevenue.textContent = toMoney(totals.revenue || 0);
+  els.kpiGrossMargin.textContent = toSignedMoney(totals.grossMargin || 0);
+  els.kpiOperatingIncome.textContent = toSignedMoney(totals.operatingIncome || 0);
+  els.kpiVolume.textContent = `${Math.round(totals.volume || 0).toLocaleString()} bbl`;
+
+  els.kpiGrossMargin.className = getMetricToneClass(totals.grossMargin || 0);
+  els.kpiOperatingIncome.className = getMetricToneClass(totals.operatingIncome || 0);
 }
 
 function aggregateByDimension(rows, key) {
@@ -2291,6 +2308,7 @@ function render() {
   if (state.comparisonMode) {
     const comparisonRows = applyFilters(state.records, state.comparisonFilters).map(computeRow);
     const comparisonTotals = aggregate(comparisonRows);
+    els.summaryKpis?.classList.add("is-hidden");
     renderComparisonMode(totals, comparisonTotals);
     renderSkuRanking(focusedRows, {
       top: els.comparisonCurrentTopList,
@@ -2308,6 +2326,7 @@ function render() {
   }
 
   renderSingleMode(totals);
+  renderSummaryKpis(totals);
   renderInsightStrip(focusedRows);
   renderSkuRanking(focusedRows, {
     scope: "single"

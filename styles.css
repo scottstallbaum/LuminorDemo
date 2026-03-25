@@ -115,17 +115,20 @@ textarea {
 .kpis {
   grid-column: span 12;
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: .7rem;
 }
 .kpi {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: .75rem;
-  padding: .7rem .8rem;
+  padding: .8rem .95rem;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, .12);
 }
 .kpi p { margin: 0; color: var(--muted); font-size: .78rem; }
-.kpi h3 { margin: .35rem 0 .15rem; font-size: 1.2rem; }
+.kpi h3 { margin: .35rem 0 .15rem; font-size: 1.45rem; line-height: 1.15; }
+.kpi h3.is-positive { color: var(--accent); }
+.kpi h3.is-negative { color: var(--danger); }
 .delta.up { color: var(--accent); }
 .delta.down { color: var(--danger); }
 
