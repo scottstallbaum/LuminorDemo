@@ -344,33 +344,8 @@ textarea {
   font-size: .82rem;
 }
 
-.sku-popover-row td {
-  padding: 0;
-  border-bottom: 0;
-  overflow: visible;
-}
-
-.sku-popover-cell {
-  padding: 0 !important;
-  position: relative;
-}
-
-.sku-popover {
-  position: relative;
-  padding: .15rem .55rem .7rem;
-}
-
-.sku-popover::before {
-  content: "";
-  position: absolute;
-  top: -5px;
-  left: 28px;
-  width: 10px;
-  height: 10px;
-  background: #0f1a2d;
-  border-left: 1px solid var(--line);
-  border-top: 1px solid var(--line);
-  transform: rotate(45deg);
+.sku-detail-panel {
+  margin-top: .75rem;
 }
 
 .sku-detail-shell {

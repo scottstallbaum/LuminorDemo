@@ -184,6 +184,9 @@ const els = {
   skuRankingMetric: document.getElementById("sku-ranking-metric"),
   skuTopList: document.getElementById("sku-top-list"),
   skuBottomList: document.getElementById("sku-bottom-list"),
+  skuDetailPanel: document.getElementById("sku-detail-panel"),
+  comparisonCurrentSkuDetail: document.getElementById("comparison-current-sku-detail"),
+  comparisonCompareSkuDetail: document.getElementById("comparison-compare-sku-detail"),
   waterfallShell: document.querySelector(".waterfall-shell"),
   waterfall: document.getElementById("waterfall"),
   breakdownTitle: document.getElementById("breakdown-title"),
@@ -952,17 +955,6 @@ function bindBreakdownEvents() {
 }
 
 function bindSkuDetailDismiss() {
-  document.addEventListener("click", (event) => {
-    if (!state.skuDetail.sku) return;
-    const target = event.target;
-    if (target.closest("[data-sku]") || target.closest(".sku-popover") || target.closest("[data-sku-detail-close]")) {
-      return;
-    }
-
-    state.skuDetail.sku = null;
-    render();
-  });
-
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape" || !state.skuDetail.sku) return;
     state.skuDetail.sku = null;
@@ -1420,16 +1412,19 @@ function getSkuDetailTotals(rows, sku) {
   };
 }
 
-function buildSkuDetailMarkup(rows, scope) {
-  if (!rows.length) {
-    return "";
-  }
+function renderSkuDetailPanel(target, rows, scope) {
+  if (!target) return;
 
   const activeSku = state.skuDetail.scope === scope ? state.skuDetail.sku : null;
-  const detail = activeSku ? getSkuDetailTotals(rows, activeSku) : null;
+  if (!activeSku) {
+    target.innerHTML = "";
+    return;
+  }
 
+  const detail = getSkuDetailTotals(rows, activeSku);
   if (!detail) {
-    return "";
+    target.innerHTML = "";
+    return;
   }
 
   const lines = [
@@ -1444,9 +1439,8 @@ function buildSkuDetailMarkup(rows, scope) {
     ["Operating Income", `${toSignedMoney(detail.operatingIncome)} (${toPct(detail.omPct)})`, "final"]
   ];
 
-  return `
-    <div class="sku-popover" data-sku-popover="${scope}">
-      <div class="sku-detail-shell">
+  target.innerHTML = `
+    <div class="sku-detail-shell">
       <div class="sku-detail-head">
         <div>
           <h4>${detail.sku}</h4>
@@ -1462,9 +1456,16 @@ function buildSkuDetailMarkup(rows, scope) {
           </div>
         `).join("")}
       </div>
-      </div>
     </div>
   `;
+
+  target.querySelectorAll("[data-sku-detail-close]").forEach((closeNode) => {
+    closeNode.addEventListener("click", () => {
+      state.skuDetail.sku = null;
+      state.skuDetail.scope = scope;
+      render();
+    });
+  });
 }
 
 function getRankedSkuRows(rows) {
@@ -1523,12 +1524,15 @@ function renderSkuRankingTable(target, rows, metric) {
 
 function renderSkuRanking(rows, targets = {}) {
   const { metric, top, bottom } = getRankedSkuRows(rows);
-  renderSkuRankingTable(targets.top || els.skuTopList, top, metric);
-  renderSkuRankingTable(targets.bottom || els.skuBottomList, bottom, metric);
+  const topTarget = targets.top || els.skuTopList;
+  const bottomTarget = targets.bottom || els.skuBottomList;
+  renderSkuRankingTable(topTarget, top, metric);
+  renderSkuRankingTable(bottomTarget, bottom, metric);
 
   const scope = targets.scope || "single";
-  const detailMarkup = buildSkuDetailMarkup(rows, scope);
-  const registerClicks = (listTarget) => {
+  renderSkuDetailPanel(targets.detail || null, rows, scope);
+
+  [topTarget, bottomTarget].forEach((listTarget) => {
     listTarget?.querySelectorAll("[data-sku]").forEach((node) => {
       node.addEventListener("click", () => {
         const nextSku = node.getAttribute("data-sku");
@@ -1538,34 +1542,7 @@ function renderSkuRanking(rows, targets = {}) {
         render();
       });
     });
-
-    listTarget?.querySelectorAll(".sku-popover").forEach((node) => node.remove());
-
-    if (!detailMarkup) return;
-    const activeButton = listTarget?.querySelector(`[data-sku="${state.skuDetail.sku}"]`);
-    const activeRow = activeButton?.closest("tr");
-    if (!activeRow) return;
-
-    const popoverRow = document.createElement("tr");
-    popoverRow.className = "sku-popover-row";
-    const cell = document.createElement("td");
-    cell.colSpan = 3;
-    cell.className = "sku-popover-cell";
-    cell.innerHTML = detailMarkup;
-    popoverRow.appendChild(cell);
-    activeRow.insertAdjacentElement("afterend", popoverRow);
-
-    popoverRow.querySelectorAll("[data-sku-detail-close]").forEach((closeNode) => {
-      closeNode.addEventListener("click", () => {
-        state.skuDetail.sku = null;
-        state.skuDetail.scope = scope;
-        render();
-      });
-    });
-  };
-
-  registerClicks(targets.top || els.skuTopList);
-  registerClicks(targets.bottom || els.skuBottomList);
+  });
 }
 
 function splitWaterfallLabel(label) {
@@ -1728,12 +1705,14 @@ function render() {
     renderSkuRanking(focusedRows, {
       top: els.comparisonCurrentTopList,
       bottom: els.comparisonCurrentBottomList,
-      scope: "comparison-base"
+      scope: "comparison-base",
+      detail: els.comparisonCurrentSkuDetail
     });
     renderSkuRanking(comparisonRows, {
       top: els.comparisonCompareTopList,
       bottom: els.comparisonCompareBottomList,
-      scope: "comparison-case"
+      scope: "comparison-case",
+      detail: els.comparisonCompareSkuDetail
     });
     renderBreakdownPanel(totals);
     return;
@@ -1741,7 +1720,8 @@ function render() {
 
   renderSingleMode(totals);
   renderSkuRanking(focusedRows, {
-    scope: "single"
+    scope: "single",
+    detail: els.skuDetailPanel
   });
   renderBreakdownPanel(totals);
 }
