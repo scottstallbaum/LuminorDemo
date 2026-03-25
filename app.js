@@ -228,10 +228,6 @@ const state = {
   comparisonMode: false,
   skuRankingMetric: "revenue",
   whaleCurveSelection: { point1: null, point2: null },
-  skuDetail: {
-    sku: null,
-    scope: "single"
-  },
   breakdown: {
     stepKey: null,
     totals: null,
@@ -962,11 +958,7 @@ function bindBreakdownEvents() {
 }
 
 function bindSkuDetailDismiss() {
-  document.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape" || !state.skuDetail.sku) return;
-    state.skuDetail.sku = null;
-    render();
-  });
+  // no-op: inline detail replaced by hover tooltip
 }
 
 function getBreakdownEntries(stepKey, totals) {
@@ -1438,6 +1430,35 @@ function getRankedSkuRows(rows) {
   };
 }
 
+function buildSkuTooltipHtml(d) {
+  const oi = d.operatingIncome;
+  const lines = [
+    ["Revenue", toMoney(d.revenue), "base"],
+    ["Brewing Materials", toSignedMoney(-Math.abs(d.brewMat)), "cost"],
+    ["Packaging Materials", toSignedMoney(-Math.abs(d.pkgMat)), "cost"],
+    ["Conversion Costs", toSignedMoney(-Math.abs(d.conversion)), "cost"],
+    ["Gross Margin", `${toSignedMoney(d.grossMargin)} (${toPct(d.gmPct)})`, "subtotal"],
+    ["Distribution / Freight", toSignedMoney(-Math.abs(d.freight)), "cost"],
+    ["Marketing", toSignedMoney(-Math.abs(d.marketing)), "cost"],
+    ["SG&A", toSignedMoney(-Math.abs(d.sga)), "cost"],
+    ["Operating Income", `${toSignedMoney(oi)} (${toPct(d.omPct)})`, oi >= 0 ? "final-pos" : "final-neg"]
+  ];
+  return `
+    <div class="sku-tt-head">
+      <strong>${d.sku}</strong>
+      <span>${d.description}</span>
+    </div>
+    <div class="sku-tt-body">
+      ${lines.map(([label, value, type]) => `
+        <div class="sku-tt-row sku-tt-row-${type}">
+          <span>${label}</span>
+          <strong>${value}</strong>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
 function renderSkuRankingTable(target, rows, metric, allRows, scope) {
   if (!target) return;
 
@@ -1445,46 +1466,6 @@ function renderSkuRankingTable(target, rows, metric, allRows, scope) {
     target.innerHTML = '<div class="sku-ranking-empty">No SKUs available for current filters.</div>';
     return;
   }
-
-  const activeSku = state.skuDetail.scope === scope ? state.skuDetail.sku : null;
-  const detail = activeSku ? getSkuDetailTotals(allRows, activeSku) : null;
-
-  const detailRowMarkup = detail ? (() => {
-    const lines = [
-      ["Revenue", toMoney(detail.revenue), "base"],
-      ["Brewing Materials", toSignedMoney(-Math.abs(detail.brewMat)), "cost"],
-      ["Packaging Materials", toSignedMoney(-Math.abs(detail.pkgMat)), "cost"],
-      ["Conversion Costs", toSignedMoney(-Math.abs(detail.conversion)), "cost"],
-      ["Gross Margin", `${toSignedMoney(detail.grossMargin)} (${toPct(detail.gmPct)})`, "subtotal"],
-      ["Distribution / Freight", toSignedMoney(-Math.abs(detail.freight)), "cost"],
-      ["Marketing", toSignedMoney(-Math.abs(detail.marketing)), "cost"],
-      ["SG&A", toSignedMoney(-Math.abs(detail.sga)), "cost"],
-      ["Operating Income", `${toSignedMoney(detail.operatingIncome)} (${toPct(detail.omPct)})`, "final"]
-    ];
-    return `
-      <tr class="sku-detail-inline-row">
-        <td colspan="3" class="sku-detail-inline-cell">
-          <div class="sku-detail-shell">
-            <div class="sku-detail-head">
-              <div>
-                <h4>${detail.sku}</h4>
-                <p>${detail.description}</p>
-              </div>
-              <button class="ghost sku-detail-close" type="button" data-sku-detail-close="${scope}">Close</button>
-            </div>
-            <div class="sku-detail-list">
-              ${lines.map(([label, value, type]) => `
-                <div class="sku-detail-row sku-detail-row-${type}">
-                  <span>${label}</span>
-                  <strong>${value}</strong>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-        </td>
-      </tr>
-    `;
-  })() : "";
 
   target.innerHTML = `
     <table class="sku-ranking-table">
@@ -1499,19 +1480,22 @@ function renderSkuRankingTable(target, rows, metric, allRows, scope) {
         ${rows.map((row) => {
           const metricValue = metric.value(row);
           const toneClass = metric.className(metricValue);
-          const isActive = activeSku === row.sku;
           return `
-            <tr class="${isActive ? "sku-row-active" : ""}">
-              <td class="sku-cell"><button class="sku-link" type="button" data-sku="${row.sku}">${row.sku}</button></td>
+            <tr class="sku-row-hoverable" data-sku="${row.sku}">
+              <td class="sku-cell">${row.sku}</td>
               <td class="sku-description">${row.description || row.sku}</td>
               <td class="sku-metric ${toneClass}">${metric.format(metricValue)}</td>
             </tr>
-            ${isActive ? detailRowMarkup : ""}
           `;
         }).join("")}
       </tbody>
     </table>
   `;
+
+  // Attach pre-computed detail to each row element for tooltip use
+  target.querySelectorAll("tr[data-sku]").forEach((tr) => {
+    tr._skuDetail = getSkuDetailTotals(allRows, tr.dataset.sku);
+  });
 }
 
 function renderSkuRanking(rows, targets = {}) {
@@ -1522,24 +1506,27 @@ function renderSkuRanking(rows, targets = {}) {
   renderSkuRankingTable(topTarget, top, metric, rows, scope);
   renderSkuRankingTable(bottomTarget, bottom, metric, rows, scope);
 
-  [topTarget, bottomTarget].forEach((listTarget) => {
-    listTarget?.querySelectorAll("[data-sku]").forEach((node) => {
-      node.addEventListener("click", () => {
-        const nextSku = node.getAttribute("data-sku");
-        const isSameSelection = state.skuDetail.scope === scope && state.skuDetail.sku === nextSku;
-        state.skuDetail.sku = isSameSelection ? null : nextSku;
-        state.skuDetail.scope = scope;
-        render();
+  const tooltip = document.getElementById("sku-tooltip");
+  if (tooltip) {
+    [topTarget, bottomTarget].forEach((container) => {
+      container?.querySelectorAll("tr[data-sku]").forEach((tr) => {
+        tr.addEventListener("mouseenter", () => {
+          if (!tr._skuDetail) return;
+          tooltip.innerHTML = buildSkuTooltipHtml(tr._skuDetail);
+          tooltip.classList.remove("is-hidden");
+        });
+        tr.addEventListener("mouseleave", () => {
+          tooltip.classList.add("is-hidden");
+        });
+        tr.addEventListener("mousemove", (e) => {
+          const x = e.clientX + 18;
+          const y = e.clientY - 10;
+          tooltip.style.left = Math.min(x, window.innerWidth - tooltip.offsetWidth - 12) + "px";
+          tooltip.style.top = Math.max(10, Math.min(y, window.innerHeight - tooltip.offsetHeight - 12)) + "px";
+        });
       });
     });
-    listTarget?.querySelectorAll("[data-sku-detail-close]").forEach((closeNode) => {
-      closeNode.addEventListener("click", () => {
-        state.skuDetail.sku = null;
-        state.skuDetail.scope = scope;
-        render();
-      });
-    });
-  });
+  }
 }
 
 function buildWhaleCurveData(rows) {
