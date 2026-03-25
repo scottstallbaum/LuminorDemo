@@ -1834,6 +1834,14 @@ function renderBubbleChart(rows) {
   const sortedRevs = skus.map((s) => s.revenue).sort((a, b) => a - b);
   const medianRevenue = sortedRevs[Math.floor(sortedRevs.length / 2)];
 
+  // Clamp Y axis to 5th–95th percentile of OI margins to suppress outliers
+  const margins = skus.map((s) => s.revenue ? (s.operatingIncome / s.revenue) * 100 : 0).sort((a, b) => a - b);
+  const p05 = margins[Math.floor(margins.length * 0.05)] ?? margins[0];
+  const p95 = margins[Math.ceil(margins.length * 0.95 - 1)] ?? margins[margins.length - 1];
+  const yPad = Math.max(5, (p95 - p05) * 0.1);
+  const yMin = Math.floor(p05 - yPad);
+  const yMax = Math.ceil(p95 + yPad);
+
   // Scale bubble radius by sqrt(volume/maxVolume)
   const maxVol = Math.max(...skus.map((s) => s.volume), 1);
   const toRadius = (vol) => Math.max(4, Math.round(Math.sqrt(vol / maxVol) * 24));
@@ -1933,6 +1941,8 @@ function renderBubbleChart(rows) {
           border: { color: "rgba(159,176,211,0.15)" }
         },
         y: {
+          min: yMin,
+          max: yMax,
           title: { display: true, text: "Op Income Margin %", color: "#9fb0d3", font: { size: 11 } },
           ticks: { color: "#9fb0d3", callback: (v) => v + "%" },
           grid: { color: "rgba(159,176,211,0.08)" },
