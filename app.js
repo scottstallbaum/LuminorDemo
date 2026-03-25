@@ -1802,40 +1802,42 @@ function bindWhaleCurveEvents() {
 function renderBubbleChart(rows) {
   if (!els.bubbleChart) return;
 
-  // Aggregate by SKU, capturing priceSegment
-  const skuMap = {};
+  // Aggregate by Brand Family, tracking dominant Price Segment for color
+  const familyMap = {};
   rows.forEach((row) => {
-    const key = row.sku || "Unknown";
-    if (!skuMap[key]) {
-      skuMap[key] = {
-        sku: key,
-        description: row.orderableSkuDescription || key,
-        priceSegment: row.priceSegment || "Unknown",
-        revenue: 0,
-        operatingIncome: 0,
-        volume: 0
-      };
+    const key = row.brandFamily || "Unknown";
+    if (!familyMap[key]) {
+      familyMap[key] = { brandFamily: key, revenue: 0, operatingIncome: 0, volume: 0, segCounts: {} };
     }
-    skuMap[key].revenue += row.revenue || 0;
-    skuMap[key].operatingIncome += row.operatingIncome || 0;
-    skuMap[key].volume += row.volume || 0;
-    if (row.orderableSkuDescription) skuMap[key].description = row.orderableSkuDescription;
-    if (row.priceSegment && row.priceSegment !== "Unknown") skuMap[key].priceSegment = row.priceSegment;
+    familyMap[key].revenue += row.revenue || 0;
+    familyMap[key].operatingIncome += row.operatingIncome || 0;
+    familyMap[key].volume += row.volume || 0;
+    const seg = row.priceSegment || "Unknown";
+    familyMap[key].segCounts[seg] = (familyMap[key].segCounts[seg] || 0) + 1;
   });
 
-  const skus = Object.values(skuMap).filter((s) => s.revenue > 0);
+  // Assign dominant price segment to each family
+  Object.values(familyMap).forEach((f) => {
+    f.priceSegment = Object.entries(f.segCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "Unknown";
+  });
 
-  if (!skus.length) {
+  const families = Object.values(familyMap).filter((f) => f.revenue > 0);
+
+  if (!families.length) {
     if (bubbleChart) { bubbleChart.destroy(); bubbleChart = null; }
     return;
   }
 
+  if (els.bubbleChartSubtitle) {
+    els.bubbleChartSubtitle.textContent = `${families.length} brand families — bubble size = volume`;
+  }
+
   // Median revenue for vertical quadrant line
-  const sortedRevs = skus.map((s) => s.revenue).sort((a, b) => a - b);
+  const sortedRevs = families.map((f) => f.revenue).sort((a, b) => a - b);
   const medianRevenue = sortedRevs[Math.floor(sortedRevs.length / 2)];
 
   // Clamp Y axis to 5th–95th percentile of OI margins to suppress outliers
-  const margins = skus.map((s) => s.revenue ? (s.operatingIncome / s.revenue) * 100 : 0).sort((a, b) => a - b);
+  const margins = families.map((f) => f.revenue ? (f.operatingIncome / f.revenue) * 100 : 0).sort((a, b) => a - b);
   const p05 = margins[Math.floor(margins.length * 0.05)] ?? margins[0];
   const p95 = margins[Math.ceil(margins.length * 0.95 - 1)] ?? margins[margins.length - 1];
   const yPad = Math.max(5, (p95 - p05) * 0.1);
@@ -1843,15 +1845,15 @@ function renderBubbleChart(rows) {
   const yMax = Math.ceil(p95 + yPad);
 
   // Scale bubble radius by sqrt(volume/maxVolume)
-  const maxVol = Math.max(...skus.map((s) => s.volume), 1);
-  const toRadius = (vol) => Math.max(4, Math.round(Math.sqrt(vol / maxVol) * 24));
+  const maxVol = Math.max(...families.map((f) => f.volume), 1);
+  const toRadius = (vol) => Math.max(5, Math.round(Math.sqrt(vol / maxVol) * 32));
 
   // Group by priceSegment, sorted alphabetically
   const segmentMap = {};
-  skus.forEach((s) => {
-    const seg = s.priceSegment || "Unknown";
+  families.forEach((f) => {
+    const seg = f.priceSegment || "Unknown";
     if (!segmentMap[seg]) segmentMap[seg] = [];
-    segmentMap[seg].push(s);
+    segmentMap[seg].push(f);
   });
 
   const SEG_COLORS = ["#45d0a2", "#4f9fff", "#ffae57", "#b28cff", "#ff8c7a", "#ffd966", "#7cd3ff", "#f77fb8"];
@@ -1862,14 +1864,14 @@ function renderBubbleChart(rows) {
     backgroundColor: SEG_COLORS[i % SEG_COLORS.length] + "99",
     borderColor: SEG_COLORS[i % SEG_COLORS.length],
     borderWidth: 1.5,
-    data: segmentMap[seg].map((s) => ({
-      x: s.revenue,
-      y: s.revenue ? (s.operatingIncome / s.revenue) * 100 : 0,
-      r: toRadius(s.volume),
-      _label: s.description,
-      _volume: s.volume,
-      _rev: s.revenue,
-      _oi: s.operatingIncome
+    data: segmentMap[seg].map((f) => ({
+      x: f.revenue,
+      y: f.revenue ? (f.operatingIncome / f.revenue) * 100 : 0,
+      r: toRadius(f.volume),
+      _label: f.brandFamily,
+      _volume: f.volume,
+      _rev: f.revenue,
+      _oi: f.operatingIncome
     }))
   }));
 
