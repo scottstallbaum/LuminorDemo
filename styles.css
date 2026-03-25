@@ -263,6 +263,10 @@ textarea {
   gap: .75rem;
 }
 
+.sku-ranking-panel-inline {
+  margin-top: .35rem;
+}
+
 .sku-ranking-card {
   border: 1px solid var(--line);
   border-radius: .7rem;
@@ -273,6 +277,11 @@ textarea {
 .sku-ranking-card h3 {
   margin: 0 0 .55rem;
   font-size: .92rem;
+}
+
+.sku-ranking-card h4 {
+  margin: 0 0 .55rem;
+  font-size: .86rem;
 }
 
 .sku-ranking-table {

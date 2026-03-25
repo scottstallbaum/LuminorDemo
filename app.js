@@ -177,6 +177,10 @@ const els = {
   comparisonCompareWaterfall: document.getElementById("comparison-compare-waterfall"),
   comparisonCurrentSummary: document.getElementById("comparison-current-summary"),
   comparisonCompareSummary: document.getElementById("comparison-compare-summary"),
+  comparisonCurrentTopList: document.getElementById("comparison-current-top-list"),
+  comparisonCurrentBottomList: document.getElementById("comparison-current-bottom-list"),
+  comparisonCompareTopList: document.getElementById("comparison-compare-top-list"),
+  comparisonCompareBottomList: document.getElementById("comparison-compare-bottom-list"),
   skuRankingMetric: document.getElementById("sku-ranking-metric"),
   skuTopList: document.getElementById("sku-top-list"),
   skuBottomList: document.getElementById("sku-bottom-list"),
@@ -1308,6 +1312,7 @@ function summarizeFilters(filters) {
 function renderComparisonMode(primaryTotals, comparisonTotals) {
   els.singleWaterfallPanel?.classList.add("is-hidden");
   els.comparisonPanel?.classList.remove("is-hidden");
+  document.getElementById("sku-ranking-panel")?.classList.add("is-hidden");
 
   if (els.comparisonCurrentSummary) {
     const drillPart = state.drill.value !== "All"
@@ -1331,6 +1336,7 @@ function renderComparisonMode(primaryTotals, comparisonTotals) {
 function renderSingleMode(totals) {
   els.singleWaterfallPanel?.classList.remove("is-hidden");
   els.comparisonPanel?.classList.add("is-hidden");
+  document.getElementById("sku-ranking-panel")?.classList.remove("is-hidden");
   renderOverallWaterfall(totals);
 }
 
@@ -1420,10 +1426,10 @@ function renderSkuRankingTable(target, rows, metric) {
   `;
 }
 
-function renderSkuRanking(rows) {
+function renderSkuRanking(rows, targets = {}) {
   const { metric, top, bottom } = getRankedSkuRows(rows);
-  renderSkuRankingTable(els.skuTopList, top, metric);
-  renderSkuRankingTable(els.skuBottomList, bottom, metric);
+  renderSkuRankingTable(targets.top || els.skuTopList, top, metric);
+  renderSkuRankingTable(targets.bottom || els.skuBottomList, bottom, metric);
 }
 
 function splitWaterfallLabel(label) {
@@ -1583,7 +1589,14 @@ function render() {
     const comparisonRows = applyFilters(state.records, state.comparisonFilters).map(computeRow);
     const comparisonTotals = aggregate(comparisonRows);
     renderComparisonMode(totals, comparisonTotals);
-    renderSkuRanking(focusedRows);
+    renderSkuRanking(focusedRows, {
+      top: els.comparisonCurrentTopList,
+      bottom: els.comparisonCurrentBottomList
+    });
+    renderSkuRanking(comparisonRows, {
+      top: els.comparisonCompareTopList,
+      bottom: els.comparisonCompareBottomList
+    });
     renderBreakdownPanel(totals);
     return;
   }
