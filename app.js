@@ -189,6 +189,8 @@ const els = {
   whaleCurvePanel: document.getElementById("whale-curve-panel"),
   whaleCurveReport: document.getElementById("whale-curve-report"),
   whaleCurveClear: document.getElementById("whale-curve-clear"),
+  bubbleChart: document.getElementById("bubble-chart"),
+  bubbleChartSubtitle: document.getElementById("bubble-chart-subtitle"),
   waterfallShell: document.querySelector(".waterfall-shell"),
   waterfall: document.getElementById("waterfall"),
   breakdownTitle: document.getElementById("breakdown-title"),
@@ -245,6 +247,7 @@ if (staticDescriptorData.length) {
 let marginChart;
 let breakdownChart;
 let whaleCurveChart;
+let bubbleChart;
 
 const BREAKDOWN_CLICKABLE_KEYS = ["conversion", "sga"];
 const PIE_COLORS = [
@@ -1796,6 +1799,150 @@ function bindWhaleCurveEvents() {
   });
 }
 
+function renderBubbleChart(rows) {
+  if (!els.bubbleChart) return;
+
+  // Aggregate by SKU, capturing priceSegment
+  const skuMap = {};
+  rows.forEach((row) => {
+    const key = row.sku || "Unknown";
+    if (!skuMap[key]) {
+      skuMap[key] = {
+        sku: key,
+        description: row.orderableSkuDescription || key,
+        priceSegment: row.priceSegment || "Unknown",
+        revenue: 0,
+        operatingIncome: 0,
+        volume: 0
+      };
+    }
+    skuMap[key].revenue += row.revenue || 0;
+    skuMap[key].operatingIncome += row.operatingIncome || 0;
+    skuMap[key].volume += row.volume || 0;
+    if (row.orderableSkuDescription) skuMap[key].description = row.orderableSkuDescription;
+    if (row.priceSegment && row.priceSegment !== "Unknown") skuMap[key].priceSegment = row.priceSegment;
+  });
+
+  const skus = Object.values(skuMap).filter((s) => s.revenue > 0);
+
+  if (!skus.length) {
+    if (bubbleChart) { bubbleChart.destroy(); bubbleChart = null; }
+    return;
+  }
+
+  // Median revenue for vertical quadrant line
+  const sortedRevs = skus.map((s) => s.revenue).sort((a, b) => a - b);
+  const medianRevenue = sortedRevs[Math.floor(sortedRevs.length / 2)];
+
+  // Scale bubble radius by sqrt(volume/maxVolume)
+  const maxVol = Math.max(...skus.map((s) => s.volume), 1);
+  const toRadius = (vol) => Math.max(4, Math.round(Math.sqrt(vol / maxVol) * 24));
+
+  // Group by priceSegment, sorted alphabetically
+  const segmentMap = {};
+  skus.forEach((s) => {
+    const seg = s.priceSegment || "Unknown";
+    if (!segmentMap[seg]) segmentMap[seg] = [];
+    segmentMap[seg].push(s);
+  });
+
+  const SEG_COLORS = ["#45d0a2", "#4f9fff", "#ffae57", "#b28cff", "#ff8c7a", "#ffd966", "#7cd3ff", "#f77fb8"];
+  const segments = Object.keys(segmentMap).sort();
+
+  const datasets = segments.map((seg, i) => ({
+    label: seg,
+    backgroundColor: SEG_COLORS[i % SEG_COLORS.length] + "99",
+    borderColor: SEG_COLORS[i % SEG_COLORS.length],
+    borderWidth: 1.5,
+    data: segmentMap[seg].map((s) => ({
+      x: s.revenue,
+      y: s.revenue ? (s.operatingIncome / s.revenue) * 100 : 0,
+      r: toRadius(s.volume),
+      _label: s.description,
+      _volume: s.volume,
+      _rev: s.revenue,
+      _oi: s.operatingIncome
+    }))
+  }));
+
+  const quadrantPlugin = {
+    id: "bubbleQuadrants",
+    beforeDraw(chart) {
+      const { ctx, chartArea: { top, bottom, left, right }, scales: { x, y } } = chart;
+      const xMed = x.getPixelForValue(medianRevenue);
+      const y0 = y.getPixelForValue(0);
+      ctx.save();
+      ctx.strokeStyle = "rgba(159,176,211,0.3)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.moveTo(xMed, top); ctx.lineTo(xMed, bottom); ctx.stroke();
+      if (y0 >= top && y0 <= bottom) {
+        ctx.beginPath(); ctx.moveTo(left, y0); ctx.lineTo(right, y0); ctx.stroke();
+      }
+      ctx.restore();
+    }
+  };
+
+  if (bubbleChart) { bubbleChart.destroy(); bubbleChart = null; }
+
+  bubbleChart = new Chart(els.bubbleChart, {
+    type: "bubble",
+    plugins: [quadrantPlugin],
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: "bottom",
+          labels: { color: "#9fb0d3", boxWidth: 12, padding: 16, font: { size: 12 } }
+        },
+        tooltip: {
+          callbacks: {
+            title: () => "",
+            label(item) {
+              const d = item.raw;
+              const margin = d.y.toFixed(1);
+              return [
+                d._label,
+                `Revenue: ${toMoney(d._rev)}`,
+                `OI Margin: ${(d.y >= 0 ? "+" : "") + margin}%`,
+                `Volume: ${Math.round(d._volume).toLocaleString()} bbl`
+              ];
+            }
+          },
+          backgroundColor: "rgba(15,26,45,0.95)",
+          borderColor: "rgba(159,176,211,.2)",
+          borderWidth: 1,
+          titleColor: "#9fb0d3",
+          bodyColor: "#e2eaf7",
+          padding: 10,
+          displayColors: false
+        }
+      },
+      scales: {
+        x: {
+          type: "linear",
+          title: { display: true, text: "Revenue", color: "#9fb0d3", font: { size: 11 } },
+          ticks: {
+            color: "#9fb0d3",
+            callback: (v) => v >= 1e6 ? "$" + (v / 1e6).toFixed(1) + "M" : v >= 1e3 ? "$" + (v / 1e3).toFixed(0) + "K" : "$" + v
+          },
+          grid: { color: "rgba(159,176,211,0.08)" },
+          border: { color: "rgba(159,176,211,0.15)" }
+        },
+        y: {
+          title: { display: true, text: "Op Income Margin %", color: "#9fb0d3", font: { size: 11 } },
+          ticks: { color: "#9fb0d3", callback: (v) => v + "%" },
+          grid: { color: "rgba(159,176,211,0.08)" },
+          border: { color: "rgba(159,176,211,0.15)" }
+        }
+      }
+    }
+  });
+}
+
 function splitWaterfallLabel(label) {
   const text = String(label || "").trim();
   if (text.length <= 16) return [text];
@@ -1972,6 +2119,7 @@ function render() {
     scope: "single"
   });
   renderWhaleCurve(focusedRows);
+  renderBubbleChart(focusedRows);
   renderBreakdownPanel(totals);
 }
 

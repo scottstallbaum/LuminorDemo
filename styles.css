@@ -439,6 +439,11 @@ textarea {
   height: 340px;
 }
 
+.bubble-chart-shell {
+  position: relative;
+  height: 460px;
+}
+
 .whale-curve-report {
   border: 1px solid var(--line);
   border-radius: .7rem;
