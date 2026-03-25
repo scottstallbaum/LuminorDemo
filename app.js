@@ -184,6 +184,10 @@ const els = {
   skuRankingMetric: document.getElementById("sku-ranking-metric"),
   skuTopList: document.getElementById("sku-top-list"),
   skuBottomList: document.getElementById("sku-bottom-list"),
+  whaleCurveChart: document.getElementById("whale-curve-chart"),
+  whaleCurveMetric: document.getElementById("whale-curve-metric"),
+  whaleCurveSubtitle: document.getElementById("whale-curve-subtitle"),
+  whaleCurvePanel: document.getElementById("whale-curve-panel"),
   waterfallShell: document.querySelector(".waterfall-shell"),
   waterfall: document.getElementById("waterfall"),
   breakdownTitle: document.getElementById("breakdown-title"),
@@ -220,6 +224,7 @@ const state = {
   axisMode: "dollar",
   comparisonMode: false,
   skuRankingMetric: "revenue",
+  whaleCurveMetric: "operatingIncome",
   skuDetail: {
     sku: null,
     scope: "single"
@@ -238,6 +243,7 @@ if (staticDescriptorData.length) {
 
 let marginChart;
 let breakdownChart;
+let whaleCurveChart;
 
 const BREAKDOWN_CLICKABLE_KEYS = ["conversion", "sga"];
 const PIE_COLORS = [
@@ -1532,6 +1538,140 @@ function renderSkuRanking(rows, targets = {}) {
   });
 }
 
+function buildWhaleCurveData(rows) {
+  const metricKey = state.whaleCurveMetric;
+  const aggregated = aggregateSkuRows(rows)
+    .sort((a, b) => (b[metricKey] || 0) - (a[metricKey] || 0));
+
+  if (!aggregated.length) return { points: [], peakIndex: 0, total: 0 };
+
+  const total = aggregated.reduce((sum, row) => sum + (row[metricKey] || 0), 0);
+  let cumulative = 0;
+  let peakIndex = 0;
+  let peakValue = -Infinity;
+
+  const points = aggregated.map((row, i) => {
+    cumulative += row[metricKey] || 0;
+    const pct = (i + 1) / aggregated.length;
+    if (cumulative > peakValue) {
+      peakValue = cumulative;
+      peakIndex = i;
+    }
+    return { x: pct, y: cumulative, sku: row.sku, cumulative, index: i };
+  });
+
+  // Prepend origin
+  points.unshift({ x: 0, y: 0, sku: null, cumulative: 0, index: -1 });
+
+  return { points, peakIndex: peakIndex + 1, total, peakValue };
+}
+
+function renderWhaleCurve(rows) {
+  if (!els.whaleCurveChart) return;
+
+  const { points, peakIndex, total, peakValue } = buildWhaleCurveData(rows);
+
+  const metricLabel = state.whaleCurveMetric === "operatingIncome" ? "Operating Income" : "Gross Margin";
+  const skuCount = points.length - 1;
+  const peakPct = skuCount > 0 ? Math.round((peakIndex / skuCount) * 100) : 0;
+
+  if (els.whaleCurveSubtitle) {
+    if (!skuCount) {
+      els.whaleCurveSubtitle.textContent = "No data for current filters.";
+    } else {
+      const profitablePct = skuCount > 0 ? Math.round((points.filter((p, i) => i > 0 && (p.y - (points[i - 1]?.y || 0)) > 0).length / skuCount) * 100) : 0;
+      els.whaleCurveSubtitle.textContent =
+        `Peak ${metricLabel} of ${toMoney(peakValue)} reached at ${peakPct}% of SKUs — ${100 - profitablePct}% of SKUs reduce total profit.`;
+    }
+  }
+
+  const chartData = points.map((p) => ({ x: p.x * 100, y: p.y }));
+
+  // Color segments: green up to peak, red after
+  const peakX = points[peakIndex]?.x * 100 || 100;
+
+  if (whaleCurveChart) {
+    whaleCurveChart.destroy();
+    whaleCurveChart = null;
+  }
+
+  whaleCurveChart = new Chart(els.whaleCurveChart, {
+    type: "line",
+    data: {
+      datasets: [
+        {
+          label: `Cumulative ${metricLabel}`,
+          data: chartData,
+          borderColor: chartData.map((p) => p.x <= peakX ? "#45d0a2" : "#ff8c7a"),
+          backgroundColor: "transparent",
+          borderWidth: 2.5,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: "#ffffff",
+          tension: 0.35,
+          segment: {
+            borderColor: (ctx) => ctx.p1.parsed.x <= peakX ? "#45d0a2" : "#ff8c7a"
+          }
+        },
+        {
+          label: "Peak",
+          data: [{ x: points[peakIndex]?.x * 100, y: peakValue }],
+          borderColor: "transparent",
+          backgroundColor: "#ffd966",
+          pointRadius: 7,
+          pointHoverRadius: 9,
+          type: "scatter"
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => `${items[0].parsed.x.toFixed(1)}% of SKUs`,
+            label: (item) => {
+              if (item.datasetIndex === 1) return `Peak: ${toMoney(item.parsed.y)}`;
+              return `Cumulative ${metricLabel}: ${toMoney(item.parsed.y)}`;
+            }
+          },
+          backgroundColor: "rgba(15,26,45,0.95)",
+          borderColor: "rgba(159,176,211,.2)",
+          borderWidth: 1,
+          titleColor: "#9fb0d3",
+          bodyColor: "#e2eaf7",
+          padding: 10
+        }
+      },
+      scales: {
+        x: {
+          type: "linear",
+          min: 0,
+          max: 100,
+          title: { display: true, text: "Cumulative % of SKUs (ranked high to low)", color: "#9fb0d3", font: { size: 11 } },
+          ticks: { color: "#9fb0d3", callback: (v) => `${v}%` },
+          grid: { color: "rgba(159,176,211,.1)" }
+        },
+        y: {
+          title: { display: true, text: `Cumulative ${metricLabel}`, color: "#9fb0d3", font: { size: 11 } },
+          ticks: { color: "#9fb0d3", callback: (v) => toMoney(v) },
+          grid: { color: "rgba(159,176,211,.1)" }
+        }
+      }
+    }
+  });
+}
+
+function bindWhaleCurveEvents() {
+  els.whaleCurveMetric?.addEventListener("change", () => {
+    state.whaleCurveMetric = els.whaleCurveMetric.value;
+    render();
+  });
+}
+
 function splitWaterfallLabel(label) {
   const text = String(label || "").trim();
   if (text.length <= 16) return [text];
@@ -1707,6 +1847,7 @@ function render() {
   renderSkuRanking(focusedRows, {
     scope: "single"
   });
+  renderWhaleCurve(focusedRows);
   renderBreakdownPanel(totals);
 }
 
@@ -1719,4 +1860,5 @@ bindReset();
 bindComparisonButton();
 bindBreakdownEvents();
 bindSkuDetailDismiss();
+bindWhaleCurveEvents();
 render();
