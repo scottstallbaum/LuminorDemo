@@ -1414,9 +1414,8 @@ function buildInsightCards(rows) {
   }
 
   const driverCandidates = [
-    ...aggregateByDimension(rows, "plant"),
-    ...aggregateByDimension(rows, "brandFamily"),
-    ...aggregateByDimension(rows, "priceSegment")
+    ...aggregateByDimension(rows, "plant").map((item) => ({ ...item, scope: "Plant" })),
+    ...aggregateByDimension(rows, "brandFamily").map((item) => ({ ...item, scope: "Brand Family" }))
   ].filter((item) => ((totals.revenue ? item.revenue / totals.revenue : 0) >= minShare || (totals.volume ? item.volume / totals.volume : 0) >= minShare) && !usedLabels.has(item.label));
 
   let bestDriver = null;
@@ -1425,26 +1424,28 @@ function buildInsightCards(rows) {
     const volumeShare = totals.volume ? item.volume / totals.volume : 0;
     const conversionShare = totals.conversion ? item.conversion / totals.conversion : 0;
     const profitShare = totals.operatingIncome ? item.operatingIncome / totals.operatingIncome : 0;
-    const options = [
-      {
-        gap: Math.abs(conversionShare - volumeShare),
-        headline: `${item.label} contributes ${toWholePct(volumeShare)} of volume and ${toWholePct(conversionShare)} of conversion cost.`,
-        detail: `Conversion cost ${toMoney(item.conversion)} · Volume ${Math.round(item.volume).toLocaleString()} bbl`,
-        tone: conversionShare > volumeShare ? "negative" : "neutral"
-      }
-    ];
+    const options = [];
 
-    if (!bestMix || item.label !== bestMix.item.label) {
+    if (totals.conversion && item.conversion > 0) {
       options.push({
-        gap: Math.abs(profitShare - revenueShare),
-        headline: `${item.label} contributes ${toWholePct(revenueShare)} of revenue and ${toWholePct(profitShare)} of operating income.`,
-        detail: `Revenue ${toMoney(item.revenue)} · Operating income ${toSignedMoney(item.operatingIncome)}`,
-        tone: profitShare >= revenueShare ? "positive" : "negative"
+        gap: Math.abs(conversionShare - volumeShare),
+        weightedGap: Math.abs(conversionShare - volumeShare) * Math.max(volumeShare, 0.08) * 1.15,
+        headline: `${item.label} contributes ${toWholePct(volumeShare)} of volume and ${toWholePct(conversionShare)} of conversion cost.`,
+        detail: `${item.scope} · Conversion cost ${toMoney(item.conversion)} · Volume ${Math.round(item.volume).toLocaleString()} bbl`,
+        tone: conversionShare > volumeShare ? "negative" : "neutral"
       });
     }
 
+    options.push({
+      gap: Math.abs(profitShare - revenueShare),
+      weightedGap: Math.abs(profitShare - revenueShare) * Math.max(revenueShare, 0.08),
+      headline: `${item.label} contributes ${toWholePct(revenueShare)} of revenue and ${toWholePct(profitShare)} of operating income.`,
+      detail: `${item.scope} · Revenue ${toMoney(item.revenue)} · Operating income ${toSignedMoney(item.operatingIncome)}`,
+      tone: profitShare >= revenueShare ? "positive" : "negative"
+    });
+
     options.forEach((option) => {
-      const weightedGap = option.gap * Math.max(revenueShare, volumeShare, 0.08);
+      const weightedGap = option.weightedGap ?? (option.gap * Math.max(revenueShare, volumeShare, 0.08));
       if (!bestDriver || weightedGap > bestDriver.weightedGap) {
         bestDriver = { ...option, weightedGap };
       }
