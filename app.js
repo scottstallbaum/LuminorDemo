@@ -1617,11 +1617,11 @@ function renderWhaleCurveReport(allPoints) {
       </div>
       <div class="whale-stat">
         <span class="whale-stat-label">Total Volume</span>
-        <strong class="whale-stat-value">${totalVolume.toLocaleString()}</strong>
+        <strong class="whale-stat-value">${Math.round(totalVolume).toLocaleString()} bbl</strong>
       </div>
       <div class="whale-stat">
         <span class="whale-stat-label">Avg Volume</span>
-        <strong class="whale-stat-value">${Math.round(avgVolume).toLocaleString()}</strong>
+        <strong class="whale-stat-value">${Math.round(avgVolume).toLocaleString()} bbl</strong>
       </div>
       <div class="whale-stat">
         <span class="whale-stat-label">Total Revenue</span>
