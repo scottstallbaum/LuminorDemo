@@ -172,6 +172,9 @@ const els = {
   comparisonStatus: document.getElementById("comparison-status"),
   reset: document.getElementById("btn-reset"),
   singleWaterfallPanel: document.getElementById("single-waterfall-panel"),
+  insightStripPanel: document.getElementById("insight-strip-panel"),
+  insightStrip: document.getElementById("insight-strip"),
+  insightStripSubtitle: document.getElementById("insight-strip-subtitle"),
   comparisonPanel: document.getElementById("comparison-panel"),
   comparisonCurrentWaterfall: document.getElementById("comparison-current-waterfall"),
   comparisonCompareWaterfall: document.getElementById("comparison-compare-waterfall"),
@@ -1349,9 +1352,193 @@ function renderComparisonMode(primaryTotals, comparisonTotals) {
 
 function renderSingleMode(totals) {
   els.singleWaterfallPanel?.classList.remove("is-hidden");
+  els.insightStripPanel?.classList.remove("is-hidden");
   els.comparisonPanel?.classList.add("is-hidden");
   document.getElementById("sku-ranking-panel")?.classList.remove("is-hidden");
   renderOverallWaterfall(totals);
+}
+
+function aggregateByDimension(rows, key) {
+  const map = rows.reduce((acc, row) => {
+    const group = String(row[key] || "Unknown").trim() || "Unknown";
+    if (!acc[group]) {
+      acc[group] = {
+        label: group,
+        revenue: 0,
+        volume: 0,
+        operatingIncome: 0,
+        conversion: 0
+      };
+    }
+    acc[group].revenue += row.revenue || 0;
+    acc[group].volume += row.volume || 0;
+    acc[group].operatingIncome += row.operatingIncome || 0;
+    acc[group].conversion += row.conversionTotal || 0;
+    return acc;
+  }, {});
+
+  return Object.values(map);
+}
+
+function toWholePct(value) {
+  return `${Math.round((value || 0) * 100)}%`;
+}
+
+function buildInsightCards(rows) {
+  const totals = aggregate(rows);
+  if (!rows.length || !totals.revenue) return [];
+
+  const minShare = 0.05;
+  const cards = [];
+
+  const segments = aggregateByDimension(rows, "priceSegment").filter((item) => item.revenue / totals.revenue >= minShare);
+  let bestMix = null;
+  segments.forEach((item) => {
+    const revenueShare = item.revenue / totals.revenue;
+    const profitShare = totals.operatingIncome ? item.operatingIncome / totals.operatingIncome : 0;
+    const gap = Math.abs(profitShare - revenueShare);
+    if (!bestMix || gap > bestMix.gap) {
+      bestMix = { item, revenueShare, profitShare, gap };
+    }
+  });
+
+  if (bestMix) {
+    cards.push({
+      eyebrow: "Mix Imbalance",
+      headline: `${bestMix.item.label} contributes ${toWholePct(bestMix.revenueShare)} of revenue and ${toWholePct(bestMix.profitShare)} of operating income.`,
+      detail: `Revenue ${toMoney(bestMix.item.revenue)} · Operating income ${toSignedMoney(bestMix.item.operatingIncome)}`,
+      tone: bestMix.profitShare >= bestMix.revenueShare ? "positive" : "negative"
+    });
+  }
+
+  const driverCandidates = [
+    ...aggregateByDimension(rows, "plant"),
+    ...aggregateByDimension(rows, "brandFamily"),
+    ...aggregateByDimension(rows, "priceSegment")
+  ].filter((item) => (totals.revenue ? item.revenue / totals.revenue : 0) >= minShare || (totals.volume ? item.volume / totals.volume : 0) >= minShare);
+
+  let bestDriver = null;
+  driverCandidates.forEach((item) => {
+    const revenueShare = totals.revenue ? item.revenue / totals.revenue : 0;
+    const volumeShare = totals.volume ? item.volume / totals.volume : 0;
+    const conversionShare = totals.conversion ? item.conversion / totals.conversion : 0;
+    const profitShare = totals.operatingIncome ? item.operatingIncome / totals.operatingIncome : 0;
+    const options = [
+      {
+        gap: Math.abs(conversionShare - volumeShare),
+        headline: `${item.label} contributes ${toWholePct(volumeShare)} of volume and ${toWholePct(conversionShare)} of conversion cost.`,
+        detail: `Conversion cost ${toMoney(item.conversion)} · Volume ${Math.round(item.volume).toLocaleString()} bbl`,
+        tone: conversionShare > volumeShare ? "negative" : "neutral"
+      },
+      {
+        gap: Math.abs(profitShare - revenueShare),
+        headline: `${item.label} contributes ${toWholePct(revenueShare)} of revenue and ${toWholePct(profitShare)} of operating income.`,
+        detail: `Revenue ${toMoney(item.revenue)} · Operating income ${toSignedMoney(item.operatingIncome)}`,
+        tone: profitShare >= revenueShare ? "positive" : "negative"
+      }
+    ];
+
+    options.forEach((option) => {
+      const weightedGap = option.gap * Math.max(revenueShare, volumeShare, 0.08);
+      if (!bestDriver || weightedGap > bestDriver.weightedGap) {
+        bestDriver = { ...option, weightedGap };
+      }
+    });
+  });
+
+  if (bestDriver) {
+    cards.push({
+      eyebrow: "Material Driver",
+      headline: bestDriver.headline,
+      detail: bestDriver.detail,
+      tone: bestDriver.tone
+    });
+  }
+
+  const familyMap = rows.reduce((acc, row) => {
+    const family = String(row.brandFamily || "Unknown").trim() || "Unknown";
+    if (!acc[family]) acc[family] = [];
+    acc[family].push(row);
+    return acc;
+  }, {});
+
+  let bestSpread = null;
+  const spreadKeys = [
+    { key: "containerType", label: "Container Type" },
+    { key: "containerSize", label: "Package Size" },
+    { key: "priceSegment", label: "Price Segment" }
+  ];
+
+  Object.entries(familyMap).forEach(([family, familyRows]) => {
+    const familyTotals = aggregate(familyRows);
+    if (!familyTotals.volume || familyTotals.revenue / totals.revenue < minShare) return;
+
+    spreadKeys.forEach(({ key, label }) => {
+      const groups = aggregateByDimension(familyRows, key).filter((item) => item.volume > 0);
+      if (groups.length < 2) return;
+
+      const ranked = groups
+        .map((item) => ({ ...item, oiPerBbl: item.volume ? item.operatingIncome / item.volume : 0 }))
+        .sort((a, b) => b.oiPerBbl - a.oiPerBbl);
+
+      const best = ranked[0];
+      const worst = ranked[ranked.length - 1];
+      const spread = best.oiPerBbl - worst.oiPerBbl;
+      const weightedSpread = spread * (familyTotals.volume / totals.volume);
+
+      if (!bestSpread || weightedSpread > bestSpread.weightedSpread) {
+        bestSpread = {
+          family,
+          label,
+          best,
+          worst,
+          spread,
+          weightedSpread
+        };
+      }
+    });
+  });
+
+  if (bestSpread) {
+    cards.push({
+      eyebrow: "Within-Family Spread",
+      headline: `Within ${bestSpread.family}, ${bestSpread.best.label} outperforms ${bestSpread.worst.label} by ${toMoney(bestSpread.spread)} per bbl.`,
+      detail: `${bestSpread.label} comparison · ${toSignedMoney(bestSpread.best.oiPerBbl)} vs ${toSignedMoney(bestSpread.worst.oiPerBbl)} OI per bbl`,
+      tone: "neutral"
+    });
+  }
+
+  return cards.slice(0, 3);
+}
+
+function renderInsightStrip(rows) {
+  if (!els.insightStrip || !els.insightStripPanel) return;
+
+  if (state.comparisonMode) {
+    els.insightStripPanel.classList.add("is-hidden");
+    return;
+  }
+
+  const cards = buildInsightCards(rows);
+  const totals = aggregate(rows);
+  if (els.insightStripSubtitle) {
+    els.insightStripSubtitle.textContent = rows.length
+      ? `${rows.length.toLocaleString()} records in current view · ${Math.round(totals.volume || 0).toLocaleString()} bbl · ${toSignedMoney(totals.operatingIncome || 0)} operating income`
+      : "No data for current filters.";
+  }
+
+  if (!cards.length) {
+    els.insightStrip.innerHTML = '<div class="insight-empty">No insight cards available for current filters.</div>';
+    return;
+  }
+
+  els.insightStrip.innerHTML = cards.map((card, index) => `
+    <article class="insight-card insight-card-${card.tone}" style="animation-delay:${index * 90}ms">
+      <p class="insight-eyebrow">${card.eyebrow}</p>
+      <h3>${card.headline}</h3>
+      <p class="insight-detail">${card.detail}</p>
+    </article>
+  `).join("");
 }
 
 function aggregateSkuRows(rows) {
@@ -2109,11 +2296,13 @@ function render() {
       bottom: els.comparisonCompareBottomList,
       scope: "comparison-case"
     });
+    els.insightStripPanel?.classList.add("is-hidden");
     renderBreakdownPanel(totals);
     return;
   }
 
   renderSingleMode(totals);
+  renderInsightStrip(focusedRows);
   renderSkuRanking(focusedRows, {
     scope: "single"
   });
