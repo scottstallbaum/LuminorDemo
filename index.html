@@ -199,9 +199,15 @@
           <h2>Profit Concentration (Whale Curve)</h2>
           <p class="small" id="whale-curve-subtitle"></p>
         </div>
+        <button id="whale-curve-clear" class="ghost is-hidden" type="button">Clear Selection</button>
       </div>
-      <div class="whale-curve-shell">
-        <canvas id="whale-curve-chart"></canvas>
+      <div class="whale-curve-body">
+        <div class="whale-curve-shell">
+          <canvas id="whale-curve-chart"></canvas>
+        </div>
+        <aside id="whale-curve-report" class="whale-curve-report">
+          <p class="whale-report-empty">Click two points on the curve to see a range report.</p>
+        </aside>
       </div>
     </section>
 

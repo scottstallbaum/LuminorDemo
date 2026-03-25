@@ -187,6 +187,8 @@ const els = {
   whaleCurveChart: document.getElementById("whale-curve-chart"),
   whaleCurveSubtitle: document.getElementById("whale-curve-subtitle"),
   whaleCurvePanel: document.getElementById("whale-curve-panel"),
+  whaleCurveReport: document.getElementById("whale-curve-report"),
+  whaleCurveClear: document.getElementById("whale-curve-clear"),
   waterfallShell: document.querySelector(".waterfall-shell"),
   waterfall: document.getElementById("waterfall"),
   breakdownTitle: document.getElementById("breakdown-title"),
@@ -223,6 +225,7 @@ const state = {
   axisMode: "dollar",
   comparisonMode: false,
   skuRankingMetric: "revenue",
+  whaleCurveSelection: { point1: null, point2: null },
   skuDetail: {
     sku: null,
     scope: "single"
@@ -1564,10 +1567,98 @@ function buildWhaleCurveData(rows) {
   return { points, peakIndex: peakIndex + 1, total, peakValue };
 }
 
+function renderWhaleCurveReport(allPoints) {
+  const report = els.whaleCurveReport;
+  const clearBtn = els.whaleCurveClear;
+  if (!report) return;
+
+  const { point1, point2 } = state.whaleCurveSelection;
+
+  if (point1 === null && point2 === null) {
+    report.innerHTML = '<p class="whale-report-empty">Click two points on the curve to see a range report.</p>';
+    clearBtn?.classList.add("is-hidden");
+    return;
+  }
+
+  if (point1 !== null && point2 === null) {
+    const pct = (point1 / (allPoints.length - 1) * 100).toFixed(1);
+    report.innerHTML = `<p class="whale-report-empty">Point 1 set at ${pct}% — click a second point.</p>`;
+    clearBtn?.classList.remove("is-hidden");
+    return;
+  }
+
+  const lo = Math.min(point1, point2);
+  const hi = Math.max(point1, point2);
+  // allPoints[0] is origin; actual SKUs start at index 1
+  const selectedPoints = allPoints.slice(lo + 1, hi + 2);
+
+  const skuCount = selectedPoints.length;
+  const totalVolume = selectedPoints.reduce((s, p) => s + (p.volume || 0), 0);
+  const totalRevenue = selectedPoints.reduce((s, p) => s + (p.revenue || 0), 0);
+  const totalOpIncome = selectedPoints.reduce((s, p) => s + (p.operatingIncome || 0), 0);
+  const avgVolume = skuCount ? totalVolume / skuCount : 0;
+  const avgRevenue = skuCount ? totalRevenue / skuCount : 0;
+  const avgOpIncome = skuCount ? totalOpIncome / skuCount : 0;
+
+  const loPct = (lo / (allPoints.length - 2) * 100).toFixed(1);
+  const hiPct = (hi / (allPoints.length - 2) * 100).toFixed(1);
+
+  clearBtn?.classList.remove("is-hidden");
+
+  report.innerHTML = `
+    <div class="whale-report-head">
+      <h4>Selected Range</h4>
+      <p class="whale-report-range">${loPct}% &ndash; ${hiPct}% of SKUs</p>
+    </div>
+    <div class="whale-report-stats">
+      <div class="whale-stat">
+        <span class="whale-stat-label">SKUs</span>
+        <strong class="whale-stat-value">${skuCount.toLocaleString()}</strong>
+      </div>
+      <div class="whale-stat">
+        <span class="whale-stat-label">Total Volume</span>
+        <strong class="whale-stat-value">${totalVolume.toLocaleString()}</strong>
+      </div>
+      <div class="whale-stat">
+        <span class="whale-stat-label">Avg Volume</span>
+        <strong class="whale-stat-value">${Math.round(avgVolume).toLocaleString()}</strong>
+      </div>
+      <div class="whale-stat">
+        <span class="whale-stat-label">Total Revenue</span>
+        <strong class="whale-stat-value">${toMoney(totalRevenue)}</strong>
+      </div>
+      <div class="whale-stat">
+        <span class="whale-stat-label">Avg Revenue</span>
+        <strong class="whale-stat-value">${toMoney(avgRevenue)}</strong>
+      </div>
+      <div class="whale-stat">
+        <span class="whale-stat-label">Total Op Income</span>
+        <strong class="whale-stat-value ${totalOpIncome >= 0 ? "is-positive" : "is-negative"}">${toSignedMoney(totalOpIncome)}</strong>
+      </div>
+      <div class="whale-stat">
+        <span class="whale-stat-label">Avg Op Income</span>
+        <strong class="whale-stat-value ${avgOpIncome >= 0 ? "is-positive" : "is-negative"}">${toSignedMoney(avgOpIncome)}</strong>
+      </div>
+    </div>
+  `;
+}
+
 function renderWhaleCurve(rows) {
   if (!els.whaleCurveChart) return;
 
   const { points, peakIndex, total, peakValue } = buildWhaleCurveData(rows);
+
+  // Attach volume/revenue/operatingIncome back onto each point for report use
+  const aggregated = aggregateSkuRows(rows).sort((a, b) => (b.operatingIncome || 0) - (a.operatingIncome || 0));
+  points.forEach((p, i) => {
+    if (i === 0) { p.volume = 0; p.revenue = 0; p.operatingIncome = 0; return; }
+    const sku = aggregated[i - 1];
+    p.volume = sku?.volume || 0;
+    p.revenue = sku?.revenue || 0;
+    p.operatingIncome = sku?.operatingIncome || 0;
+  });
+
+  renderWhaleCurveReport(points);
 
   const metricLabel = "Operating Income";
   const skuCount = points.length - 1;
@@ -1625,6 +1716,23 @@ function renderWhaleCurve(rows) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      onClick: (event, elements, chart) => {
+        const canvasPosition = Chart.helpers.getRelativePosition(event, chart);
+        const xVal = chart.scales.x.getValueForPixel(canvasPosition.x);
+        const pct = Math.max(0, Math.min(100, xVal)) / 100;
+        const nearest = points.slice(1).reduce((best, p, i) => {
+          const dist = Math.abs(p.x - pct);
+          return dist < best.dist ? { dist, index: i } : best;
+        }, { dist: Infinity, index: 0 });
+        const clickedIndex = nearest.index;
+        const { point1, point2 } = state.whaleCurveSelection;
+        if (point1 === null || point2 !== null) {
+          state.whaleCurveSelection = { point1: clickedIndex, point2: null };
+        } else {
+          state.whaleCurveSelection.point2 = clickedIndex;
+        }
+        render();
+      },
       interaction: { mode: "index", intersect: false },
       plugins: {
         legend: { display: false },
@@ -1664,7 +1772,10 @@ function renderWhaleCurve(rows) {
 }
 
 function bindWhaleCurveEvents() {
-  // no controls currently
+  els.whaleCurveClear?.addEventListener("click", () => {
+    state.whaleCurveSelection = { point1: null, point2: null };
+    render();
+  });
 }
 
 function splitWaterfallLabel(label) {

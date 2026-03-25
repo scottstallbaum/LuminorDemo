@@ -427,11 +427,77 @@ textarea {
   background: rgba(79, 159, 255, .08);
 }
 
+.whale-curve-body {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
 .whale-curve-shell {
   position: relative;
-  width: 100%;
   height: 340px;
 }
+
+.whale-curve-report {
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: rgba(255,255,255,.02);
+  padding: 1rem;
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+
+.whale-report-empty {
+  color: var(--muted);
+  font-size: .82rem;
+  text-align: center;
+  margin: auto;
+  padding: 1rem 0;
+}
+
+.whale-report-head h4 {
+  margin: 0 0 .15rem;
+  font-size: .9rem;
+}
+
+.whale-report-range {
+  color: var(--muted);
+  font-size: .78rem;
+  margin: 0 0 .6rem;
+}
+
+.whale-report-stats {
+  display: grid;
+  gap: .4rem;
+}
+
+.whale-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .35rem .5rem;
+  border-radius: .45rem;
+  background: rgba(255,255,255,.025);
+  border: 1px solid rgba(159,176,211,.07);
+  gap: .5rem;
+}
+
+.whale-stat-label {
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.whale-stat-value {
+  font-size: .82rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.whale-stat-value.is-positive { color: var(--accent); }
+.whale-stat-value.is-negative { color: var(--danger); }
 
 table { width: 100%; border-collapse: collapse; font-size: .82rem; }
 th, td { padding: .45rem .4rem; border-bottom: 1px solid var(--line); text-align: left; }
