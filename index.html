@@ -135,11 +135,40 @@
       </div>
     </section>
 
+    <section id="sku-ranking-panel" class="panel panel-wide">
+      <div class="panel-head panel-head-inline sku-ranking-head">
+        <div>
+          <h2>Top / Bottom 10 SKUs</h2>
+          <p class="small">Ranking is independent from the waterfall metric.</p>
+        </div>
+        <label class="axis-toggle sku-metric-toggle">
+          <span>Rank By</span>
+          <select id="sku-ranking-metric">
+            <option value="revenue">Revenue</option>
+            <option value="grossMargin">GM $</option>
+            <option value="gmPct">GM %</option>
+            <option value="operatingIncome">Op Margin $</option>
+            <option value="omPct">Op Margin %</option>
+          </select>
+        </label>
+      </div>
+      <div class="sku-ranking-grid">
+        <article class="sku-ranking-card">
+          <h3>Top 10</h3>
+          <div id="sku-top-list"></div>
+        </article>
+        <article class="sku-ranking-card">
+          <h3>Bottom 10</h3>
+          <div id="sku-bottom-list"></div>
+        </article>
+      </div>
+    </section>
+
   </main>
 
   <script src="data/demo-cost-data.js"></script>
   <script src="data/demo-descriptor-data.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=20260324-17"></script>
+  <script src="app.js?v=20260325-18"></script>
 </body>
 </html>

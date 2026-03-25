@@ -249,6 +249,71 @@ textarea {
   min-width: 72px;
 }
 
+.sku-ranking-head .small {
+  margin: .2rem 0 0;
+}
+
+.sku-metric-toggle {
+  white-space: nowrap;
+}
+
+.sku-ranking-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.sku-ranking-card {
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: #0f1a2d;
+  padding: .75rem;
+}
+
+.sku-ranking-card h3 {
+  margin: 0 0 .55rem;
+  font-size: .92rem;
+}
+
+.sku-ranking-table {
+  width: 100%;
+}
+
+.sku-ranking-table th:last-child,
+.sku-ranking-table td:last-child {
+  text-align: right;
+}
+
+.sku-cell {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sku-description {
+  color: var(--muted);
+}
+
+.sku-metric {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.sku-metric.is-positive {
+  color: var(--accent);
+}
+
+.sku-metric.is-negative {
+  color: var(--danger);
+}
+
+.sku-ranking-empty {
+  border: 1px dashed var(--line);
+  border-radius: .55rem;
+  padding: .7rem;
+  color: var(--muted);
+  font-size: .82rem;
+}
+
 table { width: 100%; border-collapse: collapse; font-size: .82rem; }
 th, td { padding: .45rem .4rem; border-bottom: 1px solid var(--line); text-align: left; }
 th { color: var(--muted); font-weight: 600; }
@@ -506,6 +571,9 @@ th { color: var(--muted); font-weight: 600; }
     grid-template-columns: 1fr;
   }
   .comparison-filter-groups {
+    grid-template-columns: 1fr;
+  }
+  .sku-ranking-grid {
     grid-template-columns: 1fr;
   }
 }

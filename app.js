@@ -177,6 +177,9 @@ const els = {
   comparisonCompareWaterfall: document.getElementById("comparison-compare-waterfall"),
   comparisonCurrentSummary: document.getElementById("comparison-current-summary"),
   comparisonCompareSummary: document.getElementById("comparison-compare-summary"),
+  skuRankingMetric: document.getElementById("sku-ranking-metric"),
+  skuTopList: document.getElementById("sku-top-list"),
+  skuBottomList: document.getElementById("sku-bottom-list"),
   waterfallShell: document.querySelector(".waterfall-shell"),
   waterfall: document.getElementById("waterfall"),
   breakdownTitle: document.getElementById("breakdown-title"),
@@ -212,6 +215,7 @@ const state = {
   },
   axisMode: "dollar",
   comparisonMode: false,
+  skuRankingMetric: "revenue",
   breakdown: {
     stepKey: null,
     totals: null,
@@ -275,6 +279,39 @@ const SGA_BUCKETS = [
   { key: "executive", label: "Executive" }
 ];
 
+const SKU_RANKING_METRICS = {
+  revenue: {
+    label: "Revenue",
+    value: (row) => row.revenue || 0,
+    format: (value) => toMoney(value || 0),
+    className: (value) => getMetricToneClass(value)
+  },
+  grossMargin: {
+    label: "GM $",
+    value: (row) => row.grossMargin || 0,
+    format: (value) => toSignedMoney(value || 0),
+    className: (value) => getMetricToneClass(value)
+  },
+  gmPct: {
+    label: "GM %",
+    value: (row) => row.gmPct || 0,
+    format: (value) => toSignedPct(value || 0),
+    className: (value) => getMetricToneClass(value)
+  },
+  operatingIncome: {
+    label: "Op Margin $",
+    value: (row) => row.operatingIncome || 0,
+    format: (value) => toSignedMoney(value || 0),
+    className: (value) => getMetricToneClass(value)
+  },
+  omPct: {
+    label: "Op Margin %",
+    value: (row) => row.omPct || 0,
+    format: (value) => toSignedPct(value || 0),
+    className: (value) => getMetricToneClass(value)
+  }
+};
+
 function toMoney(value) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -295,6 +332,12 @@ function toSignedPct(value) {
 function toSignedMoney(value) {
   const abs = toMoney(Math.abs(value || 0));
   return value < 0 ? `-${abs}` : abs;
+}
+
+function getMetricToneClass(value) {
+  if ((value || 0) > 0) return "is-positive";
+  if ((value || 0) < 0) return "is-negative";
+  return "";
 }
 
 function parseNum(value) {
@@ -765,6 +808,14 @@ function bindFilterEvents() {
     els.axisMode.value = state.axisMode;
     els.axisMode.addEventListener("change", () => {
       state.axisMode = els.axisMode.value;
+      render();
+    });
+  }
+
+  if (els.skuRankingMetric) {
+    els.skuRankingMetric.value = state.skuRankingMetric;
+    els.skuRankingMetric.addEventListener("change", () => {
+      state.skuRankingMetric = els.skuRankingMetric.value;
       render();
     });
   }
@@ -1283,6 +1334,98 @@ function renderSingleMode(totals) {
   renderOverallWaterfall(totals);
 }
 
+function aggregateSkuRows(rows) {
+  const skuMap = rows.reduce((acc, row) => {
+    const key = row.sku || "Unknown";
+    if (!acc[key]) {
+      acc[key] = {
+        sku: key,
+        description: row.orderableSkuDescription || key,
+        revenue: 0,
+        grossMargin: 0,
+        operatingIncome: 0,
+        volume: 0
+      };
+    }
+
+    acc[key].revenue += row.revenue || 0;
+    acc[key].grossMargin += row.grossMargin || 0;
+    acc[key].operatingIncome += row.operatingIncome || 0;
+    acc[key].volume += row.volume || 0;
+
+    if ((!acc[key].description || acc[key].description === key) && row.orderableSkuDescription) {
+      acc[key].description = row.orderableSkuDescription;
+    }
+
+    return acc;
+  }, {});
+
+  return Object.values(skuMap).map((row) => ({
+    ...row,
+    gmPct: row.revenue ? row.grossMargin / row.revenue : 0,
+    omPct: row.revenue ? row.operatingIncome / row.revenue : 0
+  }));
+}
+
+function getRankedSkuRows(rows) {
+  const metric = SKU_RANKING_METRICS[state.skuRankingMetric] || SKU_RANKING_METRICS.revenue;
+  const aggregatedRows = aggregateSkuRows(rows)
+    .filter((row) => Number.isFinite(metric.value(row)))
+    .sort((a, b) => {
+      const metricDiff = metric.value(b) - metric.value(a);
+      if (Math.abs(metricDiff) > 0.0001) return metricDiff;
+      const revenueDiff = (b.revenue || 0) - (a.revenue || 0);
+      if (Math.abs(revenueDiff) > 0.0001) return revenueDiff;
+      return String(a.sku).localeCompare(String(b.sku));
+    });
+
+  return {
+    metric,
+    top: aggregatedRows.slice(0, 10),
+    bottom: [...aggregatedRows].reverse().slice(0, 10)
+  };
+}
+
+function renderSkuRankingTable(target, rows, metric) {
+  if (!target) return;
+
+  if (!rows.length) {
+    target.innerHTML = '<div class="sku-ranking-empty">No SKUs available for current filters.</div>';
+    return;
+  }
+
+  target.innerHTML = `
+    <table class="sku-ranking-table">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Description</th>
+          <th>${metric.label}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map((row) => {
+          const metricValue = metric.value(row);
+          const toneClass = metric.className(metricValue);
+          return `
+            <tr>
+              <td class="sku-cell">${row.sku}</td>
+              <td class="sku-description">${row.description || row.sku}</td>
+              <td class="sku-metric ${toneClass}">${metric.format(metricValue)}</td>
+            </tr>
+          `;
+        }).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderSkuRanking(rows) {
+  const { metric, top, bottom } = getRankedSkuRows(rows);
+  renderSkuRankingTable(els.skuTopList, top, metric);
+  renderSkuRankingTable(els.skuBottomList, bottom, metric);
+}
+
 function splitWaterfallLabel(label) {
   const text = String(label || "").trim();
   if (text.length <= 16) return [text];
@@ -1440,11 +1583,13 @@ function render() {
     const comparisonRows = applyFilters(state.records, state.comparisonFilters).map(computeRow);
     const comparisonTotals = aggregate(comparisonRows);
     renderComparisonMode(totals, comparisonTotals);
+    renderSkuRanking(focusedRows);
     renderBreakdownPanel(totals);
     return;
   }
 
   renderSingleMode(totals);
+  renderSkuRanking(focusedRows);
   renderBreakdownPanel(totals);
 }
 
