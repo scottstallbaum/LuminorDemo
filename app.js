@@ -185,7 +185,6 @@ const els = {
   skuTopList: document.getElementById("sku-top-list"),
   skuBottomList: document.getElementById("sku-bottom-list"),
   whaleCurveChart: document.getElementById("whale-curve-chart"),
-  whaleCurveMetric: document.getElementById("whale-curve-metric"),
   whaleCurveSubtitle: document.getElementById("whale-curve-subtitle"),
   whaleCurvePanel: document.getElementById("whale-curve-panel"),
   waterfallShell: document.querySelector(".waterfall-shell"),
@@ -224,7 +223,6 @@ const state = {
   axisMode: "dollar",
   comparisonMode: false,
   skuRankingMetric: "revenue",
-  whaleCurveMetric: "operatingIncome",
   skuDetail: {
     sku: null,
     scope: "single"
@@ -1539,7 +1537,7 @@ function renderSkuRanking(rows, targets = {}) {
 }
 
 function buildWhaleCurveData(rows) {
-  const metricKey = state.whaleCurveMetric;
+  const metricKey = "operatingIncome";
   const aggregated = aggregateSkuRows(rows)
     .sort((a, b) => (b[metricKey] || 0) - (a[metricKey] || 0));
 
@@ -1571,7 +1569,7 @@ function renderWhaleCurve(rows) {
 
   const { points, peakIndex, total, peakValue } = buildWhaleCurveData(rows);
 
-  const metricLabel = state.whaleCurveMetric === "operatingIncome" ? "Operating Income" : "Gross Margin";
+  const metricLabel = "Operating Income";
   const skuCount = points.length - 1;
   const peakPct = skuCount > 0 ? Math.round((peakIndex / skuCount) * 100) : 0;
 
@@ -1666,10 +1664,7 @@ function renderWhaleCurve(rows) {
 }
 
 function bindWhaleCurveEvents() {
-  els.whaleCurveMetric?.addEventListener("change", () => {
-    state.whaleCurveMetric = els.whaleCurveMetric.value;
-    render();
-  });
+  // no controls currently
 }
 
 function splitWaterfallLabel(label) {
