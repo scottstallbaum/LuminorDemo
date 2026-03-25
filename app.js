@@ -1390,6 +1390,7 @@ function buildInsightCards(rows) {
 
   const minShare = 0.05;
   const cards = [];
+  const usedLabels = new Set();
 
   const segments = aggregateByDimension(rows, "priceSegment").filter((item) => item.revenue / totals.revenue >= minShare);
   let bestMix = null;
@@ -1403,6 +1404,7 @@ function buildInsightCards(rows) {
   });
 
   if (bestMix) {
+    usedLabels.add(bestMix.item.label);
     cards.push({
       eyebrow: "Mix Imbalance",
       headline: `${bestMix.item.label} contributes ${toWholePct(bestMix.revenueShare)} of revenue and ${toWholePct(bestMix.profitShare)} of operating income.`,
@@ -1415,7 +1417,7 @@ function buildInsightCards(rows) {
     ...aggregateByDimension(rows, "plant"),
     ...aggregateByDimension(rows, "brandFamily"),
     ...aggregateByDimension(rows, "priceSegment")
-  ].filter((item) => (totals.revenue ? item.revenue / totals.revenue : 0) >= minShare || (totals.volume ? item.volume / totals.volume : 0) >= minShare);
+  ].filter((item) => ((totals.revenue ? item.revenue / totals.revenue : 0) >= minShare || (totals.volume ? item.volume / totals.volume : 0) >= minShare) && !usedLabels.has(item.label));
 
   let bestDriver = null;
   driverCandidates.forEach((item) => {
@@ -1429,14 +1431,17 @@ function buildInsightCards(rows) {
         headline: `${item.label} contributes ${toWholePct(volumeShare)} of volume and ${toWholePct(conversionShare)} of conversion cost.`,
         detail: `Conversion cost ${toMoney(item.conversion)} · Volume ${Math.round(item.volume).toLocaleString()} bbl`,
         tone: conversionShare > volumeShare ? "negative" : "neutral"
-      },
-      {
+      }
+    ];
+
+    if (!bestMix || item.label !== bestMix.item.label) {
+      options.push({
         gap: Math.abs(profitShare - revenueShare),
         headline: `${item.label} contributes ${toWholePct(revenueShare)} of revenue and ${toWholePct(profitShare)} of operating income.`,
         detail: `Revenue ${toMoney(item.revenue)} · Operating income ${toSignedMoney(item.operatingIncome)}`,
         tone: profitShare >= revenueShare ? "positive" : "negative"
-      }
-    ];
+      });
+    }
 
     options.forEach((option) => {
       const weightedGap = option.gap * Math.max(revenueShare, volumeShare, 0.08);
