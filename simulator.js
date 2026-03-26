@@ -776,7 +776,6 @@ function bindStep2Controls() {
         <div class="sim-summary-card-delta">Lost: ${Math.round(lostVol).toLocaleString()} bbl</div>
       </div>
     `;
-  });
 }
 
 // ============================================================
