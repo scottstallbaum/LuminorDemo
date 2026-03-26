@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SKU Rationalization Simulator — Luminor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20260326-1" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Luminor Demo</p>
+      <h1>SKU Rationalization Simulator</h1>
+    </div>
+    <a href="index.html" class="ghost topbar-back">← Back to Dashboard</a>
+  </header>
+
+  <main class="layout">
+
+    <!-- Step 1 header + controls -->
+    <section class="panel controls-full compact-controls">
+      <div class="sim-step-header">
+        <div>
+          <p class="eyebrow">Step 1 of 3</p>
+          <h2>Select a SKU to Rationalize</h2>
+          <p class="small">Choose a candidate from the table. SKUs are sorted by volume — lowest first, since tail SKUs are the most likely rationalization targets.</p>
+        </div>
+      </div>
+      <div class="sim-controls-row">
+        <input id="sim-search" type="text" placeholder="Search SKU or description…" class="sim-search-input" autocomplete="off" />
+        <label>
+          Price Segment
+          <select id="sim-filter-segment"></select>
+        </label>
+        <label>
+          Brand Family
+          <select id="sim-filter-family"></select>
+        </label>
+        <label>
+          Container Size
+          <select id="sim-filter-size"></select>
+        </label>
+        <button id="sim-reset-filters" class="ghost" type="button">Reset</button>
+      </div>
+    </section>
+
+    <!-- SKU table -->
+    <section class="panel sim-table-panel" id="sim-table-panel">
+      <div class="panel-head-inline">
+        <h2 id="sim-table-heading">All SKUs <span id="sim-table-count" class="small"></span></h2>
+      </div>
+      <div class="sim-table-scroll">
+        <table class="sim-sku-table" id="sim-sku-table">
+          <thead>
+            <tr>
+              <th data-sort="sku" class="sortable">SKU</th>
+              <th data-sort="description">Description</th>
+              <th data-sort="priceSegment" class="sortable">Segment</th>
+              <th data-sort="containerSize" class="sortable">Size</th>
+              <th data-sort="volume" class="sortable sort-active sort-asc">Volume (bbl) ↑</th>
+              <th data-sort="conversionCpu" class="sortable">Conv $/bbl</th>
+              <th data-sort="oiPerBbl" class="sortable">OI $/bbl</th>
+              <th data-sort="omPct" class="sortable">OI %</th>
+            </tr>
+          </thead>
+          <tbody id="sim-sku-tbody">
+            <tr><td colspan="8" class="sim-empty">Loading data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Selected SKU card -->
+    <aside class="panel sim-selected-panel" id="sim-selected-panel">
+      <div id="sim-no-selection" class="sim-no-selection">
+        <p class="eyebrow">Selected SKU</p>
+        <p class="sim-placeholder-msg">Click any row in the table to select a SKU for analysis.</p>
+      </div>
+      <div id="sim-selection-card" class="is-hidden">
+        <p class="eyebrow">Selected for Analysis</p>
+        <h3 id="sel-sku-name" class="sim-sel-name"></h3>
+        <p id="sel-sku-desc" class="small sim-sel-desc"></p>
+        <div class="sim-sel-tags" id="sel-sku-tags"></div>
+
+        <div class="sim-sel-metrics">
+          <div class="sim-sel-metric">
+            <p>Volume</p>
+            <strong id="sel-volume"></strong>
+            <span id="sel-volume-share" class="sim-sel-sub"></span>
+          </div>
+          <div class="sim-sel-metric">
+            <p>Conv $/bbl</p>
+            <strong id="sel-conv-cpu"></strong>
+            <span id="sel-conv-vs-avg" class="sim-sel-sub"></span>
+          </div>
+          <div class="sim-sel-metric">
+            <p>OI $/bbl</p>
+            <strong id="sel-oi-bbl" class=""></strong>
+          </div>
+          <div class="sim-sel-metric">
+            <p>OI Total</p>
+            <strong id="sel-oi-total" class=""></strong>
+          </div>
+          <div class="sim-sel-metric">
+            <p>Revenue</p>
+            <strong id="sel-revenue"></strong>
+          </div>
+          <div class="sim-sel-metric">
+            <p>OI Margin</p>
+            <strong id="sel-om-pct" class=""></strong>
+          </div>
+        </div>
+
+        <div class="sim-conv-bar-wrap">
+          <p class="sim-conv-bar-label">Conv $/bbl vs. portfolio avg</p>
+          <div class="sim-conv-bar-track">
+            <div id="sel-conv-bar-portfolio" class="sim-conv-bar-avg"></div>
+            <div id="sel-conv-bar-sku" class="sim-conv-bar-sku"></div>
+          </div>
+          <div class="sim-conv-bar-legend">
+            <span class="sim-conv-legend-dot sim-conv-legend-avg"></span><span>Avg</span>
+            <span class="sim-conv-legend-dot sim-conv-legend-sku" style="margin-left:.75rem"></span><span>This SKU</span>
+          </div>
+        </div>
+
+        <button id="btn-continue-step2" class="sim-continue-btn" type="button">
+          Continue to Substitution Mapping →
+        </button>
+      </div>
+    </aside>
+
+    <!-- Step 2 placeholder (locked until SKU selected) -->
+    <section class="panel panel-wide sim-step-locked" id="step2-panel">
+      <p class="eyebrow">Step 2 of 3</p>
+      <h2>Map Substitution Demand</h2>
+      <p class="small sim-locked-msg">Select a SKU above to map where its demand will transfer and calculate the rationalization impact.</p>
+    </section>
+
+  </main>
+
+  <script src="data/demo-cost-data.js"></script>
+  <script src="data/demo-descriptor-data.js"></script>
+  <script src="simulator.js"></script>
+</body>
+</html>
