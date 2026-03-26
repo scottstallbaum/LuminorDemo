@@ -273,7 +273,11 @@ const simState = {
   segmentFilter: "All",
   familyFilter: "All",
   packageTypeFilter: "All",
-  sortOrder: "operatingIncome-asc"
+  sortOrder: "operatingIncome-asc",
+  // chunk 2
+  subRows: [],             // { sku, type: 'suggested'|'custom'|'lost_sales', pct: null }
+  subFullListVisible: false,
+  subFullListSort: "volume-desc"
 };
 
 // ============================================================
@@ -461,6 +465,230 @@ function renderSelectedCard() {
 }
 
 // ============================================================
+// CHUNK 2 — SUBSTITUTION MAPPING
+// ============================================================
+
+function buildSuggestedSubs(targetSku) {
+  return simState.allSkus
+    .filter(s =>
+      s.sku !== targetSku.sku &&
+      s.containerType === targetSku.containerType &&
+      s.priceSegment === targetSku.priceSegment &&
+      s.brandFamily !== targetSku.brandFamily
+    )
+    .sort((a, b) => b.volume - a.volume)
+    .slice(0, 5);
+}
+
+function initStep2(selectedSku) {
+  const suggestions = buildSuggestedSubs(selectedSku);
+  simState.subRows = [
+    ...suggestions.map(s => ({ sku: s.sku, type: "suggested", pct: null })),
+    { sku: "__lost_sales__", type: "lost_sales", pct: null }
+  ];
+  simState.subFullListVisible = false;
+  renderStep2();
+}
+
+function renderStep2() {
+  const panel = document.getElementById("step2-panel");
+  const lockedMsg = document.getElementById("step2-locked-msg");
+  const content = document.getElementById("step2-content");
+  const s = simState.selectedSku;
+
+  if (!s) {
+    if (panel) panel.classList.add("sim-step-locked");
+    if (lockedMsg) lockedMsg.classList.remove("is-hidden");
+    if (content) content.classList.add("is-hidden");
+    return;
+  }
+
+  if (panel) panel.classList.remove("sim-step-locked");
+  if (lockedMsg) lockedMsg.classList.add("is-hidden");
+  if (content) content.classList.remove("is-hidden");
+
+  const subtitleEl = document.getElementById("step2-subtitle");
+  if (subtitleEl) {
+    subtitleEl.innerHTML = `Where will demand go when <strong>${s.sku}</strong> (${Math.round(s.volume).toLocaleString()} bbl · ${toMoney(s.revenue)} revenue) is removed?`;
+  }
+
+  renderAllocTable();
+  renderFullList();
+}
+
+function renderAllocTable() {
+  const tbody = document.getElementById("sub-alloc-tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = simState.subRows.map((row, i) => {
+    const val = row.pct !== null ? row.pct : "";
+
+    if (row.type === "lost_sales") {
+      return `<tr class="sub-alloc-row sub-alloc-lost">
+        <td class="sub-td-sku sub-lost-label">Lost Sales</td>
+        <td class="sub-td-desc" colspan="2">No substitution — demand is not recovered</td>
+        <td class="sub-th-num">—</td>
+        <td class="sub-th-num">—</td>
+        <td class="sub-td-pct">
+          <input type="number" class="sub-pct-input" min="0" max="100" step="1"
+            data-row="${i}" value="${val}" placeholder="0" />
+        </td>
+        <td class="sub-th-rm"></td>
+      </tr>`;
+    }
+
+    const skuObj = simState.allSkus.find(x => x.sku === row.sku);
+    if (!skuObj) return "";
+    const oiTone = getMetricToneClass(skuObj.oiPerBbl);
+    const isCustom = row.type === "custom";
+
+    return `<tr class="sub-alloc-row${isCustom ? " sub-alloc-custom" : ""}">
+      <td class="sub-td-sku">${skuObj.sku}</td>
+      <td class="sub-td-desc">${skuObj.description !== skuObj.sku ? skuObj.description : "—"}</td>
+      <td>${skuObj.priceSegment}</td>
+      <td class="sub-th-num">${Math.round(skuObj.volume).toLocaleString()}</td>
+      <td class="sub-th-num ${oiTone}">${toMoneyDec(skuObj.oiPerBbl)}</td>
+      <td class="sub-td-pct">
+        <input type="number" class="sub-pct-input" min="0" max="100" step="1"
+          data-row="${i}" value="${val}" placeholder="0" />
+      </td>
+      <td class="sub-th-rm">${isCustom ? `<button class="sub-row-remove ghost" data-row="${i}" type="button">✕</button>` : ""}</td>
+    </tr>`;
+  }).join("");
+
+  tbody.querySelectorAll(".sub-pct-input").forEach(input => {
+    input.addEventListener("input", () => {
+      const idx = parseInt(input.dataset.row);
+      const raw = parseFloat(input.value);
+      simState.subRows[idx].pct = isNaN(raw) ? null : Math.max(0, Math.min(100, raw));
+      updateAllocTotal();
+    });
+  });
+
+  tbody.querySelectorAll(".sub-row-remove").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.dataset.row);
+      simState.subRows.splice(idx, 1);
+      renderAllocTable();
+      renderFullList();
+    });
+  });
+
+  updateAllocTotal();
+}
+
+function updateAllocTotal() {
+  const total = simState.subRows.reduce((sum, r) => sum + (r.pct || 0), 0);
+  const rounded = Math.round(total * 10) / 10;
+
+  const totalEl = document.getElementById("sub-alloc-total");
+  const msgEl = document.getElementById("sub-alloc-msg");
+  const runBtn = document.getElementById("btn-run-simulation");
+
+  if (totalEl) {
+    totalEl.textContent = `${rounded}%`;
+    totalEl.className = rounded === 100 ? "sub-total-exact" : rounded > 100 ? "sub-total-over" : "";
+  }
+
+  if (msgEl) {
+    if (rounded === 100) {
+      msgEl.textContent = "✓ Ready to run simulation";
+      msgEl.className = "sub-alloc-msg sub-alloc-msg-ok";
+    } else if (rounded > 100) {
+      msgEl.textContent = `Over by ${(rounded - 100).toFixed(1)}% — reduce allocations`;
+      msgEl.className = "sub-alloc-msg sub-alloc-msg-error";
+    } else {
+      msgEl.textContent = `${(100 - rounded).toFixed(1)}% remaining to allocate`;
+      msgEl.className = "sub-alloc-msg";
+    }
+  }
+
+  if (runBtn) runBtn.disabled = (rounded !== 100);
+}
+
+function renderFullList() {
+  const wrap = document.getElementById("sub-full-list-wrap");
+  const toggleBtn = document.getElementById("btn-toggle-full-list");
+  if (!wrap) return;
+
+  if (!simState.subFullListVisible) {
+    wrap.classList.add("is-hidden");
+    if (toggleBtn) toggleBtn.textContent = "Show Full List ↓";
+    return;
+  }
+
+  wrap.classList.remove("is-hidden");
+  if (toggleBtn) toggleBtn.textContent = "Hide Full List ↑";
+
+  const [sortKey, sortDir] = simState.subFullListSort.split("-");
+  const alreadyAdded = new Set(simState.subRows.map(r => r.sku));
+
+  const sorted = [...simState.allSkus]
+    .filter(s => s.sku !== simState.selectedSku.sku)
+    .sort((a, b) => {
+      const diff = (a[sortKey] ?? 0) - (b[sortKey] ?? 0);
+      return sortDir === "desc" ? -diff : diff;
+    });
+
+  const tbody = document.getElementById("sub-full-tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = sorted.map(s => {
+    const added = alreadyAdded.has(s.sku);
+    const oiTone = getMetricToneClass(s.oiPerBbl);
+    return `<tr class="sub-full-row${added ? " sub-full-row-added" : ""}">
+      <td class="sub-td-sku">${s.sku}</td>
+      <td class="sub-td-desc">${s.description !== s.sku ? s.description : "—"}</td>
+      <td>${s.priceSegment}</td>
+      <td class="sub-th-num">${Math.round(s.volume).toLocaleString()}</td>
+      <td class="sub-th-num ${oiTone}">${toMoneyDec(s.oiPerBbl)}</td>
+      <td class="sub-th-num">${added
+        ? "<span class=\"sub-full-added\">Added ✓</span>"
+        : `<button class="sub-full-add ghost" data-sku="${encodeURIComponent(s.sku)}" type="button">+ Add</button>`
+      }</td>
+    </tr>`;
+  }).join("");
+
+  tbody.querySelectorAll(".sub-full-add").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const skuKey = decodeURIComponent(btn.dataset.sku);
+      const lostIdx = simState.subRows.findIndex(r => r.type === "lost_sales");
+      const insertAt = lostIdx >= 0 ? lostIdx : simState.subRows.length;
+      simState.subRows.splice(insertAt, 0, { sku: skuKey, type: "custom", pct: null });
+      renderAllocTable();
+      renderFullList();
+    });
+  });
+}
+
+function bindStep2Controls() {
+  const clearBtn = document.getElementById("btn-clear-alloc");
+  if (clearBtn) clearBtn.addEventListener("click", () => {
+    simState.subRows.forEach(r => { r.pct = null; });
+    renderAllocTable();
+  });
+
+  const toggleBtn = document.getElementById("btn-toggle-full-list");
+  if (toggleBtn) toggleBtn.addEventListener("click", () => {
+    simState.subFullListVisible = !simState.subFullListVisible;
+    renderFullList();
+  });
+
+  const fullSortEl = document.getElementById("sub-full-sort");
+  if (fullSortEl) fullSortEl.addEventListener("change", () => {
+    simState.subFullListSort = fullSortEl.value;
+    renderFullList();
+  });
+
+  const runBtn = document.getElementById("btn-run-simulation");
+  if (runBtn) runBtn.addEventListener("click", () => {
+    // Chunk 3 — placeholder
+    const step3 = document.getElementById("step3-panel");
+    if (step3) step3.scrollIntoView({ behavior: "smooth" });
+  });
+}
+
+// ============================================================
 // SELECT SKU
 // ============================================================
 
@@ -472,8 +700,9 @@ function selectSku(skuObj) {
   url.searchParams.set("sku", skuObj.sku);
   window.history.replaceState({}, "", url.toString());
 
-  renderSkuTable();     // re-render to update selected highlight
+  renderSkuTable();
   renderSelectedCard();
+  initStep2(skuObj);
 }
 
 // ============================================================
@@ -570,13 +799,16 @@ function init() {
 
   // Bind interactions
   bindFilterControls();
+  bindStep2Controls();
 
   // Initial render
   renderSkuTable();
   renderSelectedCard();
+  renderStep2();
 
   // If pre-selected, scroll selection into view in table
   if (simState.selectedSku) {
+    initStep2(simState.selectedSku);
     setTimeout(() => {
       const row = document.querySelector(".sim-sku-row-selected");
       if (row) row.scrollIntoView({ block: "center" });

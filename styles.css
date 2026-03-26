@@ -827,6 +827,148 @@ th { color: var(--muted); font-weight: 600; }
    SIMULATOR — shared across simulator.html
    ============================================================ */
 
+/* ---- Step 2: Substitution mapping ---- */
+.sub-subtitle { margin: .15rem 0 .9rem; }
+
+.sub-section-label { margin-bottom: .75rem; }
+.sub-section-label .eyebrow { margin: 0 0 .2rem; }
+.sub-section-label .small { margin: 0; }
+
+.sub-alloc-wrap { margin-bottom: .75rem; }
+
+.sub-alloc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .82rem;
+}
+.sub-alloc-table th {
+  background: var(--panel);
+  color: var(--muted);
+  font-weight: 600;
+  text-align: left;
+  padding: .5rem .5rem;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.sub-th-num { text-align: right !important; }
+.sub-th-pct { text-align: right !important; width: 90px; }
+.sub-th-sku { width: 130px; }
+.sub-th-desc { min-width: 180px; }
+.sub-th-rm { width: 28px; }
+
+.sub-alloc-table td {
+  padding: .45rem .5rem;
+  border-bottom: 1px solid rgba(36,49,77,.45);
+  vertical-align: middle;
+}
+.sub-alloc-row:hover { background: rgba(69,208,162,.04); }
+
+.sub-alloc-lost { background: rgba(36,49,77,.25); }
+.sub-alloc-lost .sub-lost-label { font-weight: 700; color: var(--muted); }
+.sub-alloc-custom { background: rgba(79,159,255,.05); }
+
+.sub-td-sku { font-weight: 600; font-size: .8rem; white-space: nowrap; }
+.sub-td-desc { color: var(--muted); font-size: .79rem; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sub-td-pct { text-align: right; }
+
+.sub-pct-input {
+  width: 72px;
+  background: #0d1528;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: .4rem;
+  padding: .3rem .45rem;
+  font-size: .82rem;
+  font-family: inherit;
+  text-align: right;
+}
+.sub-pct-input:focus { outline: none; border-color: var(--accent); }
+
+.sub-row-remove {
+  margin: 0;
+  padding: .2rem .4rem;
+  font-size: .75rem;
+  border-color: transparent;
+  color: var(--muted);
+  line-height: 1;
+}
+.sub-row-remove:hover { border-color: var(--danger); color: var(--danger); }
+
+/* Total row */
+.sub-total-row { background: rgba(36,49,77,.4); }
+.sub-total-label {
+  text-align: right;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 600;
+  padding: .5rem .5rem;
+}
+.sub-total-value {
+  text-align: right;
+  padding: .5rem .5rem;
+  font-weight: 700;
+  font-size: .95rem;
+  font-variant-numeric: tabular-nums;
+}
+.sub-total-exact { color: var(--accent); }
+.sub-total-over { color: var(--danger); }
+
+/* Footer row below table */
+.sub-alloc-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: .6rem;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+.sub-alloc-btns { display: flex; gap: .5rem; }
+.sub-alloc-msg { font-size: .8rem; color: var(--muted); }
+.sub-alloc-msg-ok { color: var(--accent); font-weight: 600; }
+.sub-alloc-msg-error { color: var(--danger); font-weight: 600; }
+
+/* Full list section */
+.sub-full-list-wrap {
+  border: 1px solid var(--line);
+  border-radius: .75rem;
+  padding: .85rem .9rem;
+  margin-bottom: .9rem;
+  background: rgba(13,21,40,.45);
+}
+.sub-full-list-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .75rem;
+}
+.sub-full-list-head .eyebrow { margin: 0; }
+.sub-full-sort-label {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .82rem;
+  color: var(--muted);
+}
+.sub-full-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.sub-full-row { cursor: default; }
+.sub-full-row-added { opacity: .5; }
+.sub-full-add {
+  margin: 0;
+  padding: .2rem .5rem;
+  font-size: .75rem;
+  line-height: 1;
+}
+.sub-full-added {
+  font-size: .75rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.sub-run-btn { margin-top: 1.25rem; }
+
 .topbar-back {
   align-self: center;
   text-decoration: none;

@@ -144,11 +144,88 @@
       </div>
     </aside>
 
-    <!-- Step 2 placeholder (locked until SKU selected) -->
+    <!-- Step 2: Substitution Mapping -->
     <section class="panel panel-wide sim-step-locked" id="step2-panel">
       <p class="eyebrow">Step 2 of 3</p>
       <h2>Map Substitution Demand</h2>
-      <p class="small sim-locked-msg">Select a SKU above to map where its demand will transfer and calculate the rationalization impact.</p>
+      <p id="step2-locked-msg" class="small sim-locked-msg">Select a SKU above to map where its demand will transfer.</p>
+
+      <div id="step2-content" class="is-hidden">
+        <p id="step2-subtitle" class="small sub-subtitle"></p>
+
+        <div class="sub-section-label">
+          <p class="eyebrow">Suggested Substitutes</p>
+          <p class="small">Same package type &amp; price segment · different brand · ranked by existing volume</p>
+        </div>
+
+        <div class="sub-alloc-wrap">
+          <table class="sub-alloc-table" id="sub-alloc-table">
+            <thead>
+              <tr>
+                <th class="sub-th-sku">SKU</th>
+                <th class="sub-th-desc">Description</th>
+                <th>Segment</th>
+                <th class="sub-th-num">Volume (bbl)</th>
+                <th class="sub-th-num">OI $/bbl</th>
+                <th class="sub-th-pct">Demand %</th>
+                <th class="sub-th-rm"></th>
+              </tr>
+            </thead>
+            <tbody id="sub-alloc-tbody"></tbody>
+            <tfoot>
+              <tr class="sub-total-row">
+                <td colspan="5" class="sub-total-label">Total Allocated</td>
+                <td class="sub-total-value"><span id="sub-alloc-total">0%</span></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+          <div class="sub-alloc-footer">
+            <span id="sub-alloc-msg" class="sub-alloc-msg">Must total 100% to continue</span>
+            <div class="sub-alloc-btns">
+              <button id="btn-clear-alloc" class="ghost" type="button">Clear All</button>
+              <button id="btn-toggle-full-list" class="ghost" type="button">Show Full List ↓</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full portfolio list (hidden by default) -->
+        <div id="sub-full-list-wrap" class="sub-full-list-wrap is-hidden">
+          <div class="sub-full-list-head">
+            <p class="eyebrow">Full Portfolio</p>
+            <label class="sub-full-sort-label">
+              Sort
+              <select id="sub-full-sort">
+                <option value="volume-desc">Volume high to low</option>
+                <option value="volume-asc">Volume low to high</option>
+                <option value="operatingIncome-desc">Op Margin high to low</option>
+                <option value="operatingIncome-asc">Op Margin low to high</option>
+                <option value="grossMargin-desc">GM high to low</option>
+                <option value="grossMargin-asc">GM low to high</option>
+              </select>
+            </label>
+          </div>
+          <div class="sub-full-scroll">
+            <table class="sub-alloc-table sub-full-table">
+              <thead>
+                <tr>
+                  <th class="sub-th-sku">SKU</th>
+                  <th class="sub-th-desc">Description</th>
+                  <th>Segment</th>
+                  <th class="sub-th-num">Volume (bbl)</th>
+                  <th class="sub-th-num">OI $/bbl</th>
+                  <th class="sub-th-num"></th>
+                </tr>
+              </thead>
+              <tbody id="sub-full-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <button id="btn-run-simulation" class="sim-continue-btn sub-run-btn" type="button" disabled>
+          Run Simulation →
+        </button>
+      </div>
     </section>
 
   </main>
