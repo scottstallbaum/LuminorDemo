@@ -59,30 +59,7 @@
       </div>
     </section>
 
-      <!-- Step 3: Scenario Results & Waterfall -->
-      <section class="panel panel-wide" id="step3-panel">
-        <p class="eyebrow">Step 3 of 3</p>
-        <h2>Scenario Results</h2>
 
-        <!-- KPI summary cards -->
-        <div id="sim-summary-cards" class="sim-summary-cards">
-          <!-- Cards will be rendered here by JS -->
-        </div>
-
-        <!-- Cost Escape Rate slider -->
-        <div class="sim-slider-row">
-          <label for="sim-escape-slider" class="sim-slider-label">
-            Cost Escape Rate (Conversion):
-            <span id="sim-escape-value">60%</span>
-          </label>
-          <input type="range" id="sim-escape-slider" min="0" max="100" value="60" step="1" />
-        </div>
-
-        <!-- Waterfall chart -->
-        <div class="sim-waterfall-wrap">
-          <canvas id="sim-waterfall-chart" height="320"></canvas>
-        </div>
-      </section>
 
     <!-- SKU table -->
     <section class="panel sim-table-panel" id="sim-table-panel">
@@ -107,6 +84,31 @@
             <tr><td colspan="8" class="sim-empty">Loading data…</td></tr>
           </tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- Step 3: Scenario Results & Waterfall -->
+    <section class="panel panel-wide" id="step3-panel">
+      <p class="eyebrow">Step 3 of 3</p>
+      <h2>Scenario Results</h2>
+
+      <!-- KPI summary cards -->
+      <div id="sim-summary-cards" class="sim-summary-cards">
+        <!-- Cards will be rendered here by JS -->
+      </div>
+
+      <!-- Cost Escape Rate slider -->
+      <div class="sim-slider-row">
+        <label for="sim-escape-slider" class="sim-slider-label">
+          Cost Escape Rate (Conversion):
+          <span id="sim-escape-value">60%</span>
+        </label>
+        <input type="range" id="sim-escape-slider" min="0" max="100" value="60" step="1" />
+      </div>
+
+      <!-- Waterfall chart -->
+      <div class="sim-waterfall-wrap">
+        <canvas id="sim-waterfall-chart" height="320"></canvas>
       </div>
     </section>
 
