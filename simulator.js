@@ -843,12 +843,12 @@ function bindStep2Controls() {
     // Render summary cards
     cardsEl.innerHTML = `
       <div class="sim-summary-card">
-        <div class="sim-summary-card-label">Portfolio OI</div>
+        <div class="sim-summary-card-label">Portfolio Operating Income</div>
         <div class="sim-summary-card-value">${toMoney(scenarioOI)}</div>
         <div class="sim-summary-card-delta">Baseline: ${toMoney(baselineOI)}</div>
       </div>
       <div class="sim-summary-card">
-        <div class="sim-summary-card-label">OI Margin</div>
+        <div class="sim-summary-card-label">Op Inc Margin</div>
         <div class="sim-summary-card-value">${toPct(scenarioMargin)}</div>
         <div class="sim-summary-card-delta">Baseline: ${toPct(baselineMargin)}</div>
       </div>
