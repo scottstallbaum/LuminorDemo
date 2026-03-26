@@ -1040,6 +1040,7 @@ function bindStep2Controls() {
       chartWrapEl.appendChild(chipBarEl);
     }
     if (chipBarEl) {
+      const numCols = bridgeLabels.length;
       const netChipTone = netOI >= 0 ? 'is-positive' : 'is-negative';
       const barChips = [
         ...steps.map(step => {
@@ -1053,6 +1054,7 @@ function bindStep2Controls() {
         const ca = window.simWaterfallChart?.chartArea;
         const canvas = document.getElementById('sim-waterfall-chart');
         if (ca && canvas) {
+          chipBarEl.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
           chipBarEl.style.paddingLeft = Math.round(ca.left) + 'px';
           chipBarEl.style.paddingRight = Math.round(canvas.offsetWidth - ca.right) + 'px';
         }
