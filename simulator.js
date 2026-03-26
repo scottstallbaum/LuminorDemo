@@ -856,6 +856,8 @@ function bindStep2Controls() {
         }]
       },
       options: {
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
           title: {
@@ -870,10 +872,11 @@ function bindStep2Controls() {
           }
         },
         scales: {
-          x: { grid: { display: false } },
+          x: { grid: { display: false }, ticks: { maxRotation: 0, minRotation: 0, font: { size: 10 } } },
           y: {
             grid: { color: 'rgba(159,176,211,.18)' },
             ticks: {
+              font: { size: 10 },
               callback: function(val) { return toMoney(val); }
             }
           }
