@@ -280,6 +280,49 @@ const simState = {
   subFullListSort: "volume-desc"
 };
 
+// Demo cost behavior settings. In production these should come from
+// calculated operating drivers rather than static defaults.
+const COST_BEHAVIOR = {
+  conversionScaleMinPct: 0.01,
+  conversionScaleMaxPct: 0.10,
+  marketingVariablePct: 0.60,
+  sgaVariablePct: 0.35
+};
+
+function getConversionScaleSavePct(absorbedVol, recipientBaseVol) {
+  if (absorbedVol <= 0) return 0;
+  const safeBase = Math.max(recipientBaseVol || 0, 1);
+  const absorptionRatio = Math.max(0, Math.min(1, absorbedVol / safeBase));
+  return COST_BEHAVIOR.conversionScaleMinPct +
+    (COST_BEHAVIOR.conversionScaleMaxPct - COST_BEHAVIOR.conversionScaleMinPct) * absorptionRatio;
+}
+
+function getVariableMarketingCpu(sku) {
+  return sku.marketingCpu * COST_BEHAVIOR.marketingVariablePct;
+}
+
+function getVariableSgaCpu(sku) {
+  return sku.sgaCpu * COST_BEHAVIOR.sgaVariablePct;
+}
+
+function getVariableUnitOpCost(sku) {
+  return (
+    sku.brewMatCpu +
+    sku.pkgMatCpu +
+    sku.conversionCpu +
+    sku.freightCpu +
+    getVariableMarketingCpu(sku) +
+    getVariableSgaCpu(sku)
+  );
+}
+
+function getRemovedFixedRetentionCost(removedSku, removedVol) {
+  return removedVol * (
+    removedSku.marketingCpu * (1 - COST_BEHAVIOR.marketingVariablePct) +
+    removedSku.sgaCpu * (1 - COST_BEHAVIOR.sgaVariablePct)
+  );
+}
+
 // ============================================================
 // FILTER + SORT
 // ============================================================
@@ -695,6 +738,7 @@ function bindStep2Controls() {
 
   function renderScenarioSummary() {
     const cardsEl = document.getElementById("sim-summary-cards");
+    const storyEl = document.getElementById("sim-impact-story");
     if (!cardsEl) return;
 
     // Baseline: all SKUs
@@ -704,6 +748,9 @@ function bindStep2Controls() {
     const removedSku = simState.selectedSku;
     if (!removedSku) {
       cardsEl.innerHTML = '<div class="sim-summary-card">No SKU selected.</div>';
+      if (storyEl) {
+        storyEl.innerHTML = '<p class="sim-impact-headline">Run a scenario to view the impact story.</p>';
+      }
       return;
     }
 
@@ -711,6 +758,7 @@ function bindStep2Controls() {
     const scenarioSkus = simState.allSkus
       .filter(s => s.sku !== removedSku.sku)
       .map(sku => ({ ...sku }));
+    const recipientBySku = new Map(scenarioSkus.map(sku => [sku.sku, sku]));
 
     // Find allocation rows (excluding lost sales)
     const allocRows = simState.subRows.filter(r => r.type !== "lost_sales" && r.pct > 0);
@@ -718,38 +766,77 @@ function bindStep2Controls() {
     const removedVol = removedSku.volume;
     let absorbedVol = 0;
     let lostVol = 0;
+    const absorbedBySku = new Map();
+    const baseVolumeBySku = new Map(
+      simState.allSkus
+        .filter(s => s.sku !== removedSku.sku)
+        .map(s => [s.sku, s.volume])
+    );
 
     // Apply allocations to recipient SKUs
     for (const row of allocRows) {
       const pct = row.pct / 100;
       const addVol = removedVol * pct;
-      const recipient = scenarioSkus.find(s => s.sku === row.sku);
+      const recipient = recipientBySku.get(row.sku);
       if (recipient) {
+        const recipientMarketingVarCpu = getVariableMarketingCpu(recipient);
+        const recipientSgaVarCpu = getVariableSgaCpu(recipient);
         recipient.volume += addVol;
         recipient.revenue += addVol * recipient.aspPerBbl;
         recipient.cogs += addVol * (recipient.brewMatCpu + recipient.pkgMatCpu + recipient.conversionCpu);
         recipient.grossMargin += addVol * (recipient.aspPerBbl - recipient.brewMatCpu - recipient.pkgMatCpu - recipient.conversionCpu);
-        recipient.operatingExpense += addVol * (recipient.freightCpu + recipient.marketingCpu + recipient.sgaCpu);
-        recipient.operatingIncome += addVol * (recipient.aspPerBbl - recipient.brewMatCpu - recipient.pkgMatCpu - recipient.conversionCpu - recipient.freightCpu - recipient.marketingCpu - recipient.sgaCpu);
+        recipient.operatingExpense += addVol * (recipient.freightCpu + recipientMarketingVarCpu + recipientSgaVarCpu);
+        recipient.operatingIncome += addVol * (recipient.aspPerBbl - recipient.brewMatCpu - recipient.pkgMatCpu - recipient.conversionCpu - recipient.freightCpu - recipientMarketingVarCpu - recipientSgaVarCpu);
         // Update totals for weighted averages
         recipient.conversionTotal += addVol * recipient.conversionCpu;
         recipient.brewMatTotal += addVol * recipient.brewMatCpu;
         recipient.pkgMatTotal += addVol * recipient.pkgMatCpu;
         recipient.freightTotal += addVol * recipient.freightCpu;
-        recipient.marketingTotal += addVol * recipient.marketingCpu;
-        recipient.sgaTotal += addVol * recipient.sgaCpu;
+        recipient.marketingTotal += addVol * recipientMarketingVarCpu;
+        recipient.sgaTotal += addVol * recipientSgaVarCpu;
         absorbedVol += addVol;
+        absorbedBySku.set(row.sku, (absorbedBySku.get(row.sku) || 0) + addVol);
       }
     }
+
+    // Apply conversion scale-efficiency benefit to the full recipient volume
+    // for SKUs that absorbed displaced demand.
+    let conversionScaleBenefit = 0;
+    let weightedScalePctNumerator = 0;
+    let weightedScalePctDenominator = 0;
+    for (const [sku, skuAbsorbedVol] of absorbedBySku.entries()) {
+      if (skuAbsorbedVol <= 0) continue;
+      const recipient = recipientBySku.get(sku);
+      if (!recipient) continue;
+      const baseVol = baseVolumeBySku.get(sku) || 0;
+      const scaleSavePct = getConversionScaleSavePct(skuAbsorbedVol, baseVol);
+      const convDropPerBbl = recipient.conversionCpu * scaleSavePct;
+      const skuBenefit = recipient.volume * convDropPerBbl;
+      if (skuBenefit <= 0) continue;
+
+      recipient.cogs -= skuBenefit;
+      recipient.grossMargin += skuBenefit;
+      recipient.operatingIncome += skuBenefit;
+      recipient.conversionTotal -= skuBenefit;
+      conversionScaleBenefit += skuBenefit;
+      weightedScalePctNumerator += scaleSavePct * recipient.volume;
+      weightedScalePctDenominator += recipient.volume;
+    }
+    const avgAppliedScaleSavePct = weightedScalePctDenominator
+      ? weightedScalePctNumerator / weightedScalePctDenominator
+      : 0;
     // Lost sales
     if (lostRow && lostRow.pct > 0) {
       lostVol = removedVol * (lostRow.pct / 100);
     }
 
+    // Fixed portions of removed SKU marketing and SG&A are retained after delist.
+    const removedFixedRetentionCost = getRemovedFixedRetentionCost(removedSku, removedVol);
+
     // Recompute scenario portfolio
     const scenario = portfolioTotals(scenarioSkus);
     const baselineOI = baseline.operatingIncome;
-    const scenarioOI = scenario.operatingIncome;
+    const scenarioOI = scenario.operatingIncome - removedFixedRetentionCost;
     const baselineMargin = baseline.revenue ? baselineOI / baseline.revenue : 0;
     const scenarioMargin = scenario.revenue ? scenarioOI / scenario.revenue : 0;
 
@@ -783,14 +870,7 @@ function bindStep2Controls() {
     // The bridge now reconciles directly to scenario OI using the same cost structure
     // as the scenario model, avoiding hardcoded assumption factors.
 
-    const removedUnitOpCost = (
-      removedSku.brewMatCpu +
-      removedSku.pkgMatCpu +
-      removedSku.conversionCpu +
-      removedSku.freightCpu +
-      removedSku.marketingCpu +
-      removedSku.sgaCpu
-    );
+    const removedUnitOpCost = getVariableUnitOpCost(removedSku);
 
     const lostRevenue = removedSku.revenue;
     const avoidedRemovedCosts = removedVol * removedUnitOpCost;
@@ -800,17 +880,10 @@ function bindStep2Controls() {
     for (const row of allocRows) {
       const pct = row.pct / 100;
       const addVol = removedVol * pct;
-      const recipient = scenarioSkus.find(s => s.sku === row.sku);
+      const recipient = recipientBySku.get(row.sku);
       if (recipient) {
         recoveredRevenue += addVol * recipient.aspPerBbl;
-        replacementCosts += addVol * (
-          recipient.brewMatCpu +
-          recipient.pkgMatCpu +
-          recipient.conversionCpu +
-          recipient.freightCpu +
-          recipient.marketingCpu +
-          recipient.sgaCpu
-        );
+        replacementCosts += addVol * getVariableUnitOpCost(recipient);
       }
     }
 
@@ -819,13 +892,53 @@ function bindStep2Controls() {
       { label: "Lost Revenue", value: -lostRevenue },
       { label: "Recovered Revenue", value: recoveredRevenue },
       { label: "Avoided Removed-SKU Costs", value: avoidedRemovedCosts },
-      { label: "Replacement Costs", value: -replacementCosts }
+      { label: "Replacement Costs", value: -replacementCosts },
+      { label: "Fixed Marketing & SG&A Drag", value: -removedFixedRetentionCost },
+      { label: `Conversion Scale Benefit (${(avgAppliedScaleSavePct * 100).toFixed(1)}%)`, value: conversionScaleBenefit }
     ];
 
     const explainedDelta = steps.reduce((sum, step) => sum + step.value, 0);
     const reconciliationGap = netOI - explainedDelta;
     if (Math.abs(reconciliationGap) >= 0.5) {
       steps.push({ label: "Other / Rounding", value: reconciliationGap });
+    }
+
+    if (storyEl) {
+      const absorbedRate = removedVol ? absorbedVol / removedVol : 0;
+      const netTone = getMetricToneClass(netOI);
+      const topHeadwind = [...steps].sort((a, b) => a.value - b.value).find(s => s.value < 0);
+      const contributionDenominator = Math.abs(netOI) > 1
+        ? Math.abs(netOI)
+        : steps.reduce((sum, step) => sum + Math.abs(step.value), 0) || 1;
+
+      const chips = steps.map(step => {
+        const chipTone = step.value > 0 ? "is-positive" : step.value < 0 ? "is-negative" : "is-neutral";
+        const weightPct = Math.round((Math.abs(step.value) / contributionDenominator) * 100);
+        return `<span class="sim-impact-chip ${chipTone}">${step.label}: ${toSignedMoney(step.value)} (${weightPct}%)</span>`;
+      }).join("");
+
+      storyEl.innerHTML = `
+        <p class="sim-impact-kicker">Impact Story</p>
+        <p class="sim-impact-headline">
+          Removing <strong>${removedSku.sku}</strong> shifts portfolio OI by
+          <span class="${netTone}">${toSignedMoney(netOI)}</span>.
+        </p>
+        <div class="sim-impact-drivers">
+          <div class="sim-impact-driver">
+            <p class="sim-impact-driver-label">Demand Recovery</p>
+            <p class="sim-impact-driver-value">${toPct(absorbedRate)} absorbed (${Math.round(absorbedVol).toLocaleString()} bbl)</p>
+          </div>
+          <div class="sim-impact-driver">
+            <p class="sim-impact-driver-label">Conversion Scale Rate</p>
+            <p class="sim-impact-driver-value">${(avgAppliedScaleSavePct * 100).toFixed(1)}% avg applied (range ${(COST_BEHAVIOR.conversionScaleMinPct * 100).toFixed(0)}%-${(COST_BEHAVIOR.conversionScaleMaxPct * 100).toFixed(0)}%)</p>
+          </div>
+          <div class="sim-impact-driver">
+            <p class="sim-impact-driver-label">Largest Headwind</p>
+            <p class="sim-impact-driver-value">${topHeadwind ? `${topHeadwind.label}: ${toSignedMoney(topHeadwind.value)}` : "None"}</p>
+          </div>
+        </div>
+        <div class="sim-impact-chip-row">${chips}</div>
+      `;
     }
 
     const bridgeLabels = [...steps.map(s => s.label), "Net OI Impact"];

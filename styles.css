@@ -862,21 +862,6 @@ th { color: var(--muted); font-weight: 600; }
   margin-top: .1rem;
   color: var(--muted);
 }
-.sim-slider-row {
-  display: flex;
-  align-items: center;
-  gap: 1.1rem;
-  margin-bottom: .55rem;
-}
-.sim-slider-label {
-  font-size: .92rem;
-  color: var(--muted);
-  min-width: 220px;
-}
-#sim-escape-slider {
-  width: 220px;
-  accent-color: var(--accent);
-}
 .sim-waterfall-wrap {
   margin: .55rem 0 .95rem;
   background: linear-gradient(180deg, rgba(79,159,255,.14) 0%, rgba(36,49,77,.26) 42%, rgba(36,49,77,.28) 100%);
@@ -902,6 +887,78 @@ th { color: var(--muted); font-weight: 600; }
   width: 100%;
   height: 420px !important;
   max-height: 420px;
+}
+.sim-impact-story {
+  margin: .25rem 0 .95rem;
+  background: rgba(15,26,45,.72);
+  border: 1px solid rgba(159,176,211,.22);
+  border-radius: .8rem;
+  padding: .7rem .85rem .75rem;
+}
+.sim-impact-kicker {
+  margin: 0 0 .2rem;
+  font-size: .72rem;
+  color: var(--muted);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.sim-impact-headline {
+  margin: 0 0 .6rem;
+  font-size: 1rem;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--text);
+}
+.sim-impact-headline .is-positive { color: var(--accent); }
+.sim-impact-headline .is-negative { color: var(--danger); }
+.sim-impact-drivers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .55rem;
+}
+.sim-impact-driver {
+  background: rgba(11,18,32,.45);
+  border: 1px solid rgba(159,176,211,.14);
+  border-radius: .6rem;
+  padding: .45rem .55rem;
+}
+.sim-impact-driver-label {
+  font-size: .72rem;
+  color: var(--muted);
+  margin: 0 0 .2rem;
+}
+.sim-impact-driver-value {
+  margin: 0;
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.sim-impact-chip-row {
+  margin-top: .6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+.sim-impact-chip {
+  font-size: .72rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: .22rem .5rem;
+  background: rgba(159,176,211,.12);
+  color: var(--muted);
+}
+.sim-impact-chip.is-positive {
+  background: rgba(69,208,162,.12);
+  border-color: rgba(69,208,162,.35);
+  color: #aef4dd;
+}
+.sim-impact-chip.is-negative {
+  background: rgba(255,109,109,.12);
+  border-color: rgba(255,109,109,.35);
+  color: #ffc2c2;
+}
+.sim-impact-chip.is-neutral {
+  border-color: rgba(159,176,211,.25);
 }
 .sub-subtitle { margin: .15rem 0 .9rem; }
 
@@ -1278,6 +1335,9 @@ th { color: var(--muted); font-weight: 600; }
   #sim-waterfall-chart {
     height: 340px !important;
     max-height: 340px;
+  }
+  .sim-impact-drivers {
+    grid-template-columns: 1fr;
   }
 }
 
