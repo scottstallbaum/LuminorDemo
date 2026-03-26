@@ -870,14 +870,7 @@ function bindStep2Controls() {
     // The bridge now reconciles directly to scenario OI using the same cost structure
     // as the scenario model, avoiding hardcoded assumption factors.
 
-    const removedUnitOpCost = (
-      removedSku.brewMatCpu +
-      removedSku.pkgMatCpu +
-      removedSku.conversionCpu +
-      removedSku.freightCpu +
-      removedSku.marketingCpu +
-      removedSku.sgaCpu
-    );
+    const removedUnitOpCost = getVariableUnitOpCost(removedSku);
 
     const lostRevenue = removedSku.revenue;
     const avoidedRemovedCosts = removedVol * removedUnitOpCost;
@@ -898,9 +891,8 @@ function bindStep2Controls() {
     const steps = [
       { label: "Revenue Lost from Removed SKU", chartLabel: "Revenue Lost", value: -lostRevenue },
       { label: "Revenue Recovered by Replacements", chartLabel: "Revenue Recovered", value: recoveredRevenue },
-      { label: "Costs Avoided from Removed SKU", chartLabel: "Costs Avoided", value: avoidedRemovedCosts },
+      { label: "Variable Costs Avoided from Removed SKU", chartLabel: "Var Costs Avoided", value: avoidedRemovedCosts },
       { label: "Incremental Replacement Costs", chartLabel: "Replacement Costs", value: -replacementCosts },
-      { label: "Fixed Marketing & SG&A Retained", chartLabel: "Fixed Mktg/SG&A", value: -removedFixedRetentionCost },
       {
         label: `Conversion Scale Benefit (${(avgAppliedScaleSavePct * 100).toFixed(1)}%)`,
         chartLabel: "Conversion Scale",
@@ -1001,7 +993,7 @@ function bindStep2Controls() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: true, labels: { boxWidth: 12, color: '#9fb0d3' } },
+          legend: { display: false },
           title: {
             display: false
           },
