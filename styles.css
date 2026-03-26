@@ -842,10 +842,16 @@ th { color: var(--muted); font-weight: 600; }
   padding: .85rem 1.2rem .7rem 1.1rem;
   min-width: 170px;
   flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
   box-shadow: 0 1px 4px 0 rgba(36,49,77,.07);
+}
+.sim-summary-card-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .85rem;
+}
+.sim-summary-card-left {
+  min-width: 0;
 }
 .sim-summary-card-label {
   color: var(--muted);
@@ -860,6 +866,28 @@ th { color: var(--muted); font-weight: 600; }
 .sim-summary-card-delta {
   font-size: .92rem;
   margin-top: .1rem;
+  color: var(--muted);
+}
+.sim-summary-card-change {
+  min-width: 96px;
+  text-align: right;
+  font-weight: 700;
+  line-height: 1;
+}
+.sim-summary-card-arrow {
+  font-size: 1.45rem;
+  margin-bottom: .1rem;
+}
+.sim-summary-card-change-value {
+  font-size: .95rem;
+}
+.sim-summary-card-change.is-positive {
+  color: #45d0a2;
+}
+.sim-summary-card-change.is-negative {
+  color: #ff7c7c;
+}
+.sim-summary-card-change.is-neutral {
   color: var(--muted);
 }
 .sim-waterfall-wrap {

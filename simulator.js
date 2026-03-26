@@ -839,28 +839,72 @@ function bindStep2Controls() {
     const scenarioOI = scenario.operatingIncome - removedFixedRetentionCost;
     const baselineMargin = baseline.revenue ? baselineOI / baseline.revenue : 0;
     const scenarioMargin = scenario.revenue ? scenarioOI / scenario.revenue : 0;
+    const baselineOpIncomePerBbl = baseline.volume ? baselineOI / baseline.volume : 0;
+    const scenarioOpIncomePerBbl = scenario.volume ? scenarioOI / scenario.volume : 0;
+
+    const opIncomeDelta = scenarioOI - baselineOI;
+    const marginDelta = scenarioMargin - baselineMargin;
+    const volumeDelta = scenario.volume - baseline.volume;
+    const opIncomePerBblDelta = scenarioOpIncomePerBbl - baselineOpIncomePerBbl;
+
+    const toSignedPct = (v) => `${v > 0 ? "+" : ""}${(v * 100).toFixed(1)}%`;
+    const toSignedBbl = (v) => `${v > 0 ? "+" : ""}${Math.round(v).toLocaleString()} bbl`;
+    const deltaToneClass = (v) => v > 0 ? "is-positive" : v < 0 ? "is-negative" : "is-neutral";
+    const deltaArrow = (v) => v > 0 ? "▲" : v < 0 ? "▼" : "■";
 
     // Render summary cards
     cardsEl.innerHTML = `
       <div class="sim-summary-card">
-        <div class="sim-summary-card-label">Portfolio Op Income</div>
-        <div class="sim-summary-card-value">${toMoney(scenarioOI)}</div>
-        <div class="sim-summary-card-delta">Baseline: ${toMoney(baselineOI)}</div>
+        <div class="sim-summary-card-main">
+          <div class="sim-summary-card-left">
+            <div class="sim-summary-card-label">Portfolio Operating Income</div>
+            <div class="sim-summary-card-value">${toMoney(scenarioOI)}</div>
+            <div class="sim-summary-card-delta">Baseline: ${toMoney(baselineOI)}</div>
+          </div>
+          <div class="sim-summary-card-change ${deltaToneClass(opIncomeDelta)}">
+            <div class="sim-summary-card-arrow">${deltaArrow(opIncomeDelta)}</div>
+            <div class="sim-summary-card-change-value">${toSignedMoney(opIncomeDelta)}</div>
+          </div>
+        </div>
       </div>
       <div class="sim-summary-card">
-        <div class="sim-summary-card-label">Op Income Margin</div>
-        <div class="sim-summary-card-value">${toPct(scenarioMargin)}</div>
-        <div class="sim-summary-card-delta">Baseline: ${toPct(baselineMargin)}</div>
+        <div class="sim-summary-card-main">
+          <div class="sim-summary-card-left">
+            <div class="sim-summary-card-label">Operating Income Margin</div>
+            <div class="sim-summary-card-value">${toPct(scenarioMargin)}</div>
+            <div class="sim-summary-card-delta">Baseline: ${toPct(baselineMargin)}</div>
+          </div>
+          <div class="sim-summary-card-change ${deltaToneClass(marginDelta)}">
+            <div class="sim-summary-card-arrow">${deltaArrow(marginDelta)}</div>
+            <div class="sim-summary-card-change-value">${toSignedPct(marginDelta)}</div>
+          </div>
+        </div>
       </div>
       <div class="sim-summary-card">
-        <div class="sim-summary-card-label">Total Volume</div>
-        <div class="sim-summary-card-value">${Math.round(scenario.volume).toLocaleString()} bbl</div>
-        <div class="sim-summary-card-delta">Baseline: ${Math.round(baseline.volume).toLocaleString()} bbl</div>
+        <div class="sim-summary-card-main">
+          <div class="sim-summary-card-left">
+            <div class="sim-summary-card-label">Total Volume</div>
+            <div class="sim-summary-card-value">${Math.round(scenario.volume).toLocaleString()} bbl</div>
+            <div class="sim-summary-card-delta">Baseline: ${Math.round(baseline.volume).toLocaleString()} bbl</div>
+          </div>
+          <div class="sim-summary-card-change ${deltaToneClass(volumeDelta)}">
+            <div class="sim-summary-card-arrow">${deltaArrow(volumeDelta)}</div>
+            <div class="sim-summary-card-change-value">${toSignedBbl(volumeDelta)}</div>
+          </div>
+        </div>
       </div>
       <div class="sim-summary-card">
-        <div class="sim-summary-card-label">Absorbed vs. Lost</div>
-        <div class="sim-summary-card-value">${Math.round(absorbedVol).toLocaleString()} / ${Math.round(removedVol).toLocaleString()} bbl</div>
-        <div class="sim-summary-card-delta">Lost: ${Math.round(lostVol).toLocaleString()} bbl</div>
+        <div class="sim-summary-card-main">
+          <div class="sim-summary-card-left">
+            <div class="sim-summary-card-label">Operating Income per Barrel</div>
+            <div class="sim-summary-card-value">${toMoneyDec(scenarioOpIncomePerBbl)}</div>
+            <div class="sim-summary-card-delta">Baseline: ${toMoneyDec(baselineOpIncomePerBbl)}</div>
+          </div>
+          <div class="sim-summary-card-change ${deltaToneClass(opIncomePerBblDelta)}">
+            <div class="sim-summary-card-arrow">${deltaArrow(opIncomePerBblDelta)}</div>
+            <div class="sim-summary-card-change-value">${toSignedMoney(opIncomePerBblDelta)}</div>
+          </div>
+        </div>
       </div>
     `;
 
