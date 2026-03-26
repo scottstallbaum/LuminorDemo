@@ -281,12 +281,35 @@ const simState = {
 // ============================================================
 
 function applySimFilters(skus) {
-  const q = simState.search.toLowerCase();
+  const terms = simState.search
+    .toLowerCase()
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
   return skus.filter(s => {
     if (simState.segmentFilter !== "All" && s.priceSegment !== simState.segmentFilter) return false;
     if (simState.familyFilter !== "All" && s.brandFamily !== simState.familyFilter) return false;
     if (simState.packageTypeFilter !== "All" && s.containerType !== simState.packageTypeFilter) return false;
-    if (q && !s.sku.toLowerCase().includes(q) && !s.description.toLowerCase().includes(q)) return false;
+
+    if (terms.length) {
+      const searchableText = [
+        s.sku,
+        s.description,
+        s.brand,
+        s.brandFamily,
+        s.priceSegment,
+        s.containerType,
+        s.containerSize,
+        s.packaging
+      ]
+        .map((value) => String(value || "").toLowerCase())
+        .join(" ");
+
+      const allTermsMatch = terms.every((term) => searchableText.includes(term));
+      if (!allTermsMatch) return false;
+    }
+
     return true;
   });
 }
