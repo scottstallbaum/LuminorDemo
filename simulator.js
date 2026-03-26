@@ -828,14 +828,8 @@ function bindStep2Controls() {
       steps.push({ label: "Other / Rounding", value: reconciliationGap });
     }
 
-    let running = baselineOI;
-    const bridgeLabels = ["Baseline OI", ...steps.map(s => s.label), "Scenario OI"];
-    const bridgeData = [baselineOI];
-    for (const s of steps) {
-      running += s.value;
-      bridgeData.push(running);
-    }
-    bridgeData.push(scenarioOI);
+    const bridgeLabels = [...steps.map(s => s.label), "Net OI Impact"];
+    const bridgeData = [...steps.map(s => s.value), netOI];
 
     // Render Chart.js waterfall (cascading)
     const ctx = document.getElementById("sim-waterfall-chart").getContext("2d");
@@ -845,11 +839,11 @@ function bindStep2Controls() {
       data: {
         labels: bridgeLabels,
         datasets: [{
-          label: 'OI Bridge',
+          label: 'OI Change vs Baseline',
           data: bridgeData,
-          backgroundColor: bridgeLabels.map((lbl, i) => {
-            if (i === 0 || i === bridgeLabels.length - 1) return '#45d0a2'; // Baseline/Scenario OI
-            if (steps[i-1].value < 0) return '#ff6d6d';
+          backgroundColor: bridgeData.map((val, i) => {
+            if (i === bridgeLabels.length - 1) return '#4f9fff';
+            if (val < 0) return '#ff6d6d';
             return '#45d0a2';
           }),
           borderRadius: 6,
@@ -868,10 +862,22 @@ function bindStep2Controls() {
             callbacks: {
               label: function(ctx) {
                 const idx = ctx.dataIndex;
-                if (idx === 0) return `Baseline OI: ${toMoney(ctx.parsed.y)}`;
-                if (idx === bridgeLabels.length - 1) return `Scenario OI: ${toMoney(ctx.parsed.y)}`;
-                const step = steps[idx - 1];
-                return [`${step.label}: ${toSignedMoney(step.value)}`, `Running OI: ${toMoney(ctx.parsed.y)}`];
+                const isNet = idx === bridgeLabels.length - 1;
+                const val = ctx.parsed.y;
+                const cumulativeDelta = bridgeData
+                  .slice(0, isNet ? bridgeData.length - 1 : idx + 1)
+                  .reduce((sum, n) => sum + n, 0);
+                if (isNet) {
+                  return [
+                    `Net OI Impact: ${toSignedMoney(val)}`,
+                    `Scenario OI: ${toMoney(scenarioOI)}`
+                  ];
+                }
+                return [
+                  `${bridgeLabels[idx]}: ${toSignedMoney(val)}`,
+                  `Cumulative Delta: ${toSignedMoney(cumulativeDelta)}`,
+                  `Implied OI: ${toMoney(baselineOI + cumulativeDelta)}`
+                ];
               }
             }
           }
@@ -880,9 +886,10 @@ function bindStep2Controls() {
           x: { grid: { display: false }, ticks: { maxRotation: 0, minRotation: 0, font: { size: 10 } } },
           y: {
             grid: { color: 'rgba(159,176,211,.18)' },
+            beginAtZero: true,
             ticks: {
               font: { size: 10 },
-              callback: function(val) { return toMoney(val); }
+              callback: function(val) { return toSignedMoney(val); }
             }
           }
         }
