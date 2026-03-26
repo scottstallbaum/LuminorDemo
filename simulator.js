@@ -682,9 +682,100 @@ function bindStep2Controls() {
 
   const runBtn = document.getElementById("btn-run-simulation");
   if (runBtn) runBtn.addEventListener("click", () => {
-    // Chunk 3 — placeholder
-    const step3 = document.getElementById("step3-panel");
-    if (step3) step3.scrollIntoView({ behavior: "smooth" });
+      // Scroll to Step 3 and render scenario summary
+      const step3 = document.getElementById("step3-panel");
+      if (step3) step3.scrollIntoView({ behavior: "smooth" });
+      renderScenarioSummary();
+    });
+  }
+
+  // ============================================================
+  // SCENARIO SUMMARY (Step 3)
+  // ============================================================
+
+  function renderScenarioSummary() {
+    const cardsEl = document.getElementById("sim-summary-cards");
+    if (!cardsEl) return;
+
+    // Baseline: all SKUs
+    const baseline = portfolioTotals(simState.allSkus);
+
+    // Scenario: remove selected SKU, reallocate volume per subRows
+    const removedSku = simState.selectedSku;
+    if (!removedSku) {
+      cardsEl.innerHTML = '<div class="sim-summary-card">No SKU selected.</div>';
+      return;
+    }
+
+    // Build scenario SKUs: remove selected, adjust recipients
+    const scenarioSkus = simState.allSkus
+      .filter(s => s.sku !== removedSku.sku)
+      .map(sku => ({ ...sku }));
+
+    // Find allocation rows (excluding lost sales)
+    const allocRows = simState.subRows.filter(r => r.type !== "lost_sales" && r.pct > 0);
+    const lostRow = simState.subRows.find(r => r.type === "lost_sales");
+    const removedVol = removedSku.volume;
+    let absorbedVol = 0;
+    let lostVol = 0;
+
+    // Apply allocations to recipient SKUs
+    for (const row of allocRows) {
+      const pct = row.pct / 100;
+      const addVol = removedVol * pct;
+      const recipient = scenarioSkus.find(s => s.sku === row.sku);
+      if (recipient) {
+        recipient.volume += addVol;
+        recipient.revenue += addVol * recipient.aspPerBbl;
+        recipient.cogs += addVol * (recipient.brewMatCpu + recipient.pkgMatCpu + recipient.conversionCpu);
+        recipient.grossMargin += addVol * (recipient.aspPerBbl - recipient.brewMatCpu - recipient.pkgMatCpu - recipient.conversionCpu);
+        recipient.operatingExpense += addVol * (recipient.freightCpu + recipient.marketingCpu + recipient.sgaCpu);
+        recipient.operatingIncome += addVol * (recipient.aspPerBbl - recipient.brewMatCpu - recipient.pkgMatCpu - recipient.conversionCpu - recipient.freightCpu - recipient.marketingCpu - recipient.sgaCpu);
+        // Update totals for weighted averages
+        recipient.conversionTotal += addVol * recipient.conversionCpu;
+        recipient.brewMatTotal += addVol * recipient.brewMatCpu;
+        recipient.pkgMatTotal += addVol * recipient.pkgMatCpu;
+        recipient.freightTotal += addVol * recipient.freightCpu;
+        recipient.marketingTotal += addVol * recipient.marketingCpu;
+        recipient.sgaTotal += addVol * recipient.sgaCpu;
+        absorbedVol += addVol;
+      }
+    }
+    // Lost sales
+    if (lostRow && lostRow.pct > 0) {
+      lostVol = removedVol * (lostRow.pct / 100);
+    }
+
+    // Recompute scenario portfolio
+    const scenario = portfolioTotals(scenarioSkus);
+    const baselineOI = baseline.operatingIncome;
+    const scenarioOI = scenario.operatingIncome;
+    const baselineMargin = baseline.revenue ? baselineOI / baseline.revenue : 0;
+    const scenarioMargin = scenario.revenue ? scenarioOI / scenario.revenue : 0;
+
+    // Render summary cards
+    cardsEl.innerHTML = `
+      <div class="sim-summary-card">
+        <div class="sim-summary-card-label">Portfolio OI</div>
+        <div class="sim-summary-card-value">${toMoney(scenarioOI)}</div>
+        <div class="sim-summary-card-delta">Baseline: ${toMoney(baselineOI)}</div>
+      </div>
+      <div class="sim-summary-card">
+        <div class="sim-summary-card-label">OI Margin</div>
+        <div class="sim-summary-card-value">${toPct(scenarioMargin)}</div>
+        <div class="sim-summary-card-delta">Baseline: ${toPct(baselineMargin)}</div>
+      </div>
+      <div class="sim-summary-card">
+        <div class="sim-summary-card-label">Total Volume</div>
+        <div class="sim-summary-card-value">${Math.round(scenario.volume).toLocaleString()} bbl</div>
+        <div class="sim-summary-card-delta">Baseline: ${Math.round(baseline.volume).toLocaleString()} bbl</div>
+      </div>
+      <div class="sim-summary-card">
+        <div class="sim-summary-card-label">Absorbed vs. Lost</div>
+        <div class="sim-summary-card-value">${Math.round(absorbedVol).toLocaleString()} / ${Math.round(removedVol).toLocaleString()} bbl</div>
+        <div class="sim-summary-card-delta">Lost: ${Math.round(lostVol).toLocaleString()} bbl</div>
+      </div>
+    `;
   });
 }
 

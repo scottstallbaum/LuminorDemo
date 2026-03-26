@@ -828,6 +828,62 @@ th { color: var(--muted); font-weight: 600; }
    ============================================================ */
 
 /* ---- Step 2: Substitution mapping ---- */
+/* ---- Step 3: Scenario summary & waterfall ---- */
+.sim-summary-cards {
+  display: flex;
+  gap: 1.1rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+}
+.sim-summary-card {
+  background: rgba(69,208,162,.08);
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  padding: .85rem 1.2rem .7rem 1.1rem;
+  min-width: 170px;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  box-shadow: 0 1px 4px 0 rgba(36,49,77,.07);
+}
+.sim-summary-card-label {
+  color: var(--muted);
+  font-size: .82rem;
+  margin-bottom: .25rem;
+}
+.sim-summary-card-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.sim-summary-card-delta {
+  font-size: .92rem;
+  margin-top: .1rem;
+  color: var(--muted);
+}
+.sim-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  margin-bottom: 1.2rem;
+}
+.sim-slider-label {
+  font-size: .92rem;
+  color: var(--muted);
+  min-width: 220px;
+}
+#sim-escape-slider {
+  width: 220px;
+  accent-color: var(--accent);
+}
+.sim-waterfall-wrap {
+  margin-top: 1.2rem;
+  background: rgba(36,49,77,.25);
+  border-radius: .7rem;
+  padding: 1.1rem 1.2rem 1.2rem 1.2rem;
+  box-shadow: 0 1px 4px 0 rgba(36,49,77,.07);
+}
 .sub-subtitle { margin: .15rem 0 .9rem; }
 
 .sub-section-label { margin-bottom: .75rem; }
