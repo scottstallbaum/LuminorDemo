@@ -778,80 +778,65 @@ function bindStep2Controls() {
     `;
 
     // =====================
-    // OI Bridge Calculation
+    // OI Bridge Calculation (Cascading Waterfall, Fewer Steps)
     // =====================
     // 1. Lost Revenue (removed SKU revenue)
     // 2. Recovered Revenue (absorbedVol * recipient ASP)
-    // 3. Brew/Pkg Material Savings
-    // 4. Conversion Savings (variable portion)
-    // 5. Marketing Savings
-    // 6. Stranded Overhead (sticky conversion)
-    // 7. Utilization Improvement (not yet implemented)
-    // 8. Net OI Impact
+    // 3. Total Cost Savings (brew/pkg/conversion/marketing)
+    // 4. Stranded Overhead (sticky conversion)
+    // 5. Net OI Impact
 
-    // For now, use simple math for each step
     const lostRevenue = removedSku.revenue;
     let recoveredRevenue = 0;
-    let brewMatSavings = 0;
-    let pkgMatSavings = 0;
-    let convSavings = 0;
-    let marketingSavings = 0;
+    let totalCostSavings = 0;
     let strandedOverhead = 0;
-    // For each allocation, sum up the cost savings and revenue
     for (const row of allocRows) {
       const pct = row.pct / 100;
       const addVol = removedVol * pct;
       const recipient = scenarioSkus.find(s => s.sku === row.sku);
       if (recipient) {
         recoveredRevenue += addVol * recipient.aspPerBbl;
-        brewMatSavings += addVol * removedSku.brewMatCpu;
-        pkgMatSavings += addVol * removedSku.pkgMatCpu;
-        // Conversion: 60% variable, 40% sticky
-        convSavings += addVol * removedSku.conversionCpu * 0.6;
+        totalCostSavings += addVol * (
+          removedSku.brewMatCpu +
+          removedSku.pkgMatCpu +
+          removedSku.conversionCpu * 0.6 +
+          removedSku.marketingCpu * 0.75
+        );
         strandedOverhead += addVol * removedSku.conversionCpu * 0.4;
-        marketingSavings += addVol * removedSku.marketingCpu * 0.75;
       }
     }
-    // Lost sales: all costs escape
     if (lostRow && lostRow.pct > 0) {
       const lostPct = lostRow.pct / 100;
       const lostVol = removedVol * lostPct;
-      brewMatSavings += lostVol * removedSku.brewMatCpu;
-      pkgMatSavings += lostVol * removedSku.pkgMatCpu;
-      convSavings += lostVol * removedSku.conversionCpu * 0.6;
+      totalCostSavings += lostVol * (
+        removedSku.brewMatCpu +
+        removedSku.pkgMatCpu +
+        removedSku.conversionCpu * 0.6 +
+        removedSku.marketingCpu * 0.75
+      );
       strandedOverhead += lostVol * removedSku.conversionCpu * 0.4;
-      marketingSavings += lostVol * removedSku.marketingCpu * 0.75;
     }
 
-    // Utilization improvement: placeholder (not yet implemented)
-    let utilizationImprovement = 0;
-
-    // Net OI Impact
     const netOI = scenarioOI - baselineOI;
 
-    // Waterfall data
-    const bridgeLabels = [
-      "Lost Revenue",
-      "Recovered Revenue",
-      "Brew/Pkg Mat Savings",
-      "Conversion Savings",
-      "Marketing Savings",
-      "Stranded Overhead",
-      "Utilization Improvement",
-      "Net OI Impact"
+    // Build cascading data
+    const steps = [
+      { label: "Lost Revenue", value: -lostRevenue },
+      { label: "Recovered Revenue", value: recoveredRevenue },
+      { label: "Total Cost Savings", value: totalCostSavings },
+      { label: "Stranded Overhead", value: -strandedOverhead },
+      { label: "Net OI Impact", value: netOI }
     ];
-    const bridgeData = [
-      -lostRevenue,
-      recoveredRevenue,
-      brewMatSavings + pkgMatSavings,
-      convSavings,
-      marketingSavings,
-      -strandedOverhead,
-      utilizationImprovement,
-      netOI
-    ];
+    let running = baselineOI;
+    const bridgeLabels = ["Baseline OI", ...steps.map(s => s.label), "Scenario OI"];
+    const bridgeData = [baselineOI];
+    for (const s of steps) {
+      running += s.value;
+      bridgeData.push(running);
+    }
+    // Last bar is scenario OI (should match scenarioOI)
 
-    // Render Chart.js waterfall
+    // Render Chart.js waterfall (cascading)
     const ctx = document.getElementById("sim-waterfall-chart").getContext("2d");
     if (window.simWaterfallChart) window.simWaterfallChart.destroy();
     window.simWaterfallChart = new Chart(ctx, {
@@ -861,16 +846,11 @@ function bindStep2Controls() {
         datasets: [{
           label: 'OI Bridge',
           data: bridgeData,
-          backgroundColor: [
-            '#ff6d6d', // Lost Revenue
-            '#45d0a2', // Recovered Revenue
-            '#45d0a2', // Brew/Pkg
-            '#45d0a2', // Conversion
-            '#45d0a2', // Marketing
-            '#ffae57', // Stranded Overhead
-            '#45d0a2', // Utilization
-            '#45d0a2'  // Net OI
-          ],
+          backgroundColor: bridgeLabels.map((lbl, i) => {
+            if (i === 0 || i === bridgeLabels.length - 1) return '#45d0a2'; // Baseline/Scenario OI
+            if (steps[i-1].value < 0) return '#ff6d6d';
+            return '#45d0a2';
+          }),
           borderRadius: 6,
           borderSkipped: false
         }]
@@ -878,6 +858,9 @@ function bindStep2Controls() {
       options: {
         plugins: {
           legend: { display: false },
+          title: {
+            display: false
+          },
           tooltip: {
             callbacks: {
               label: function(ctx) {
