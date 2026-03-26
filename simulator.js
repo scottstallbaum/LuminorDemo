@@ -870,7 +870,14 @@ function bindStep2Controls() {
     // The bridge now reconciles directly to scenario OI using the same cost structure
     // as the scenario model, avoiding hardcoded assumption factors.
 
-    const removedUnitOpCost = getVariableUnitOpCost(removedSku);
+    const removedUnitOpCost = (
+      removedSku.brewMatCpu +
+      removedSku.pkgMatCpu +
+      removedSku.conversionCpu +
+      removedSku.freightCpu +
+      removedSku.marketingCpu +
+      removedSku.sgaCpu
+    );
 
     const lostRevenue = removedSku.revenue;
     const avoidedRemovedCosts = removedVol * removedUnitOpCost;
@@ -896,12 +903,6 @@ function bindStep2Controls() {
       { label: "Fixed Marketing & SG&A Drag", value: -removedFixedRetentionCost },
       { label: `Conversion Scale Benefit (${(avgAppliedScaleSavePct * 100).toFixed(1)}%)`, value: conversionScaleBenefit }
     ];
-
-    const explainedDelta = steps.reduce((sum, step) => sum + step.value, 0);
-    const reconciliationGap = netOI - explainedDelta;
-    if (Math.abs(reconciliationGap) >= 0.5) {
-      steps.push({ label: "Other / Rounding", value: reconciliationGap });
-    }
 
     if (storyEl) {
       const absorbedRate = removedVol ? absorbedVol / removedVol : 0;
