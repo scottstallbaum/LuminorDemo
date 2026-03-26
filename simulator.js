@@ -942,8 +942,23 @@ function bindStep2Controls() {
       `;
     }
 
-    const bridgeLabels = [...steps.map(s => s.label), "Net OI Impact"];
-    const bridgeData = [...steps.map(s => s.value), netOI];
+    const bridgeLabels = ["Baseline OI", ...steps.map(s => s.label), "Scenario OI"];
+    const bridgeData = [];
+    const bridgeColors = [];
+
+    let runningOi = baselineOI;
+    bridgeData.push([0, baselineOI]);
+    bridgeColors.push('#4f9fff');
+
+    for (const step of steps) {
+      const nextOi = runningOi + step.value;
+      bridgeData.push([runningOi, nextOi]);
+      bridgeColors.push(step.value < 0 ? '#ff6d6d' : '#45d0a2');
+      runningOi = nextOi;
+    }
+
+    bridgeData.push([0, scenarioOI]);
+    bridgeColors.push('#4f9fff');
 
     // Render Chart.js waterfall (cascading)
     const ctx = document.getElementById("sim-waterfall-chart").getContext("2d");
@@ -953,13 +968,9 @@ function bindStep2Controls() {
       data: {
         labels: bridgeLabels,
         datasets: [{
-          label: 'OI Change vs Baseline',
+          label: 'OI Waterfall',
           data: bridgeData,
-          backgroundColor: bridgeData.map((val, i) => {
-            if (i === bridgeLabels.length - 1) return '#4f9fff';
-            if (val < 0) return '#ff6d6d';
-            return '#45d0a2';
-          }),
+          backgroundColor: bridgeColors,
           borderRadius: 6,
           borderSkipped: false
         }]
@@ -976,21 +987,25 @@ function bindStep2Controls() {
             callbacks: {
               label: function(ctx) {
                 const idx = ctx.dataIndex;
-                const isNet = idx === bridgeLabels.length - 1;
-                const val = ctx.parsed.y;
-                const cumulativeDelta = bridgeData
-                  .slice(0, isNet ? bridgeData.length - 1 : idx + 1)
-                  .reduce((sum, n) => sum + n, 0);
-                if (isNet) {
+                const isBaseline = idx === 0;
+                const isScenario = idx === bridgeLabels.length - 1;
+                if (isBaseline) {
+                  return `Baseline OI: ${toMoney(baselineOI)}`;
+                }
+                if (isScenario) {
                   return [
-                    `Net OI Impact: ${toSignedMoney(val)}`,
-                    `Scenario OI: ${toMoney(scenarioOI)}`
+                    `Scenario OI: ${toMoney(scenarioOI)}`,
+                    `Net OI Impact: ${toSignedMoney(netOI)}`
                   ];
                 }
+
+                const step = steps[idx - 1];
+                const start = Array.isArray(ctx.raw) ? ctx.raw[0] : 0;
+                const end = Array.isArray(ctx.raw) ? ctx.raw[1] : 0;
                 return [
-                  `${bridgeLabels[idx]}: ${toSignedMoney(val)}`,
-                  `Cumulative Delta: ${toSignedMoney(cumulativeDelta)}`,
-                  `Implied OI: ${toMoney(baselineOI + cumulativeDelta)}`
+                  `${step.label}: ${toSignedMoney(step.value)}`,
+                  `OI Level: ${toMoney(start)} -> ${toMoney(end)}`,
+                  `Scenario OI: ${toMoney(scenarioOI)}`
                 ];
               }
             }
@@ -1000,10 +1015,9 @@ function bindStep2Controls() {
           x: { grid: { display: false }, ticks: { maxRotation: 0, minRotation: 0, font: { size: 10 } } },
           y: {
             grid: { color: 'rgba(159,176,211,.18)' },
-            beginAtZero: true,
             ticks: {
               font: { size: 10 },
-              callback: function(val) { return toSignedMoney(val); }
+              callback: function(val) { return toMoney(val); }
             }
           }
         }
