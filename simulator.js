@@ -273,7 +273,7 @@ const simState = {
   segmentFilter: "All",
   familyFilter: "All",
   packageTypeFilter: "All",
-  sortOrder: "volume-asc"
+  sortOrder: "operatingIncome-asc"
 };
 
 // ============================================================
@@ -505,7 +505,7 @@ function bindFilterControls() {
     simState.segmentFilter = "All";
     simState.familyFilter = "All";
     simState.packageTypeFilter = "All";
-    simState.sortOrder = "volume-asc";
+    simState.sortOrder = "operatingIncome-asc";
     if (searchEl) searchEl.value = "";
     if (segEl) segEl.value = "All";
     if (famEl) famEl.value = "All";

@@ -917,6 +917,8 @@ th { color: var(--muted); font-weight: 600; }
 .sim-td-sku { font-weight: 600; font-size: .8rem; white-space: nowrap; }
 .sim-td-desc { color: var(--muted); font-size: .79rem; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sim-td-num { text-align: right; font-variant-numeric: tabular-nums; }
+.sim-sku-table .is-positive { color: var(--accent); }
+.sim-sku-table .is-negative { color: var(--danger); }
 
 .sim-empty { text-align: center; color: var(--muted); padding: 1.5rem; }
 
