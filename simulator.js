@@ -942,44 +942,62 @@ function bindStep2Controls() {
       `;
     }
 
-    const bridgeLabels = ["Baseline OI", ...steps.map(s => s.label), "Scenario OI"];
-    const bridgeData = [];
-    const bridgeColors = [];
-
-    let runningOi = baselineOI;
-    bridgeData.push([0, baselineOI]);
-    bridgeColors.push('#4f9fff');
-
+    const bridgeLabels = [...steps.map(s => s.label), "Net OI Impact"];
+    const bridgeStepData = [...steps.map(s => s.value), netOI];
+    const cumulativeDeltaData = [];
+    let runningDelta = 0;
     for (const step of steps) {
-      const nextOi = runningOi + step.value;
-      bridgeData.push([runningOi, nextOi]);
-      bridgeColors.push(step.value < 0 ? '#ff6d6d' : '#45d0a2');
-      runningOi = nextOi;
+      runningDelta += step.value;
+      cumulativeDeltaData.push(runningDelta);
     }
+    cumulativeDeltaData.push(netOI);
 
-    bridgeData.push([0, scenarioOI]);
-    bridgeColors.push('#4f9fff');
+    const allYVals = [...bridgeStepData, ...cumulativeDeltaData, 0];
+    const minY = Math.min(...allYVals);
+    const maxY = Math.max(...allYVals);
+    const yPad = (maxY - minY) > 0
+      ? (maxY - minY) * 0.16
+      : Math.max(Math.abs(netOI) * 0.25, 1000000);
 
-    // Render Chart.js waterfall (cascading)
+    // Render impact bridge: step bars + cumulative line.
     const ctx = document.getElementById("sim-waterfall-chart").getContext("2d");
     if (window.simWaterfallChart) window.simWaterfallChart.destroy();
     window.simWaterfallChart = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: bridgeLabels,
-        datasets: [{
-          label: 'OI Waterfall',
-          data: bridgeData,
-          backgroundColor: bridgeColors,
-          borderRadius: 6,
-          borderSkipped: false
-        }]
+        datasets: [
+          {
+            label: 'Step Impact ($)',
+            data: bridgeStepData,
+            backgroundColor: bridgeStepData.map((val, i) => {
+              if (i === bridgeLabels.length - 1) return '#4f9fff';
+              if (val < 0) return '#ff6d6d';
+              return '#45d0a2';
+            }),
+            borderRadius: 6,
+            borderSkipped: false,
+            order: 2
+          },
+          {
+            label: 'Cumulative Impact ($)',
+            type: 'line',
+            data: cumulativeDeltaData,
+            borderColor: '#ffd166',
+            backgroundColor: '#ffd166',
+            pointRadius: 3,
+            pointHoverRadius: 4,
+            borderWidth: 2,
+            tension: 0.2,
+            order: 1
+          }
+        ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false },
+          legend: { display: true, labels: { boxWidth: 12, color: '#9fb0d3' } },
           title: {
             display: false
           },
@@ -987,24 +1005,22 @@ function bindStep2Controls() {
             callbacks: {
               label: function(ctx) {
                 const idx = ctx.dataIndex;
-                const isBaseline = idx === 0;
-                const isScenario = idx === bridgeLabels.length - 1;
-                if (isBaseline) {
-                  return `Baseline OI: ${toMoney(baselineOI)}`;
-                }
-                if (isScenario) {
+                const isNet = idx === bridgeLabels.length - 1;
+                if (ctx.dataset.type === 'line') {
+                  const cumulative = ctx.parsed.y;
                   return [
-                    `Scenario OI: ${toMoney(scenarioOI)}`,
+                    `Cumulative Impact: ${toSignedMoney(cumulative)}`,
+                    `Implied OI: ${toMoney(baselineOI + cumulative)}`
+                  ];
+                }
+                const val = ctx.parsed.y;
+                if (isNet) {
+                  return [
                     `Net OI Impact: ${toSignedMoney(netOI)}`
                   ];
                 }
-
-                const step = steps[idx - 1];
-                const start = Array.isArray(ctx.raw) ? ctx.raw[0] : 0;
-                const end = Array.isArray(ctx.raw) ? ctx.raw[1] : 0;
                 return [
-                  `${step.label}: ${toSignedMoney(step.value)}`,
-                  `OI Level: ${toMoney(start)} -> ${toMoney(end)}`,
+                  `${bridgeLabels[idx]}: ${toSignedMoney(val)}`,
                   `Scenario OI: ${toMoney(scenarioOI)}`
                 ];
               }
@@ -1015,9 +1031,11 @@ function bindStep2Controls() {
           x: { grid: { display: false }, ticks: { maxRotation: 0, minRotation: 0, font: { size: 10 } } },
           y: {
             grid: { color: 'rgba(159,176,211,.18)' },
+            min: minY - yPad,
+            max: maxY + yPad,
             ticks: {
               font: { size: 10 },
-              callback: function(val) { return toMoney(val); }
+              callback: function(val) { return toSignedMoney(val); }
             }
           }
         }
