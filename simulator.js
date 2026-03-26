@@ -778,55 +778,56 @@ function bindStep2Controls() {
     `;
 
     // =====================
-    // OI Bridge Calculation (Cascading Waterfall, Fewer Steps)
+    // OI Bridge Calculation (exact reconciliation)
     // =====================
-    // 1. Lost Revenue (removed SKU revenue)
-    // 2. Recovered Revenue (absorbedVol * recipient ASP)
-    // 3. Total Cost Savings (brew/pkg/conversion/marketing)
-    // 4. Stranded Overhead (sticky conversion)
-    // 5. Net OI Impact
+    // The bridge now reconciles directly to scenario OI using the same cost structure
+    // as the scenario model, avoiding hardcoded assumption factors.
+
+    const removedUnitOpCost = (
+      removedSku.brewMatCpu +
+      removedSku.pkgMatCpu +
+      removedSku.conversionCpu +
+      removedSku.freightCpu +
+      removedSku.marketingCpu +
+      removedSku.sgaCpu
+    );
 
     const lostRevenue = removedSku.revenue;
+    const avoidedRemovedCosts = removedVol * removedUnitOpCost;
     let recoveredRevenue = 0;
-    let totalCostSavings = 0;
-    let strandedOverhead = 0;
+    let replacementCosts = 0;
+
     for (const row of allocRows) {
       const pct = row.pct / 100;
       const addVol = removedVol * pct;
       const recipient = scenarioSkus.find(s => s.sku === row.sku);
       if (recipient) {
         recoveredRevenue += addVol * recipient.aspPerBbl;
-        totalCostSavings += addVol * (
-          removedSku.brewMatCpu +
-          removedSku.pkgMatCpu +
-          removedSku.conversionCpu * 0.6 +
-          removedSku.marketingCpu * 0.75
+        replacementCosts += addVol * (
+          recipient.brewMatCpu +
+          recipient.pkgMatCpu +
+          recipient.conversionCpu +
+          recipient.freightCpu +
+          recipient.marketingCpu +
+          recipient.sgaCpu
         );
-        strandedOverhead += addVol * removedSku.conversionCpu * 0.4;
       }
-    }
-    if (lostRow && lostRow.pct > 0) {
-      const lostPct = lostRow.pct / 100;
-      const lostVol = removedVol * lostPct;
-      totalCostSavings += lostVol * (
-        removedSku.brewMatCpu +
-        removedSku.pkgMatCpu +
-        removedSku.conversionCpu * 0.6 +
-        removedSku.marketingCpu * 0.75
-      );
-      strandedOverhead += lostVol * removedSku.conversionCpu * 0.4;
     }
 
     const netOI = scenarioOI - baselineOI;
-
-    // Build cascading data
     const steps = [
       { label: "Lost Revenue", value: -lostRevenue },
       { label: "Recovered Revenue", value: recoveredRevenue },
-      { label: "Total Cost Savings", value: totalCostSavings },
-      { label: "Stranded Overhead", value: -strandedOverhead },
-      { label: "Net OI Impact", value: netOI }
+      { label: "Avoided Removed-SKU Costs", value: avoidedRemovedCosts },
+      { label: "Replacement Costs", value: -replacementCosts }
     ];
+
+    const explainedDelta = steps.reduce((sum, step) => sum + step.value, 0);
+    const reconciliationGap = netOI - explainedDelta;
+    if (Math.abs(reconciliationGap) >= 0.5) {
+      steps.push({ label: "Other / Rounding", value: reconciliationGap });
+    }
+
     let running = baselineOI;
     const bridgeLabels = ["Baseline OI", ...steps.map(s => s.label), "Scenario OI"];
     const bridgeData = [baselineOI];
@@ -834,7 +835,7 @@ function bindStep2Controls() {
       running += s.value;
       bridgeData.push(running);
     }
-    // Last bar is scenario OI (should match scenarioOI)
+    bridgeData.push(scenarioOI);
 
     // Render Chart.js waterfall (cascading)
     const ctx = document.getElementById("sim-waterfall-chart").getContext("2d");
@@ -866,7 +867,11 @@ function bindStep2Controls() {
           tooltip: {
             callbacks: {
               label: function(ctx) {
-                return toSignedMoney(ctx.parsed.y);
+                const idx = ctx.dataIndex;
+                if (idx === 0) return `Baseline OI: ${toMoney(ctx.parsed.y)}`;
+                if (idx === bridgeLabels.length - 1) return `Scenario OI: ${toMoney(ctx.parsed.y)}`;
+                const step = steps[idx - 1];
+                return [`${step.label}: ${toSignedMoney(step.value)}`, `Running OI: ${toMoney(ctx.parsed.y)}`];
               }
             }
           }
