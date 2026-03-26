@@ -272,9 +272,8 @@ const simState = {
   search: "",
   segmentFilter: "All",
   familyFilter: "All",
-  sizeFilter: "All",
-  sortKey: "volume",
-  sortDir: "asc"
+  packageTypeFilter: "All",
+  sortOrder: "volume-asc"
 };
 
 // ============================================================
@@ -286,14 +285,14 @@ function applySimFilters(skus) {
   return skus.filter(s => {
     if (simState.segmentFilter !== "All" && s.priceSegment !== simState.segmentFilter) return false;
     if (simState.familyFilter !== "All" && s.brandFamily !== simState.familyFilter) return false;
-    if (simState.sizeFilter !== "All" && s.containerSize !== simState.sizeFilter) return false;
+    if (simState.packageTypeFilter !== "All" && s.containerType !== simState.packageTypeFilter) return false;
     if (q && !s.sku.toLowerCase().includes(q) && !s.description.toLowerCase().includes(q)) return false;
     return true;
   });
 }
 
 function sortSkus(skus) {
-  const { sortKey, sortDir } = simState;
+  const [sortKey, sortDir] = simState.sortOrder.split("-");
   return [...skus].sort((a, b) => {
     const av = a[sortKey] ?? 0;
     const bv = b[sortKey] ?? 0;
@@ -340,11 +339,11 @@ function renderSkuTable() {
       <td class="sim-td-sku">${s.sku}</td>
       <td class="sim-td-desc">${s.description !== s.sku ? s.description : "—"}</td>
       <td>${s.priceSegment}</td>
-      <td>${s.containerSize}</td>
+      <td>${s.containerType}</td>
       <td class="sim-td-num">${Math.round(s.volume).toLocaleString()}</td>
-      <td class="sim-td-num ${convTone}">${toMoneyDec(s.conversionCpu)}</td>
-      <td class="sim-td-num ${oiTone}">${toMoneyDec(s.oiPerBbl)}</td>
-      <td class="sim-td-num ${oiTone}">${toSignedPct(s.omPct)}</td>
+      <td class="sim-td-num">${toMoney(s.revenue)}</td>
+      <td class="sim-td-num ${getMetricToneClass(s.grossMargin)}">${toSignedMoney(s.grossMargin)}</td>
+      <td class="sim-td-num ${oiTone}">${toSignedMoney(s.operatingIncome)}</td>
     </tr>`;
   }).join("");
 
@@ -455,31 +454,6 @@ function selectSku(skuObj) {
 }
 
 // ============================================================
-// SORT HEADER BINDING
-// ============================================================
-
-function bindSortHeaders() {
-  document.querySelectorAll(".sim-sku-table th[data-sort]").forEach(th => {
-    th.addEventListener("click", () => {
-      const key = th.dataset.sort;
-      if (!th.classList.contains("sortable")) return;
-      if (simState.sortKey === key) {
-        simState.sortDir = simState.sortDir === "asc" ? "desc" : "asc";
-      } else {
-        simState.sortKey = key;
-        simState.sortDir = key === "volume" ? "asc" : "desc"; // volume asc = tail first; metrics desc = worst first
-      }
-      // Update header classes
-      document.querySelectorAll(".sim-sku-table th").forEach(h => {
-        h.classList.remove("sort-active", "sort-asc", "sort-desc");
-      });
-      th.classList.add("sort-active", simState.sortDir === "asc" ? "sort-asc" : "sort-desc");
-      renderSkuTable();
-    });
-  });
-}
-
-// ============================================================
 // FILTER DROPDOWNS + SEARCH
 // ============================================================
 
@@ -492,17 +466,18 @@ function populateFilterDropdowns(skus) {
 
   const segEl = document.getElementById("sim-filter-segment");
   const famEl = document.getElementById("sim-filter-family");
-  const sizeEl = document.getElementById("sim-filter-size");
+  const packageTypeEl = document.getElementById("sim-filter-package-type");
   if (segEl) fillSelect(segEl, unique("priceSegment"));
   if (famEl) fillSelect(famEl, unique("brandFamily"));
-  if (sizeEl) fillSelect(sizeEl, unique("containerSize"));
+  if (packageTypeEl) fillSelect(packageTypeEl, unique("containerType"));
 }
 
 function bindFilterControls() {
   const searchEl = document.getElementById("sim-search");
   const segEl = document.getElementById("sim-filter-segment");
   const famEl = document.getElementById("sim-filter-family");
-  const sizeEl = document.getElementById("sim-filter-size");
+  const packageTypeEl = document.getElementById("sim-filter-package-type");
+  const sortEl = document.getElementById("sim-sort-order");
   const resetEl = document.getElementById("sim-reset-filters");
 
   if (searchEl) searchEl.addEventListener("input", () => {
@@ -517,19 +492,25 @@ function bindFilterControls() {
     simState.familyFilter = famEl.value;
     renderSkuTable();
   });
-  if (sizeEl) sizeEl.addEventListener("change", () => {
-    simState.sizeFilter = sizeEl.value;
+  if (packageTypeEl) packageTypeEl.addEventListener("change", () => {
+    simState.packageTypeFilter = packageTypeEl.value;
+    renderSkuTable();
+  });
+  if (sortEl) sortEl.addEventListener("change", () => {
+    simState.sortOrder = sortEl.value;
     renderSkuTable();
   });
   if (resetEl) resetEl.addEventListener("click", () => {
     simState.search = "";
     simState.segmentFilter = "All";
     simState.familyFilter = "All";
-    simState.sizeFilter = "All";
+    simState.packageTypeFilter = "All";
+    simState.sortOrder = "volume-asc";
     if (searchEl) searchEl.value = "";
     if (segEl) segEl.value = "All";
     if (famEl) famEl.value = "All";
-    if (sizeEl) sizeEl.value = "All";
+    if (packageTypeEl) packageTypeEl.value = "All";
+    if (sortEl) sortEl.value = "volume-asc";
     renderSkuTable();
   });
 
@@ -561,8 +542,10 @@ function init() {
   // Populate filter dropdowns
   populateFilterDropdowns(simState.allSkus);
 
+  const sortEl = document.getElementById("sim-sort-order");
+  if (sortEl) sortEl.value = simState.sortOrder;
+
   // Bind interactions
-  bindSortHeaders();
   bindFilterControls();
 
   // Initial render

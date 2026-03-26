@@ -40,8 +40,21 @@
           <select id="sim-filter-family"></select>
         </label>
         <label>
-          Container Size
-          <select id="sim-filter-size"></select>
+          Package Type
+          <select id="sim-filter-package-type"></select>
+        </label>
+        <label>
+          Sort / Order
+          <select id="sim-sort-order">
+            <option value="volume-asc">BBL low to high</option>
+            <option value="volume-desc">BBL high to low</option>
+            <option value="revenue-asc">Revenue low to high</option>
+            <option value="revenue-desc">Revenue high to low</option>
+            <option value="grossMargin-asc">GM low to high</option>
+            <option value="grossMargin-desc">GM high to low</option>
+            <option value="operatingIncome-asc">Op Margin low to high</option>
+            <option value="operatingIncome-desc">Op Margin high to low</option>
+          </select>
         </label>
         <button id="sim-reset-filters" class="ghost" type="button">Reset</button>
       </div>
@@ -56,14 +69,14 @@
         <table class="sim-sku-table" id="sim-sku-table">
           <thead>
             <tr>
-              <th data-sort="sku" class="sortable">SKU</th>
-              <th data-sort="description">Description</th>
-              <th data-sort="priceSegment" class="sortable">Segment</th>
-              <th data-sort="containerSize" class="sortable">Size</th>
-              <th data-sort="volume" class="sortable sort-active sort-asc">Volume (bbl) ↑</th>
-              <th data-sort="conversionCpu" class="sortable">Conv $/bbl</th>
-              <th data-sort="oiPerBbl" class="sortable">OI $/bbl</th>
-              <th data-sort="omPct" class="sortable">OI %</th>
+              <th>SKU</th>
+              <th>Description</th>
+              <th>Segment</th>
+              <th>Type</th>
+              <th>Volume (bbl)</th>
+              <th>Revenue</th>
+              <th>GM $</th>
+              <th>Op Margin $</th>
             </tr>
           </thead>
           <tbody id="sim-sku-tbody">
