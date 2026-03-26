@@ -237,6 +237,13 @@
         <p class="eyebrow">Step 3 of 3</p>
         <h2>Scenario Results</h2>
 
+        <!-- Waterfall chart (primary output) -->
+        <div class="sim-waterfall-wrap">
+          <h3 class="sim-waterfall-title">OI Change Breakdown</h3>
+          <p class="sim-waterfall-subtitle">Primary Scenario Output</p>
+          <canvas id="sim-waterfall-chart" height="420"></canvas>
+        </div>
+
         <!-- KPI summary cards -->
         <div id="sim-summary-cards" class="sim-summary-cards">
           <!-- Cards will be rendered here by JS -->
@@ -249,12 +256,6 @@
             <span id="sim-escape-value">60%</span>
           </label>
           <input type="range" id="sim-escape-slider" min="0" max="100" value="60" step="1" />
-        </div>
-
-        <!-- Waterfall chart -->
-        <div class="sim-waterfall-wrap">
-          <h3 class="sim-waterfall-title">OI Change Breakdown</h3>
-          <canvas id="sim-waterfall-chart" height="160"></canvas>
         </div>
       </section>
 

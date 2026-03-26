@@ -878,23 +878,30 @@ th { color: var(--muted); font-weight: 600; }
   accent-color: var(--accent);
 }
 .sim-waterfall-wrap {
-  margin-top: .5rem;
-  background: rgba(36,49,77,.25);
-  border-radius: .7rem;
-  padding: .5rem .7rem .6rem .7rem;
-  box-shadow: 0 1px 4px 0 rgba(36,49,77,.07);
+  margin: .55rem 0 .95rem;
+  background: linear-gradient(180deg, rgba(79,159,255,.14) 0%, rgba(36,49,77,.26) 42%, rgba(36,49,77,.28) 100%);
+  border: 1px solid rgba(79,159,255,.35);
+  border-radius: .85rem;
+  padding: .8rem .9rem .95rem .9rem;
+  box-shadow: 0 6px 20px 0 rgba(11,18,32,.28);
 }
 .sim-waterfall-title {
-  margin: 0 0 .35rem;
-  font-size: .82rem;
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text);
+  font-weight: 700;
+}
+.sim-waterfall-subtitle {
+  margin: .2rem 0 .55rem;
+  font-size: .8rem;
   color: var(--muted);
-  font-weight: 600;
+  letter-spacing: .03em;
 }
 #sim-waterfall-chart {
   display: block;
   width: 100%;
-  height: 160px !important;
-  max-height: 160px;
+  height: 420px !important;
+  max-height: 420px;
 }
 .sub-subtitle { margin: .15rem 0 .9rem; }
 
@@ -1268,6 +1275,10 @@ th { color: var(--muted); font-weight: 600; }
   .sim-selected-panel {
     grid-column: span 12;
   }
+  #sim-waterfall-chart {
+    height: 340px !important;
+    max-height: 340px;
+  }
 }
 
 @media (max-width: 700px) {
@@ -1277,4 +1288,8 @@ th { color: var(--muted); font-weight: 600; }
   .kpis { grid-template-columns: 1fr; }
   .breakout-head { flex-direction: column; align-items: flex-start; }
   .panel-head-inline { flex-direction: column; align-items: flex-start; }
+  #sim-waterfall-chart {
+    height: 260px !important;
+    max-height: 260px;
+  }
 }
