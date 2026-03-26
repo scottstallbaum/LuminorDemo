@@ -776,6 +776,127 @@ function bindStep2Controls() {
         <div class="sim-summary-card-delta">Lost: ${Math.round(lostVol).toLocaleString()} bbl</div>
       </div>
     `;
+
+    // =====================
+    // OI Bridge Calculation
+    // =====================
+    // 1. Lost Revenue (removed SKU revenue)
+    // 2. Recovered Revenue (absorbedVol * recipient ASP)
+    // 3. Brew/Pkg Material Savings
+    // 4. Conversion Savings (variable portion)
+    // 5. Marketing Savings
+    // 6. Stranded Overhead (sticky conversion)
+    // 7. Utilization Improvement (not yet implemented)
+    // 8. Net OI Impact
+
+    // For now, use simple math for each step
+    const lostRevenue = removedSku.revenue;
+    let recoveredRevenue = 0;
+    let brewMatSavings = 0;
+    let pkgMatSavings = 0;
+    let convSavings = 0;
+    let marketingSavings = 0;
+    let strandedOverhead = 0;
+    // For each allocation, sum up the cost savings and revenue
+    for (const row of allocRows) {
+      const pct = row.pct / 100;
+      const addVol = removedVol * pct;
+      const recipient = scenarioSkus.find(s => s.sku === row.sku);
+      if (recipient) {
+        recoveredRevenue += addVol * recipient.aspPerBbl;
+        brewMatSavings += addVol * removedSku.brewMatCpu;
+        pkgMatSavings += addVol * removedSku.pkgMatCpu;
+        // Conversion: 60% variable, 40% sticky
+        convSavings += addVol * removedSku.conversionCpu * 0.6;
+        strandedOverhead += addVol * removedSku.conversionCpu * 0.4;
+        marketingSavings += addVol * removedSku.marketingCpu * 0.75;
+      }
+    }
+    // Lost sales: all costs escape
+    if (lostRow && lostRow.pct > 0) {
+      const lostPct = lostRow.pct / 100;
+      const lostVol = removedVol * lostPct;
+      brewMatSavings += lostVol * removedSku.brewMatCpu;
+      pkgMatSavings += lostVol * removedSku.pkgMatCpu;
+      convSavings += lostVol * removedSku.conversionCpu * 0.6;
+      strandedOverhead += lostVol * removedSku.conversionCpu * 0.4;
+      marketingSavings += lostVol * removedSku.marketingCpu * 0.75;
+    }
+
+    // Utilization improvement: placeholder (not yet implemented)
+    let utilizationImprovement = 0;
+
+    // Net OI Impact
+    const netOI = scenarioOI - baselineOI;
+
+    // Waterfall data
+    const bridgeLabels = [
+      "Lost Revenue",
+      "Recovered Revenue",
+      "Brew/Pkg Mat Savings",
+      "Conversion Savings",
+      "Marketing Savings",
+      "Stranded Overhead",
+      "Utilization Improvement",
+      "Net OI Impact"
+    ];
+    const bridgeData = [
+      -lostRevenue,
+      recoveredRevenue,
+      brewMatSavings + pkgMatSavings,
+      convSavings,
+      marketingSavings,
+      -strandedOverhead,
+      utilizationImprovement,
+      netOI
+    ];
+
+    // Render Chart.js waterfall
+    const ctx = document.getElementById("sim-waterfall-chart").getContext("2d");
+    if (window.simWaterfallChart) window.simWaterfallChart.destroy();
+    window.simWaterfallChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: bridgeLabels,
+        datasets: [{
+          label: 'OI Bridge',
+          data: bridgeData,
+          backgroundColor: [
+            '#ff6d6d', // Lost Revenue
+            '#45d0a2', // Recovered Revenue
+            '#45d0a2', // Brew/Pkg
+            '#45d0a2', // Conversion
+            '#45d0a2', // Marketing
+            '#ffae57', // Stranded Overhead
+            '#45d0a2', // Utilization
+            '#45d0a2'  // Net OI
+          ],
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                return toSignedMoney(ctx.parsed.y);
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: {
+            grid: { color: 'rgba(159,176,211,.18)' },
+            ticks: {
+              callback: function(val) { return toMoney(val); }
+            }
+          }
+        }
+      }
+    });
 }
 
 // ============================================================
