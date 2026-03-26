@@ -283,8 +283,8 @@ const simState = {
 // Demo cost behavior settings. In production these should come from
 // calculated operating drivers rather than static defaults.
 const COST_BEHAVIOR = {
-  conversionScaleMinPct: 0.01,
-  conversionScaleMaxPct: 0.10,
+  conversionScaleMinPct: 0.05,
+  conversionScaleMaxPct: 0.15,
   marketingVariablePct: 0.60,
   sgaVariablePct: 0.35
 };
@@ -896,12 +896,16 @@ function bindStep2Controls() {
 
     const netOI = scenarioOI - baselineOI;
     const steps = [
-      { label: "Lost Revenue", value: -lostRevenue },
-      { label: "Recovered Revenue", value: recoveredRevenue },
-      { label: "Avoided Removed-SKU Costs", value: avoidedRemovedCosts },
-      { label: "Replacement Costs", value: -replacementCosts },
-      { label: "Fixed Marketing & SG&A Drag", value: -removedFixedRetentionCost },
-      { label: `Conversion Scale Benefit (${(avgAppliedScaleSavePct * 100).toFixed(1)}%)`, value: conversionScaleBenefit }
+      { label: "Revenue Lost from Removed SKU", chartLabel: "Revenue Lost", value: -lostRevenue },
+      { label: "Revenue Recovered by Replacements", chartLabel: "Revenue Recovered", value: recoveredRevenue },
+      { label: "Costs Avoided from Removed SKU", chartLabel: "Costs Avoided", value: avoidedRemovedCosts },
+      { label: "Incremental Replacement Costs", chartLabel: "Replacement Costs", value: -replacementCosts },
+      { label: "Fixed Marketing & SG&A Retained", chartLabel: "Fixed Mktg/SG&A", value: -removedFixedRetentionCost },
+      {
+        label: `Conversion Scale Benefit (${(avgAppliedScaleSavePct * 100).toFixed(1)}%)`,
+        chartLabel: "Conversion Scale",
+        value: conversionScaleBenefit
+      }
     ];
 
     if (storyEl) {
@@ -942,7 +946,7 @@ function bindStep2Controls() {
       `;
     }
 
-    const bridgeLabels = [...steps.map(s => s.label), "Net OI Impact"];
+    const bridgeLabels = [...steps.map(s => s.chartLabel || s.label), "Net OI Impact"];
     const bridgeStepData = [...steps.map(s => s.value), netOI];
     const cumulativeDeltaData = [];
     let runningDelta = 0;
@@ -1019,8 +1023,9 @@ function bindStep2Controls() {
                     `Net OI Impact: ${toSignedMoney(netOI)}`
                   ];
                 }
+                const step = steps[idx];
                 return [
-                  `${bridgeLabels[idx]}: ${toSignedMoney(val)}`,
+                  `${step ? step.label : bridgeLabels[idx]}: ${toSignedMoney(val)}`,
                   `Scenario OI: ${toMoney(scenarioOI)}`
                 ];
               }
