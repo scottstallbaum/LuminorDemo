@@ -904,20 +904,12 @@ function bindStep2Controls() {
       const absorbedRate = removedVol ? absorbedVol / removedVol : 0;
       const netTone = getMetricToneClass(netOI);
       const topHeadwind = [...steps].sort((a, b) => a.value - b.value).find(s => s.value < 0);
-      const contributionDenominator = Math.abs(netOI) > 1
-        ? Math.abs(netOI)
-        : steps.reduce((sum, step) => sum + Math.abs(step.value), 0) || 1;
-
-      const chips = steps.map(step => {
-        const chipTone = step.value > 0 ? "is-positive" : step.value < 0 ? "is-negative" : "is-neutral";
-        const weightPct = Math.round((Math.abs(step.value) / contributionDenominator) * 100);
-        return `<span class="sim-impact-chip ${chipTone}">${step.label}: ${toSignedMoney(step.value)} (${weightPct}%)</span>`;
-      }).join("");
+      const topTailwind = [...steps].sort((a, b) => b.value - a.value).find(s => s.value > 0);
 
       storyEl.innerHTML = `
         <p class="sim-impact-kicker">Impact Story</p>
         <p class="sim-impact-headline">
-          Removing <strong>${removedSku.sku}</strong> shifts portfolio OI by
+          Removing <strong>${removedSku.sku}</strong> shifts portfolio Op Income by
           <span class="${netTone}">${toSignedMoney(netOI)}</span>.
         </p>
         <div class="sim-impact-drivers">
@@ -926,19 +918,18 @@ function bindStep2Controls() {
             <p class="sim-impact-driver-value">${toPct(absorbedRate)} absorbed (${Math.round(absorbedVol).toLocaleString()} bbl)</p>
           </div>
           <div class="sim-impact-driver">
-            <p class="sim-impact-driver-label">Conversion Scale Rate</p>
-            <p class="sim-impact-driver-value">${(avgAppliedScaleSavePct * 100).toFixed(1)}% avg applied (range ${(COST_BEHAVIOR.conversionScaleMinPct * 100).toFixed(0)}%-${(COST_BEHAVIOR.conversionScaleMaxPct * 100).toFixed(0)}%)</p>
+            <p class="sim-impact-driver-label">Largest Tailwind</p>
+            <p class="sim-impact-driver-value">${topTailwind ? `${topTailwind.chartLabel}: ${toSignedMoney(topTailwind.value)}` : "None"}</p>
           </div>
           <div class="sim-impact-driver">
             <p class="sim-impact-driver-label">Largest Headwind</p>
-            <p class="sim-impact-driver-value">${topHeadwind ? `${topHeadwind.label}: ${toSignedMoney(topHeadwind.value)}` : "None"}</p>
+            <p class="sim-impact-driver-value">${topHeadwind ? `${topHeadwind.chartLabel}: ${toSignedMoney(topHeadwind.value)}` : "None"}</p>
           </div>
         </div>
-        <div class="sim-impact-chip-row">${chips}</div>
       `;
     }
 
-    const bridgeLabels = [...steps.map(s => s.chartLabel || s.label), "Net OI Impact"];
+    const bridgeLabels = [...steps.map(s => s.chartLabel || s.label), "Net Op Inc Impact"];
     const bridgeStepData = [...steps.map(s => s.value), netOI];
     const cumulativeDeltaData = [];
     let runningDelta = 0;
@@ -1006,19 +997,19 @@ function bindStep2Controls() {
                   const cumulative = ctx.parsed.y;
                   return [
                     `Cumulative Impact: ${toSignedMoney(cumulative)}`,
-                    `Implied OI: ${toMoney(baselineOI + cumulative)}`
+                    `Implied Op Income: ${toMoney(baselineOI + cumulative)}`
                   ];
                 }
                 const val = ctx.parsed.y;
                 if (isNet) {
                   return [
-                    `Net OI Impact: ${toSignedMoney(netOI)}`
+                    `Net Op Income Impact: ${toSignedMoney(netOI)}`
                   ];
                 }
                 const step = steps[idx];
                 return [
                   `${step ? step.label : bridgeLabels[idx]}: ${toSignedMoney(val)}`,
-                  `Scenario OI: ${toMoney(scenarioOI)}`
+                  `Scenario Op Income: ${toMoney(scenarioOI)}`
                 ];
               }
             }
@@ -1038,6 +1029,35 @@ function bindStep2Controls() {
         }
       }
     });
+
+    // Inject chip bar aligned to chart bars
+    const chartWrapEl = document.querySelector('.sim-waterfall-wrap');
+    let chipBarEl = document.getElementById('sim-chip-bar');
+    if (!chipBarEl && chartWrapEl) {
+      chipBarEl = document.createElement('div');
+      chipBarEl.id = 'sim-chip-bar';
+      chipBarEl.className = 'sim-chip-bar';
+      chartWrapEl.appendChild(chipBarEl);
+    }
+    if (chipBarEl) {
+      const netChipTone = netOI >= 0 ? 'is-positive' : 'is-negative';
+      const barChips = [
+        ...steps.map(step => {
+          const chipTone = step.value >= 0 ? 'is-positive' : 'is-negative';
+          return `<span class="sim-impact-chip ${chipTone}">${toSignedMoney(step.value)}</span>`;
+        }),
+        `<span class="sim-impact-chip ${netChipTone}">${toSignedMoney(netOI)}</span>`
+      ];
+      chipBarEl.innerHTML = barChips.join('');
+      requestAnimationFrame(() => {
+        const ca = window.simWaterfallChart?.chartArea;
+        const canvas = document.getElementById('sim-waterfall-chart');
+        if (ca && canvas) {
+          chipBarEl.style.paddingLeft = Math.round(ca.left) + 'px';
+          chipBarEl.style.paddingRight = Math.round(canvas.offsetWidth - ca.right) + 'px';
+        }
+      });
+    }
 }
 
 // ============================================================

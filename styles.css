@@ -960,6 +960,21 @@ th { color: var(--muted); font-weight: 600; }
 .sim-impact-chip.is-neutral {
   border-color: rgba(159,176,211,.25);
 }
+.sim-chip-bar {
+  display: grid;
+  gap: 3px;
+  margin-top: 5px;
+  box-sizing: border-box;
+}
+.sim-chip-bar .sim-impact-chip {
+  display: block;
+  text-align: center;
+  border-radius: 5px;
+  padding: .28rem .2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .sub-subtitle { margin: .15rem 0 .9rem; }
 
 .sub-section-label { margin-bottom: .75rem; }
