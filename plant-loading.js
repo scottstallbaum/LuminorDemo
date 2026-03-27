@@ -147,9 +147,12 @@ function applyFilters() {
     return true;
   });
 
-  const dir = plState.sort.endsWith("-desc") ? -1 : 1;
+  const isDesc = plState.sort.endsWith("-desc");
   const field = plState.sort.startsWith("spread") ? "convSpread" : "totalVol";
-  plState.filteredSkus.sort((a, b) => dir * (b[field] - a[field]));
+  plState.filteredSkus.sort((a, b) => {
+    const delta = (a[field] || 0) - (b[field] || 0);
+    return isDesc ? -delta : delta;
+  });
 }
 
 // ============================================================
