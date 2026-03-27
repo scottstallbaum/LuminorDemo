@@ -646,7 +646,10 @@ function renderAllocTable() {
         <td class="sub-td-desc" colspan="2">Best Case assumes full demand recovery (0% lost sales)</td>
         <td class="sub-th-num">—</td>
         <td class="sub-th-num">—</td>
-        <td class="sub-td-pct"><span class="sub-bestcase-pct">0%</span></td>
+        <td class="sub-td-pct">
+          <input type="number" class="sub-pct-input sub-pct-readonly" min="0" max="100" step="1"
+            data-row="${i}" value="0" disabled />
+        </td>
         <td class="sub-th-rm"></td>
       </tr>`;
       }
@@ -675,7 +678,10 @@ function renderAllocTable() {
       <td>${skuObj.priceSegment}</td>
       <td class="sub-th-num">${Math.round(skuObj.volume).toLocaleString()}</td>
       <td class="sub-th-num ${oiTone}">${toMoneyDec(skuObj.oiPerBbl)}</td>
-      <td class="sub-td-pct"><span class="sub-bestcase-pct">${val === "" ? "0" : Number(val).toFixed(0)}%</span></td>
+      <td class="sub-td-pct">
+        <input type="number" class="sub-pct-input sub-pct-readonly" min="0" max="100" step="1"
+          data-row="${i}" value="${val === "" ? "0" : Number(val).toFixed(0)}" disabled />
+      </td>
       <td class="sub-th-rm"></td>
     </tr>`;
     }

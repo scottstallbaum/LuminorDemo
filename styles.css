@@ -1097,8 +1097,22 @@ th { color: var(--muted); font-weight: 600; }
   max-width: 360px;
   width: 100%;
 }
+.sim-bestcase-slider.is-hidden {
+  display: none;
+}
 .sim-bestcase-slider input[type="range"] {
   width: 100%;
+}
+.sub-pct-input.sub-pct-readonly {
+  background: rgba(79,159,255,.12);
+  border-color: rgba(79,159,255,.35);
+  color: #cde2ff;
+  text-align: right;
+  font-weight: 700;
+  cursor: default;
+}
+.sub-pct-input.sub-pct-readonly:disabled {
+  opacity: 1;
 }
 .sub-bestcase-pct {
   display: inline-block;
