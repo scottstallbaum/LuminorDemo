@@ -280,7 +280,6 @@ const simState = {
   subFullListSort: "volume-desc",
   bestCaseEnabled: false,
   bestCaseMaxSharePct: 60,
-  bestCaseCapRelaxed: false,
   manualAllocBackup: null
 };
 
@@ -534,7 +533,6 @@ function initStep2(selectedSku) {
     { sku: "__lost_sales__", type: "lost_sales", pct: null }
   ];
   simState.subFullListVisible = false;
-  simState.bestCaseCapRelaxed = false;
   simState.manualAllocBackup = null;
   renderStep2();
 }
@@ -559,34 +557,52 @@ function restoreManualAllocations() {
 }
 
 function applyBestCaseAllocations() {
-  const candidateRows = simState.subRows.filter(r => r.type !== "lost_sales");
-  const candidates = candidateRows
-    .map((row) => ({ row, sku: simState.allSkus.find(s => s.sku === row.sku) }))
-    .filter(item => item.sku)
-    .sort((a, b) => (b.sku.oiPerBbl || 0) - (a.sku.oiPerBbl || 0));
+  if (!simState.selectedSku) return;
 
-  simState.bestCaseCapRelaxed = false;
-  simState.subRows.forEach(r => {
-    r.pct = r.type === "lost_sales" ? 0 : null;
-  });
-
-  if (!candidates.length) return;
-
-  let remaining = 100;
   const cap = Math.max(5, Math.min(100, simState.bestCaseMaxSharePct || 60));
+  const templateRows = simState.subRows.map((r) => ({ ...r, pct: 0 }));
+  const bestRows = templateRows.map((r) => ({ ...r }));
 
-  for (const item of candidates) {
-    if (remaining <= 0) break;
-    const take = Math.min(cap, remaining);
-    item.row.pct = take;
-    remaining -= take;
+  // Greedy 1% assignment based on full scenario recomputation at each step.
+  for (let step = 0; step < 100; step += 1) {
+    let bestCandidateIdx = -1;
+    let bestCandidateScore = Number.NEGATIVE_INFINITY;
+
+    for (let i = 0; i < bestRows.length; i += 1) {
+      const row = bestRows[i];
+      const currentPct = row.pct || 0;
+      if (row.type !== "lost_sales" && currentPct >= cap) continue;
+
+      const trial = bestRows.map((x) => ({ ...x }));
+      trial[i].pct = (trial[i].pct || 0) + 1;
+      const trialOutcome = evaluateScenarioOutcome(simState.selectedSku, trial, false);
+      if (trialOutcome.netOI > bestCandidateScore) {
+        bestCandidateScore = trialOutcome.netOI;
+        bestCandidateIdx = i;
+      }
+    }
+
+    if (bestCandidateIdx < 0) break;
+    bestRows[bestCandidateIdx].pct = (bestRows[bestCandidateIdx].pct || 0) + 1;
   }
 
-  // Guarantee 100% absorption in Best Case even when cap is too restrictive.
-  if (remaining > 0) {
-    simState.bestCaseCapRelaxed = true;
-    candidates[0].row.pct = (candidates[0].row.pct || 0) + remaining;
+  // Best must always win or tie vs the user-entered Market allocation.
+  let chosenRows = bestRows;
+  const optimizedOutcome = evaluateScenarioOutcome(simState.selectedSku, bestRows, false);
+  if (Array.isArray(simState.manualAllocBackup) && simState.manualAllocBackup.length) {
+    const hasMarketAlloc = simState.manualAllocBackup.some(r => (r.pct || 0) > 0);
+    if (hasMarketAlloc) {
+      const marketOutcome = evaluateScenarioOutcome(simState.selectedSku, simState.manualAllocBackup, false);
+      if (marketOutcome.netOI > optimizedOutcome.netOI) {
+        chosenRows = simState.manualAllocBackup.map((r) => ({ ...r }));
+      }
+    }
   }
+
+  const byKey = new Map(chosenRows.map((r) => [`${r.type}|${r.sku}`, r.pct]));
+  simState.subRows.forEach((row) => {
+    row.pct = byKey.has(`${row.type}|${row.sku}`) ? byKey.get(`${row.type}|${row.sku}`) : 0;
+  });
 }
 
 function evaluateScenarioOutcome(removedSku, subRows, forceFullRecovery = false) {
@@ -734,14 +750,15 @@ function renderAllocTable() {
 
     if (row.type === "lost_sales") {
       if (isBestCase) {
+        const bestLostPct = val === "" ? "0" : Number(val).toFixed(0);
         return `<tr class="sub-alloc-row sub-alloc-lost">
         <td class="sub-td-sku sub-lost-label">Lost Sales</td>
-        <td class="sub-td-desc" colspan="2">Best Case assumes full demand recovery (0% lost sales)</td>
+        <td class="sub-td-desc" colspan="2">Best Case optimized allocation (may include lost sales if financially superior)</td>
         <td class="sub-th-num">—</td>
         <td class="sub-th-num">—</td>
         <td class="sub-td-pct">
           <input type="number" class="sub-pct-input sub-pct-readonly" min="0" max="100" step="1"
-            data-row="${i}" value="0" disabled />
+            data-row="${i}" value="${bestLostPct}" disabled />
         </td>
         <td class="sub-th-rm"></td>
       </tr>`;
@@ -827,9 +844,7 @@ function updateAllocTotal() {
       totalEl.className = rounded === 100 ? "sub-total-exact" : "";
     }
     if (msgEl) {
-      msgEl.textContent = simState.bestCaseCapRelaxed
-        ? "✓ Best Case auto-allocation ready (max-share cap relaxed to ensure 100% absorption)"
-        : "✓ Best Case auto-allocation ready";
+      msgEl.textContent = "✓ Best Case optimized allocation ready";
       msgEl.className = "sub-alloc-msg sub-alloc-msg-ok";
     }
     if (runBtn) runBtn.disabled = (rounded !== 100);
@@ -937,7 +952,6 @@ function bindStep2Controls() {
     if (!wasEnabled) return;
     restoreManualAllocations();
     simState.bestCaseEnabled = false;
-    simState.bestCaseCapRelaxed = false;
     renderStep2();
   });
   if (bestModeBtn) bestModeBtn.addEventListener("click", () => {
@@ -945,7 +959,6 @@ function bindStep2Controls() {
     if (wasEnabled) return;
     snapshotManualAllocations();
     simState.bestCaseEnabled = true;
-    simState.bestCaseCapRelaxed = false;
     renderStep2();
   });
 
@@ -1005,7 +1018,7 @@ function bindStep2Controls() {
       }
       return;
     }
-    const outcome = evaluateScenarioOutcome(removedSku, simState.subRows, simState.bestCaseEnabled);
+    const outcome = evaluateScenarioOutcome(removedSku, simState.subRows, false);
     const baseline = outcome.baseline;
     const scenario = outcome.scenario;
     const baselineOI = baseline.operatingIncome;
