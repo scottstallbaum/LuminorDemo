@@ -129,6 +129,13 @@ textarea {
 .kpi h3 { margin: .35rem 0 .15rem; font-size: 1.45rem; line-height: 1.15; }
 .kpi h3.is-positive { color: var(--accent); }
 .kpi h3.is-negative { color: var(--danger); }
+.kpi-subvalue {
+  margin-top: .1rem;
+  font-size: .74rem;
+  color: rgba(159,176,211,.92);
+  font-weight: 500;
+  letter-spacing: .01em;
+}
 .delta.up { color: var(--accent); }
 .delta.down { color: var(--danger); }
 

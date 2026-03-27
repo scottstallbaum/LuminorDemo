@@ -176,6 +176,10 @@ const els = {
   kpiGrossMargin: document.getElementById("kpi-gross-margin"),
   kpiOperatingIncome: document.getElementById("kpi-operating-income"),
   kpiVolume: document.getElementById("kpi-volume"),
+  kpiRevenuePerSku: document.getElementById("kpi-revenue-per-sku"),
+  kpiGrossMarginPerSku: document.getElementById("kpi-gross-margin-per-sku"),
+  kpiOperatingIncomePerSku: document.getElementById("kpi-operating-income-per-sku"),
+  kpiVolumePerSku: document.getElementById("kpi-volume-per-sku"),
   singleWaterfallPanel: document.getElementById("single-waterfall-panel"),
   insightStripPanel: document.getElementById("insight-strip-panel"),
   insightStrip: document.getElementById("insight-strip"),
@@ -1364,12 +1368,24 @@ function renderSingleMode(totals) {
   renderOverallWaterfall(totals);
 }
 
-function renderSummaryKpis(totals) {
+function renderSummaryKpis(totals, rows = []) {
   if (!els.summaryKpis) return;
+  const totalVolume = totals.volume || 0;
+  const skuCount = new Set(rows.map((row) => String(row.sku || "").trim()).filter(Boolean)).size;
+  const revenuePerSku = skuCount ? (totals.revenue || 0) / skuCount : 0;
+  const grossMarginPerSku = skuCount ? (totals.grossMargin || 0) / skuCount : 0;
+  const operatingIncomePerSku = skuCount ? (totals.operatingIncome || 0) / skuCount : 0;
+  const volumePerSku = skuCount ? totalVolume / skuCount : 0;
+
   els.kpiRevenue.textContent = toMoney(totals.revenue || 0);
   els.kpiGrossMargin.textContent = toSignedMoney(totals.grossMargin || 0);
   els.kpiOperatingIncome.textContent = toSignedMoney(totals.operatingIncome || 0);
-  els.kpiVolume.textContent = `${Math.round(totals.volume || 0).toLocaleString()} bbl`;
+  els.kpiVolume.textContent = `${Math.round(totalVolume).toLocaleString()} bbl`;
+
+  if (els.kpiRevenuePerSku) els.kpiRevenuePerSku.textContent = `${toMoneyDec(revenuePerSku)} / SKU`;
+  if (els.kpiGrossMarginPerSku) els.kpiGrossMarginPerSku.textContent = `${toMoneyDec(grossMarginPerSku)} / SKU`;
+  if (els.kpiOperatingIncomePerSku) els.kpiOperatingIncomePerSku.textContent = `${toMoneyDec(operatingIncomePerSku)} / SKU`;
+  if (els.kpiVolumePerSku) els.kpiVolumePerSku.textContent = `${Math.round(volumePerSku).toLocaleString()} bbl / SKU`;
 
   els.kpiGrossMargin.className = getMetricToneClass(totals.grossMargin || 0);
   els.kpiOperatingIncome.className = getMetricToneClass(totals.operatingIncome || 0);
@@ -2326,7 +2342,7 @@ function render() {
   }
 
   renderSingleMode(totals);
-  renderSummaryKpis(totals);
+  renderSummaryKpis(totals, focusedRows);
   renderInsightStrip(focusedRows);
   renderSkuRanking(focusedRows, {
     scope: "single"
