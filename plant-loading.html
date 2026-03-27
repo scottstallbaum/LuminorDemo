@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plant Loading Simulator — Luminor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20260327-1" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Luminor Demo</p>
+      <h1>Plant Loading Simulator</h1>
+    </div>
+    <nav class="topbar-nav">
+      <a href="index.html" class="ghost topbar-back">← Dashboard</a>
+      <a href="simulator.html" class="ghost topbar-back">SKU Rationalization →</a>
+    </nav>
+  </header>
+
+  <main class="layout">
+
+    <!-- Step 1: Select SKU -->
+    <section class="panel controls-full compact-controls">
+      <div class="sim-step-header">
+        <div>
+          <p class="eyebrow">Step 1 of 3</p>
+          <h2>Select a Multi-Plant SKU</h2>
+          <p class="sim-step-desc">Only SKUs produced at 2 or more plants are shown. The <strong>Conversion Spread</strong> column highlights how much cost varies across plants — larger spreads mean more opportunity.</p>
+        </div>
+      </div>
+      <div class="sim-controls-row pl-controls-row">
+        <input id="pl-search" type="text" placeholder="Search SKU or description…" class="sim-search-input" autocomplete="off" />
+        <label>
+          Brand Family
+          <select id="pl-filter-family"></select>
+        </label>
+        <label>
+          Sort By
+          <select id="pl-sort">
+            <option value="spread-desc" selected>Conversion spread high → low</option>
+            <option value="spread-asc">Conversion spread low → high</option>
+            <option value="volume-desc">Volume high → low</option>
+            <option value="volume-asc">Volume low → high</option>
+          </select>
+        </label>
+        <button id="pl-reset-filters" class="ghost" type="button">Reset</button>
+      </div>
+
+      <div id="pl-sku-table-wrap" class="pl-sku-table-wrap">
+        <table class="pl-sku-table sim-table" id="pl-sku-table">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Brand Family</th>
+              <th>Plants</th>
+              <th class="num">Total Volume (bbl)</th>
+              <th class="num">Conversion Spread ($/bbl)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="pl-sku-tbody"></tbody>
+        </table>
+        <p id="pl-no-results" class="pl-no-results is-hidden">No SKUs match your filters.</p>
+      </div>
+    </section>
+
+    <!-- Step 2: Configure the Shift -->
+    <section class="panel compact-controls" id="pl-step2" style="display:none">
+      <div class="sim-step-header">
+        <div>
+          <p class="eyebrow">Step 2 of 3</p>
+          <h2 id="pl-step2-title">Configure the Production Shift</h2>
+        </div>
+        <button id="pl-back-btn" class="ghost" type="button">← Change SKU</button>
+      </div>
+
+      <!-- Selected SKU summary -->
+      <div class="pl-selected-sku-card" id="pl-selected-card">
+        <div class="pl-sel-main">
+          <span class="pl-sel-desc" id="pl-sel-desc">—</span>
+          <span class="pl-sel-tags" id="pl-sel-tags"></span>
+        </div>
+      </div>
+
+      <!-- Plant comparison table -->
+      <div class="pl-plant-compare-wrap">
+        <h3 class="pl-section-label">Plant Comparison — Current State</h3>
+        <table class="pl-plant-table" id="pl-plant-table">
+          <thead>
+            <tr>
+              <th>Plant</th>
+              <th class="num">Volume (bbl)</th>
+              <th class="num">Conversion $/bbl</th>
+              <th class="num">Freight $/bbl</th>
+              <th class="num">OI/bbl</th>
+              <th class="num">Total OI</th>
+            </tr>
+          </thead>
+          <tbody id="pl-plant-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Shift controls -->
+      <div class="pl-shift-controls">
+        <h3 class="pl-section-label">Define the Shift</h3>
+        <div class="pl-shift-row">
+          <label class="pl-shift-label">
+            Consolidate FROM
+            <select id="pl-source-plant" class="pl-plant-select"></select>
+          </label>
+          <div class="pl-shift-arrow">→</div>
+          <label class="pl-shift-label">
+            Consolidate TO
+            <select id="pl-dest-plant" class="pl-plant-select"></select>
+          </label>
+        </div>
+        <div class="pl-shift-slider-row">
+          <label class="pl-shift-vol-label">
+            Volume to Shift:
+            <strong id="pl-shift-vol-display">100%</strong>
+            <span class="pl-shift-bbl-hint" id="pl-shift-bbl-hint"></span>
+          </label>
+          <input id="pl-shift-pct" type="range" min="10" max="100" step="5" value="100" class="pl-shift-range" />
+        </div>
+        <button id="pl-run-btn" class="primary pl-run-btn" type="button">Run Analysis →</button>
+      </div>
+    </section>
+
+    <!-- Step 3: Results -->
+    <section class="panel compact-controls" id="pl-step3" style="display:none">
+      <div class="sim-step-header">
+        <div>
+          <p class="eyebrow">Step 3 of 3</p>
+          <h2>Consolidation Impact</h2>
+        </div>
+        <button id="pl-rerun-btn" class="ghost" type="button">← Adjust</button>
+      </div>
+
+      <!-- Scenario summary banner -->
+      <div class="pl-scenario-banner" id="pl-scenario-banner"></div>
+
+      <!-- Net OI headline -->
+      <div class="pl-net-oi-strip" id="pl-net-oi-strip"></div>
+
+      <!-- Bridge breakdown -->
+      <div class="pl-bridge-cards" id="pl-bridge-cards"></div>
+
+      <!-- Plant before/after cards -->
+      <div class="pl-before-after" id="pl-before-after"></div>
+
+      <!-- Footnote -->
+      <p class="pl-footnote">Freight reflects actual $/bbl differential between plants from the data. Scale benefit applies a 5–15% conversion cost reduction at the receiving plant based on absorbed volume relative to existing base. Results are directional estimates intended for planning purposes.</p>
+    </section>
+
+  </main>
+
+  <script src="data/demo-cost-data.js"></script>
+  <script src="plant-loading.js?v=20260327-1"></script>
+</body>
+</html>
