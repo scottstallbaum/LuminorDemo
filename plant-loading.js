@@ -43,8 +43,8 @@ function getMetricToneClass(value) {
 // ============================================================
 
 const COST_BEHAVIOR = {
-  conversionScaleMinPct: 0.05,
-  conversionScaleMaxPct: 0.15,
+  conversionScaleMinPct: 0.02,
+  conversionScaleMaxPct: 0.08,
   marketingVariablePct: 0.60,
   sgaVariablePct: 0.35,
   // Freight headwinds are discounted by this factor to reflect consolidation
