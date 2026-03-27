@@ -346,6 +346,15 @@ function toMoney(value) {
   }).format(value || 0);
 }
 
+function toMoneyDec(value) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value || 0);
+}
+
 function toPct(value) {
   return `${(value * 100).toFixed(1)}%`;
 }
@@ -1371,7 +1380,7 @@ function renderSingleMode(totals) {
 function renderSummaryKpis(totals, rows = []) {
   if (!els.summaryKpis) return;
   const totalVolume = totals.volume || 0;
-  const skuCount = new Set(rows.map((row) => String(row.sku || "").trim()).filter(Boolean)).size;
+  const skuCount = aggregateSkuRows(rows).length;
   const revenuePerSku = skuCount ? (totals.revenue || 0) / skuCount : 0;
   const grossMarginPerSku = skuCount ? (totals.grossMargin || 0) / skuCount : 0;
   const operatingIncomePerSku = skuCount ? (totals.operatingIncome || 0) / skuCount : 0;
