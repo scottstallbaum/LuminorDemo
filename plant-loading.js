@@ -46,7 +46,12 @@ const COST_BEHAVIOR = {
   conversionScaleMinPct: 0.05,
   conversionScaleMaxPct: 0.15,
   marketingVariablePct: 0.60,
-  sgaVariablePct: 0.35
+  sgaVariablePct: 0.35,
+  // Freight headwinds are discounted by this factor to reflect consolidation
+  // efficiencies: fuller trucks, better route utilization, spot rate leverage.
+  // Tailwinds (destination cheaper) are kept in full. At 0.45, a $10/bbl headwind
+  // becomes ~$4.50 — enough to sometimes offset savings, sometimes not.
+  freightHeadwindDiscount: 0.45
 };
 
 function getConversionScaleSavePct(absorbedVol, recipientBaseVol) {
@@ -332,7 +337,11 @@ function runAnalysis() {
   const conversionSavings = (srcConv - dstConv) * volumeShifted;
   const scaleSavePct = getConversionScaleSavePct(volumeShifted, dstBaseVol);
   const scaleBenefit = dstConv * scaleSavePct * volumeShifted;
-  const freightDelta = (dstFreight - srcFreight) * volumeShifted; // positive = headwind
+  const grossFreightDelta = (dstFreight - srcFreight) * volumeShifted;
+  // Headwinds are dampened by consolidation efficiency; tailwinds kept in full
+  const freightDelta = grossFreightDelta > 0
+    ? grossFreightDelta * COST_BEHAVIOR.freightHeadwindDiscount
+    : grossFreightDelta;
   const netOI = conversionSavings + scaleBenefit - freightDelta;
 
   renderResults({ srcRow, dstRow, volumeShifted, conversionSavings, scaleBenefit, scaleSavePct, freightDelta, netOI, sourceVol });
