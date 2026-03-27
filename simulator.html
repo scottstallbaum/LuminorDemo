@@ -157,6 +157,17 @@
       <div id="step2-content" class="is-hidden">
         <p id="step2-subtitle" class="small sub-subtitle"></p>
 
+        <div class="sim-bestcase-controls">
+          <label class="sim-bestcase-toggle">
+            <input id="sim-bestcase-enabled" type="checkbox" />
+            <span>Best Case Mode (Theoretical Upside)</span>
+          </label>
+          <label id="sim-bestcase-maxshare-wrap" class="sim-bestcase-slider is-hidden">
+            <span>Max Share per Replacement SKU: <strong id="sim-bestcase-maxshare-value">60%</strong></span>
+            <input id="sim-bestcase-maxshare" type="range" min="30" max="90" step="5" value="60" />
+          </label>
+        </div>
+
         <div class="sub-section-label">
           <p class="eyebrow">Suggested Substitutes</p>
           <p class="small">Same package type &amp; price segment · different brand · ranked by existing volume</p>

@@ -1053,6 +1053,49 @@ th { color: var(--muted); font-weight: 600; }
 }
 .sub-subtitle { margin: .15rem 0 .9rem; }
 
+.sim-bestcase-controls {
+  display: grid;
+  gap: .5rem;
+  margin: 0 0 .7rem;
+  padding: .6rem .7rem;
+  border: 1px solid rgba(79,159,255,.28);
+  border-radius: .62rem;
+  background: linear-gradient(180deg, rgba(79,159,255,.1), rgba(36,49,77,.18));
+}
+.sim-bestcase-toggle {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  color: var(--text);
+  font-size: .84rem;
+  font-weight: 600;
+}
+.sim-bestcase-toggle input {
+  width: 16px;
+  height: 16px;
+}
+.sim-bestcase-slider {
+  display: grid;
+  gap: .22rem;
+  color: var(--muted);
+  font-size: .78rem;
+}
+.sim-bestcase-slider input[type="range"] {
+  width: 100%;
+}
+.sub-bestcase-pct {
+  display: inline-block;
+  min-width: 40px;
+  text-align: center;
+  font-weight: 700;
+  font-size: .8rem;
+  border: 1px solid rgba(79,159,255,.35);
+  border-radius: .45rem;
+  padding: .16rem .36rem;
+  background: rgba(79,159,255,.12);
+  color: #cde2ff;
+}
+
 .sub-section-label { margin-bottom: .75rem; }
 .sub-section-label .eyebrow { margin: 0 0 .2rem; }
 .sub-section-label .small { margin: 0; }

@@ -277,7 +277,11 @@ const simState = {
   // chunk 2
   subRows: [],             // { sku, type: 'suggested'|'custom'|'lost_sales', pct: null }
   subFullListVisible: false,
-  subFullListSort: "volume-desc"
+  subFullListSort: "volume-desc",
+  bestCaseEnabled: false,
+  bestCaseMaxSharePct: 60,
+  bestCaseCapRelaxed: false,
+  manualAllocBackup: null
 };
 
 // Demo cost behavior settings. In production these should come from
@@ -530,7 +534,59 @@ function initStep2(selectedSku) {
     { sku: "__lost_sales__", type: "lost_sales", pct: null }
   ];
   simState.subFullListVisible = false;
+  simState.bestCaseCapRelaxed = false;
+  simState.manualAllocBackup = null;
   renderStep2();
+}
+
+function snapshotManualAllocations() {
+  simState.manualAllocBackup = simState.subRows.map((row) => ({
+    sku: row.sku,
+    type: row.type,
+    pct: row.pct
+  }));
+}
+
+function restoreManualAllocations() {
+  if (!Array.isArray(simState.manualAllocBackup)) return;
+  const byKey = new Map(
+    simState.manualAllocBackup.map((row) => [`${row.type}|${row.sku}`, row.pct])
+  );
+  simState.subRows.forEach((row) => {
+    const key = `${row.type}|${row.sku}`;
+    row.pct = byKey.has(key) ? byKey.get(key) : null;
+  });
+}
+
+function applyBestCaseAllocations() {
+  const candidateRows = simState.subRows.filter(r => r.type !== "lost_sales");
+  const candidates = candidateRows
+    .map((row) => ({ row, sku: simState.allSkus.find(s => s.sku === row.sku) }))
+    .filter(item => item.sku)
+    .sort((a, b) => (b.sku.oiPerBbl || 0) - (a.sku.oiPerBbl || 0));
+
+  simState.bestCaseCapRelaxed = false;
+  simState.subRows.forEach(r => {
+    r.pct = r.type === "lost_sales" ? 0 : null;
+  });
+
+  if (!candidates.length) return;
+
+  let remaining = 100;
+  const cap = Math.max(5, Math.min(100, simState.bestCaseMaxSharePct || 60));
+
+  for (const item of candidates) {
+    if (remaining <= 0) break;
+    const take = Math.min(cap, remaining);
+    item.row.pct = take;
+    remaining -= take;
+  }
+
+  // Guarantee 100% absorption in Best Case even when cap is too restrictive.
+  if (remaining > 0) {
+    simState.bestCaseCapRelaxed = true;
+    candidates[0].row.pct = (candidates[0].row.pct || 0) + remaining;
+  }
 }
 
 function renderStep2() {
@@ -555,6 +611,19 @@ function renderStep2() {
     subtitleEl.innerHTML = `Where will demand go when <strong>${s.sku}</strong> (${Math.round(s.volume).toLocaleString()} bbl · ${toMoney(s.revenue)} revenue) is removed?`;
   }
 
+  const bestCaseToggle = document.getElementById("sim-bestcase-enabled");
+  const bestCaseSliderWrap = document.getElementById("sim-bestcase-maxshare-wrap");
+  const bestCaseSlider = document.getElementById("sim-bestcase-maxshare");
+  const bestCaseValue = document.getElementById("sim-bestcase-maxshare-value");
+  if (bestCaseToggle) bestCaseToggle.checked = !!simState.bestCaseEnabled;
+  if (bestCaseSlider) bestCaseSlider.value = String(simState.bestCaseMaxSharePct || 60);
+  if (bestCaseValue) bestCaseValue.textContent = `${simState.bestCaseMaxSharePct || 60}%`;
+  if (bestCaseSliderWrap) bestCaseSliderWrap.classList.toggle("is-hidden", !simState.bestCaseEnabled);
+
+  if (simState.bestCaseEnabled) {
+    applyBestCaseAllocations();
+  }
+
   renderAllocTable();
   renderFullList();
 }
@@ -563,10 +632,22 @@ function renderAllocTable() {
   const tbody = document.getElementById("sub-alloc-tbody");
   if (!tbody) return;
 
+  const isBestCase = !!simState.bestCaseEnabled;
+
   tbody.innerHTML = simState.subRows.map((row, i) => {
     const val = row.pct !== null ? row.pct : "";
 
     if (row.type === "lost_sales") {
+      if (isBestCase) {
+        return `<tr class="sub-alloc-row sub-alloc-lost">
+        <td class="sub-td-sku sub-lost-label">Lost Sales</td>
+        <td class="sub-td-desc" colspan="2">Best Case assumes full demand recovery (0% lost sales)</td>
+        <td class="sub-th-num">—</td>
+        <td class="sub-th-num">—</td>
+        <td class="sub-td-pct"><span class="sub-bestcase-pct">0%</span></td>
+        <td class="sub-th-rm"></td>
+      </tr>`;
+      }
       return `<tr class="sub-alloc-row sub-alloc-lost">
         <td class="sub-td-sku sub-lost-label">Lost Sales</td>
         <td class="sub-td-desc" colspan="2">No substitution — demand is not recovered</td>
@@ -584,6 +665,18 @@ function renderAllocTable() {
     if (!skuObj) return "";
     const oiTone = getMetricToneClass(skuObj.oiPerBbl);
     const isCustom = row.type === "custom";
+
+    if (isBestCase) {
+      return `<tr class="sub-alloc-row${isCustom ? " sub-alloc-custom" : ""}">
+      <td class="sub-td-sku">${skuObj.sku}</td>
+      <td class="sub-td-desc">${skuObj.description !== skuObj.sku ? skuObj.description : "—"}</td>
+      <td>${skuObj.priceSegment}</td>
+      <td class="sub-th-num">${Math.round(skuObj.volume).toLocaleString()}</td>
+      <td class="sub-th-num ${oiTone}">${toMoneyDec(skuObj.oiPerBbl)}</td>
+      <td class="sub-td-pct"><span class="sub-bestcase-pct">${val === "" ? "0" : Number(val).toFixed(0)}%</span></td>
+      <td class="sub-th-rm"></td>
+    </tr>`;
+    }
 
     return `<tr class="sub-alloc-row${isCustom ? " sub-alloc-custom" : ""}">
       <td class="sub-td-sku">${skuObj.sku}</td>
@@ -621,6 +714,27 @@ function renderAllocTable() {
 }
 
 function updateAllocTotal() {
+  if (simState.bestCaseEnabled) {
+    const total = simState.subRows.reduce((sum, r) => sum + (r.pct || 0), 0);
+    const rounded = Math.round(total * 10) / 10;
+    const totalEl = document.getElementById("sub-alloc-total");
+    const msgEl = document.getElementById("sub-alloc-msg");
+    const runBtn = document.getElementById("btn-run-simulation");
+
+    if (totalEl) {
+      totalEl.textContent = `${rounded}%`;
+      totalEl.className = rounded === 100 ? "sub-total-exact" : "";
+    }
+    if (msgEl) {
+      msgEl.textContent = simState.bestCaseCapRelaxed
+        ? "✓ Best Case auto-allocation ready (max-share cap relaxed to ensure 100% absorption)"
+        : "✓ Best Case auto-allocation ready";
+      msgEl.className = "sub-alloc-msg sub-alloc-msg-ok";
+    }
+    if (runBtn) runBtn.disabled = (rounded !== 100);
+    return;
+  }
+
   const total = simState.subRows.reduce((sum, r) => sum + (r.pct || 0), 0);
   const rounded = Math.round(total * 10) / 10;
 
@@ -652,7 +766,17 @@ function updateAllocTotal() {
 function renderFullList() {
   const wrap = document.getElementById("sub-full-list-wrap");
   const toggleBtn = document.getElementById("btn-toggle-full-list");
+  const clearBtn = document.getElementById("btn-clear-alloc");
+  const isBestCase = !!simState.bestCaseEnabled;
+  if (toggleBtn) toggleBtn.disabled = isBestCase;
+  if (clearBtn) clearBtn.disabled = isBestCase;
   if (!wrap) return;
+
+  if (isBestCase) {
+    wrap.classList.add("is-hidden");
+    if (toggleBtn) toggleBtn.textContent = "Show Full List ↓";
+    return;
+  }
 
   if (!simState.subFullListVisible) {
     wrap.classList.add("is-hidden");
@@ -705,6 +829,29 @@ function renderFullList() {
 }
 
 function bindStep2Controls() {
+  const bestCaseToggle = document.getElementById("sim-bestcase-enabled");
+  if (bestCaseToggle) bestCaseToggle.addEventListener("change", () => {
+    const wasEnabled = simState.bestCaseEnabled;
+    const willEnable = bestCaseToggle.checked;
+    if (!wasEnabled && willEnable) snapshotManualAllocations();
+    if (wasEnabled && !willEnable) restoreManualAllocations();
+
+    simState.bestCaseEnabled = willEnable;
+    simState.bestCaseCapRelaxed = false;
+    renderStep2();
+  });
+
+  const bestCaseSlider = document.getElementById("sim-bestcase-maxshare");
+  if (bestCaseSlider) bestCaseSlider.addEventListener("input", () => {
+    simState.bestCaseMaxSharePct = Math.max(30, Math.min(90, parseInt(bestCaseSlider.value, 10) || 60));
+    const valueEl = document.getElementById("sim-bestcase-maxshare-value");
+    if (valueEl) valueEl.textContent = `${simState.bestCaseMaxSharePct}%`;
+    if (simState.bestCaseEnabled) {
+      applyBestCaseAllocations();
+      renderAllocTable();
+    }
+  });
+
   const clearBtn = document.getElementById("btn-clear-alloc");
   if (clearBtn) clearBtn.addEventListener("click", () => {
     simState.subRows.forEach(r => { r.pct = null; });
@@ -826,7 +973,7 @@ function bindStep2Controls() {
       ? weightedScalePctNumerator / weightedScalePctDenominator
       : 0;
     // Lost sales
-    if (lostRow && lostRow.pct > 0) {
+    if (!simState.bestCaseEnabled && lostRow && lostRow.pct > 0) {
       lostVol = removedVol * (lostRow.pct / 100);
     }
 
@@ -951,7 +1098,7 @@ function bindStep2Controls() {
       const topTailwind = [...steps].sort((a, b) => b.value - a.value).find(s => s.value > 0);
 
       storyEl.innerHTML = `
-        <p class="sim-impact-kicker">Impact Story</p>
+        <p class="sim-impact-kicker">${simState.bestCaseEnabled ? "Impact Story · Best Case (Theoretical Upside)" : "Impact Story"}</p>
         <p class="sim-impact-headline">
           Removing <strong>${removedSku.sku}</strong> shifts portfolio Operating Income by
           <span class="${netTone}">${toSignedMoney(netOI)}</span>.
