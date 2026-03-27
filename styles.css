@@ -1163,6 +1163,8 @@ th { color: var(--muted); font-weight: 600; }
 .pl-sku-table-wrap {
   margin-top: .75rem;
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 420px;
 }
 
 .pl-sku-table {
@@ -1178,7 +1180,7 @@ th { color: var(--muted); font-weight: 600; }
   text-align: left;
   vertical-align: middle;
 }
-.pl-sku-table th { color: var(--dim); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+.pl-sku-table th { color: var(--dim); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; position: sticky; top: 0; background: var(--card); z-index: 1; }
 .pl-sku-table td.num { text-align: right; }
 .pl-sku-table th.num { text-align: right; }
 
