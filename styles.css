@@ -1157,7 +1157,7 @@ th { color: var(--muted); font-weight: 600; }
    ============================================================ */
 
 .pl-controls-row {
-  grid-template-columns: 1.5fr minmax(160px,auto) minmax(200px,auto) auto;
+  grid-template-columns: 1.5fr minmax(140px,auto) minmax(120px,auto) minmax(200px,auto) auto;
 }
 
 .pl-sku-table-wrap {

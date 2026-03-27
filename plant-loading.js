@@ -107,6 +107,7 @@ function buildMultiPlantSkus() {
       sku: sample.sku,
       description: sample.orderableSkuDescription || sample.sku,
       brandFamily: sample.family || sample.brandFamily || "Unknown",
+      packageType: String(sample.packaging || sample.containerType || "Unknown").trim(),
       plants,
       totalVol,
       convSpread,
@@ -124,6 +125,7 @@ const plState = {
   filteredSkus: [],
   search: "",
   filterFamily: "All",
+  filterPackage: "All",
   sort: "spread-desc",
   selectedSkuGroup: null,
   sourcePlant: null,
@@ -140,6 +142,7 @@ function applyFilters() {
 
   plState.filteredSkus = plState.allSkus.filter(sg => {
     if (plState.filterFamily !== "All" && sg.brandFamily !== plState.filterFamily) return false;
+    if (plState.filterPackage !== "All" && sg.packageType !== plState.filterPackage) return false;
     if (terms.length) {
       const haystack = `${sg.sku} ${sg.description} ${sg.brandFamily}`.toLowerCase();
       if (!terms.every(t => haystack.includes(t))) return false;
@@ -163,6 +166,12 @@ function populateFamilyFilter() {
   const families = ["All", ...new Set(plState.allSkus.map(s => s.brandFamily).filter(Boolean).sort())];
   const sel = document.getElementById("pl-filter-family");
   sel.innerHTML = families.map(f => `<option value="${f}">${f}</option>`).join("");
+}
+
+function populatePackageFilter() {
+  const types = ["All", ...new Set(plState.allSkus.map(s => s.packageType).filter(Boolean).sort())];
+  const sel = document.getElementById("pl-filter-package");
+  sel.innerHTML = types.map(t => `<option value="${t}">${t}</option>`).join("");
 }
 
 function renderSkuTable() {
@@ -447,6 +456,11 @@ function bindControls() {
     renderSkuTable();
   });
 
+  document.getElementById("pl-filter-package").addEventListener("change", e => {
+    plState.filterPackage = e.target.value;
+    renderSkuTable();
+  });
+
   document.getElementById("pl-sort").addEventListener("change", e => {
     plState.sort = e.target.value;
     renderSkuTable();
@@ -455,9 +469,11 @@ function bindControls() {
   document.getElementById("pl-reset-filters").addEventListener("click", () => {
     plState.search = "";
     plState.filterFamily = "All";
+    plState.filterPackage = "All";
     plState.sort = "spread-desc";
     document.getElementById("pl-search").value = "";
     document.getElementById("pl-filter-family").value = "All";
+    document.getElementById("pl-filter-package").value = "All";
     document.getElementById("pl-sort").value = "spread-desc";
     renderSkuTable();
   });
@@ -499,6 +515,7 @@ function bindControls() {
 document.addEventListener("DOMContentLoaded", () => {
   plState.allSkus = buildMultiPlantSkus();
   populateFamilyFilter();
+  populatePackageFilter();
   renderSkuTable();
   bindControls();
 });
