@@ -1054,31 +1054,48 @@ th { color: var(--muted); font-weight: 600; }
 .sub-subtitle { margin: .15rem 0 .9rem; }
 
 .sim-bestcase-controls {
-  display: grid;
-  gap: .5rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: wrap;
   margin: 0 0 .7rem;
-  padding: .6rem .7rem;
+  padding: .52rem .62rem;
   border: 1px solid rgba(79,159,255,.28);
   border-radius: .62rem;
   background: linear-gradient(180deg, rgba(79,159,255,.1), rgba(36,49,77,.18));
 }
-.sim-bestcase-toggle {
+.sim-mode-toggle {
   display: flex;
   align-items: center;
-  gap: .45rem;
-  color: var(--text);
-  font-size: .84rem;
-  font-weight: 600;
+  gap: .3rem;
+  background: rgba(11,18,32,.5);
+  border: 1px solid rgba(159,176,211,.2);
+  border-radius: .55rem;
+  padding: .2rem;
 }
-.sim-bestcase-toggle input {
-  width: 16px;
-  height: 16px;
+.sim-mode-btn {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  padding: .28rem .62rem;
+  border-radius: .42rem;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sim-mode-btn.is-active {
+  color: #d8e8ff;
+  background: rgba(79,159,255,.24);
+  border-color: rgba(79,159,255,.4);
 }
 .sim-bestcase-slider {
   display: grid;
   gap: .22rem;
   color: var(--muted);
   font-size: .78rem;
+  min-width: 240px;
+  max-width: 360px;
+  width: 100%;
 }
 .sim-bestcase-slider input[type="range"] {
   width: 100%;

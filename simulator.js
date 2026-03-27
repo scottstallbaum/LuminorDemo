@@ -611,11 +611,13 @@ function renderStep2() {
     subtitleEl.innerHTML = `Where will demand go when <strong>${s.sku}</strong> (${Math.round(s.volume).toLocaleString()} bbl · ${toMoney(s.revenue)} revenue) is removed?`;
   }
 
-  const bestCaseToggle = document.getElementById("sim-bestcase-enabled");
+  const marketModeBtn = document.getElementById("sim-mode-market");
+  const bestModeBtn = document.getElementById("sim-mode-best");
   const bestCaseSliderWrap = document.getElementById("sim-bestcase-maxshare-wrap");
   const bestCaseSlider = document.getElementById("sim-bestcase-maxshare");
   const bestCaseValue = document.getElementById("sim-bestcase-maxshare-value");
-  if (bestCaseToggle) bestCaseToggle.checked = !!simState.bestCaseEnabled;
+  if (marketModeBtn) marketModeBtn.classList.toggle("is-active", !simState.bestCaseEnabled);
+  if (bestModeBtn) bestModeBtn.classList.toggle("is-active", !!simState.bestCaseEnabled);
   if (bestCaseSlider) bestCaseSlider.value = String(simState.bestCaseMaxSharePct || 60);
   if (bestCaseValue) bestCaseValue.textContent = `${simState.bestCaseMaxSharePct || 60}%`;
   if (bestCaseSliderWrap) bestCaseSliderWrap.classList.toggle("is-hidden", !simState.bestCaseEnabled);
@@ -829,14 +831,21 @@ function renderFullList() {
 }
 
 function bindStep2Controls() {
-  const bestCaseToggle = document.getElementById("sim-bestcase-enabled");
-  if (bestCaseToggle) bestCaseToggle.addEventListener("change", () => {
+  const marketModeBtn = document.getElementById("sim-mode-market");
+  const bestModeBtn = document.getElementById("sim-mode-best");
+  if (marketModeBtn) marketModeBtn.addEventListener("click", () => {
     const wasEnabled = simState.bestCaseEnabled;
-    const willEnable = bestCaseToggle.checked;
-    if (!wasEnabled && willEnable) snapshotManualAllocations();
-    if (wasEnabled && !willEnable) restoreManualAllocations();
-
-    simState.bestCaseEnabled = willEnable;
+    if (!wasEnabled) return;
+    restoreManualAllocations();
+    simState.bestCaseEnabled = false;
+    simState.bestCaseCapRelaxed = false;
+    renderStep2();
+  });
+  if (bestModeBtn) bestModeBtn.addEventListener("click", () => {
+    const wasEnabled = simState.bestCaseEnabled;
+    if (wasEnabled) return;
+    snapshotManualAllocations();
+    simState.bestCaseEnabled = true;
     simState.bestCaseCapRelaxed = false;
     renderStep2();
   });

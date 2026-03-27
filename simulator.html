@@ -158,10 +158,10 @@
         <p id="step2-subtitle" class="small sub-subtitle"></p>
 
         <div class="sim-bestcase-controls">
-          <label class="sim-bestcase-toggle">
-            <input id="sim-bestcase-enabled" type="checkbox" />
-            <span>Best Case Mode (Theoretical Upside)</span>
-          </label>
+          <div class="sim-mode-toggle" role="group" aria-label="Simulation mode">
+            <button id="sim-mode-market" type="button" class="sim-mode-btn is-active">Market</button>
+            <button id="sim-mode-best" type="button" class="sim-mode-btn">Best Case</button>
+          </div>
           <label id="sim-bestcase-maxshare-wrap" class="sim-bestcase-slider is-hidden">
             <span>Max Share per Replacement SKU: <strong id="sim-bestcase-maxshare-value">60%</strong></span>
             <input id="sim-bestcase-maxshare" type="range" min="30" max="90" step="5" value="60" />
