@@ -953,7 +953,7 @@ function bindStep2Controls() {
       storyEl.innerHTML = `
         <p class="sim-impact-kicker">Impact Story</p>
         <p class="sim-impact-headline">
-          Removing <strong>${removedSku.sku}</strong> shifts portfolio Op Income by
+          Removing <strong>${removedSku.sku}</strong> shifts portfolio Operating Income by
           <span class="${netTone}">${toSignedMoney(netOI)}</span>.
         </p>
         <div class="sim-impact-drivers">
@@ -973,7 +973,7 @@ function bindStep2Controls() {
       `;
     }
 
-    const bridgeLabels = [...steps.map(s => s.chartLabel || s.label), "Net Op Inc Impact"];
+    const bridgeLabels = [...steps.map(s => s.chartLabel || s.label), "Net Operating Income Impact"];
     const bridgeStepData = [...steps.map(s => s.value), netOI];
     const cumulativeDeltaData = [];
     let runningDelta = 0;
@@ -1041,19 +1041,19 @@ function bindStep2Controls() {
                   const cumulative = ctx.parsed.y;
                   return [
                     `Cumulative Impact: ${toSignedMoney(cumulative)}`,
-                    `Implied Op Income: ${toMoney(baselineOI + cumulative)}`
+                    `Implied Operating Income: ${toMoney(baselineOI + cumulative)}`
                   ];
                 }
                 const val = ctx.parsed.y;
                 if (isNet) {
                   return [
-                    `Net Op Income Impact: ${toSignedMoney(netOI)}`
+                    `Net Operating Income Impact: ${toSignedMoney(netOI)}`
                   ];
                 }
                 const step = steps[idx];
                 return [
                   `${step ? step.label : bridgeLabels[idx]}: ${toSignedMoney(val)}`,
-                  `Scenario Op Income: ${toMoney(scenarioOI)}`
+                  `Scenario Operating Income: ${toMoney(scenarioOI)}`
                 ];
               }
             }

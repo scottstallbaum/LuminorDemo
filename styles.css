@@ -830,56 +830,89 @@ th { color: var(--muted); font-weight: 600; }
 /* ---- Step 2: Substitution mapping ---- */
 /* ---- Step 3: Scenario summary & waterfall ---- */
 .sim-summary-cards {
-  display: flex;
-  gap: 1.1rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: .85rem;
   margin-bottom: .7rem;
-  flex-wrap: wrap;
 }
 .sim-summary-card {
-  background: rgba(69,208,162,.08);
-  border: 1px solid var(--line);
-  border-radius: .7rem;
-  padding: .85rem 1.2rem .7rem 1.1rem;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 88% 18%, rgba(79,159,255,.16), transparent 42%),
+    linear-gradient(180deg, rgba(69,208,162,.09), rgba(69,208,162,.04));
+  border: 1px solid rgba(159,176,211,.28);
+  border-radius: .8rem;
+  padding: .9rem 1rem .8rem;
   min-width: 170px;
-  flex: 1 1 0;
-  box-shadow: 0 1px 4px 0 rgba(36,49,77,.07);
+  box-shadow: 0 10px 24px rgba(9,16,30,.22);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.sim-summary-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 25%, rgba(255,255,255,.05) 48%, transparent 72%);
+  opacity: 0;
+  transition: opacity .2s ease;
+  pointer-events: none;
+}
+.sim-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(9,16,30,.28);
+  border-color: rgba(79,159,255,.42);
+}
+.sim-summary-card:hover::before {
+  opacity: 1;
 }
 .sim-summary-card-main {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
-  gap: .85rem;
+  gap: .8rem;
+  min-height: 100%;
 }
 .sim-summary-card-left {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 .sim-summary-card-label {
   color: var(--muted);
-  font-size: .82rem;
-  margin-bottom: .25rem;
+  font-size: .76rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  margin-bottom: .35rem;
 }
 .sim-summary-card-value {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--accent);
+  line-height: 1.05;
 }
 .sim-summary-card-delta {
-  font-size: .92rem;
-  margin-top: .1rem;
+  font-size: .84rem;
+  margin-top: .32rem;
   color: var(--muted);
 }
 .sim-summary-card-change {
-  min-width: 96px;
+  min-width: 104px;
   text-align: right;
   font-weight: 700;
   line-height: 1;
+  border-left: 1px solid rgba(159,176,211,.2);
+  padding-left: .55rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .sim-summary-card-arrow {
-  font-size: 1.45rem;
-  margin-bottom: .1rem;
+  font-size: 1.6rem;
+  margin-bottom: .15rem;
+  text-shadow: 0 0 16px currentColor;
 }
 .sim-summary-card-change-value {
-  font-size: .95rem;
+  font-size: 1.02rem;
 }
 .sim-summary-card-change.is-positive {
   color: #45d0a2;
@@ -892,11 +925,11 @@ th { color: var(--muted); font-weight: 600; }
 }
 .sim-waterfall-wrap {
   margin: .55rem 0 .95rem;
-  background: linear-gradient(180deg, rgba(79,159,255,.14) 0%, rgba(36,49,77,.26) 42%, rgba(36,49,77,.28) 100%);
-  border: 1px solid rgba(79,159,255,.35);
+  background: linear-gradient(180deg, rgba(79,159,255,.18) 0%, rgba(36,49,77,.3) 42%, rgba(36,49,77,.36) 100%);
+  border: 1px solid rgba(79,159,255,.4);
   border-radius: .85rem;
   padding: .8rem .9rem .95rem .9rem;
-  box-shadow: 0 6px 20px 0 rgba(11,18,32,.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 12px 28px rgba(11,18,32,.34);
 }
 .sim-waterfall-title {
   margin: 0;
@@ -918,10 +951,11 @@ th { color: var(--muted); font-weight: 600; }
 }
 .sim-impact-story {
   margin: .25rem 0 .95rem;
-  background: rgba(15,26,45,.72);
-  border: 1px solid rgba(159,176,211,.22);
+  background: linear-gradient(180deg, rgba(15,26,45,.76), rgba(11,19,34,.82));
+  border: 1px solid rgba(159,176,211,.25);
   border-radius: .8rem;
   padding: .7rem .85rem .75rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
 }
 .sim-impact-kicker {
   margin: 0 0 .2rem;
@@ -945,10 +979,15 @@ th { color: var(--muted); font-weight: 600; }
   gap: .55rem;
 }
 .sim-impact-driver {
-  background: rgba(11,18,32,.45);
+  background: linear-gradient(180deg, rgba(11,18,32,.48), rgba(11,18,32,.34));
   border: 1px solid rgba(159,176,211,.14);
   border-radius: .6rem;
-  padding: .45rem .55rem;
+  padding: .5rem .55rem;
+  transition: border-color .18s ease, transform .18s ease;
+}
+.sim-impact-driver:hover {
+  border-color: rgba(79,159,255,.35);
+  transform: translateY(-1px);
 }
 .sim-impact-driver-label {
   font-size: .72rem;
@@ -990,15 +1029,17 @@ th { color: var(--muted); font-weight: 600; }
 }
 .sim-chip-bar {
   display: grid;
-  gap: 3px;
-  margin-top: 5px;
+  gap: 5px;
+  margin-top: 8px;
   box-sizing: border-box;
 }
 .sim-chip-bar .sim-impact-chip {
   display: block;
   text-align: center;
-  border-radius: 5px;
-  padding: .28rem .2rem;
+  border-radius: 6px;
+  padding: .32rem .25rem;
+  font-weight: 700;
+  font-size: .74rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1345,6 +1386,7 @@ th { color: var(--muted); font-weight: 600; }
   .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .insight-strip { grid-template-columns: 1fr; }
   .sim-controls-row { grid-template-columns: 1fr repeat(2, minmax(0, 1fr)); }
+  .sim-summary-cards { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
 }
 
 @media (max-width: 1080px) {
@@ -1382,6 +1424,12 @@ th { color: var(--muted); font-weight: 600; }
   .sim-impact-drivers {
     grid-template-columns: 1fr;
   }
+  .sim-summary-cards {
+    grid-template-columns: 1fr;
+  }
+  .sim-summary-card {
+    padding: .8rem .85rem .72rem;
+  }
 }
 
 @media (max-width: 700px) {
@@ -1394,5 +1442,21 @@ th { color: var(--muted); font-weight: 600; }
   #sim-waterfall-chart {
     height: 260px !important;
     max-height: 260px;
+  }
+  .sim-summary-card-main {
+    gap: .6rem;
+  }
+  .sim-summary-card-value {
+    font-size: 1.34rem;
+  }
+  .sim-summary-card-change {
+    min-width: 88px;
+    padding-left: .45rem;
+  }
+  .sim-summary-card-arrow {
+    font-size: 1.35rem;
+  }
+  .sim-summary-card-change-value {
+    font-size: .9rem;
   }
 }
