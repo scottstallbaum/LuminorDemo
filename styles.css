@@ -980,6 +980,29 @@ th { color: var(--muted); font-weight: 600; }
 }
 .sim-impact-headline .is-positive { color: var(--accent); }
 .sim-impact-headline .is-negative { color: var(--danger); }
+.sim-impact-compare {
+  margin: 0 0 .55rem;
+  padding: .38rem .5rem;
+  border: 1px solid rgba(159,176,211,.25);
+  border-radius: .5rem;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--text);
+  background: rgba(11,18,32,.35);
+}
+.sim-impact-compare span {
+  color: var(--muted);
+  font-weight: 600;
+  margin-left: .25rem;
+}
+.sim-impact-compare.is-positive {
+  border-color: rgba(69,208,162,.4);
+  color: #aef4dd;
+}
+.sim-impact-compare.is-negative {
+  border-color: rgba(255,109,109,.4);
+  color: #ffc2c2;
+}
 .sim-impact-drivers {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

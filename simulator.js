@@ -589,6 +589,99 @@ function applyBestCaseAllocations() {
   }
 }
 
+function evaluateScenarioOutcome(removedSku, subRows, forceFullRecovery = false) {
+  const baseline = portfolioTotals(simState.allSkus);
+  const scenarioSkus = simState.allSkus
+    .filter(s => s.sku !== removedSku.sku)
+    .map(sku => ({ ...sku }));
+  const recipientBySku = new Map(scenarioSkus.map(sku => [sku.sku, sku]));
+
+  const allocRows = (subRows || []).filter(r => r.type !== "lost_sales" && r.pct > 0);
+  const lostRow = (subRows || []).find(r => r.type === "lost_sales");
+  const removedVol = removedSku.volume;
+  let absorbedVol = 0;
+  let lostVol = 0;
+  const absorbedBySku = new Map();
+  const baseVolumeBySku = new Map(
+    simState.allSkus
+      .filter(s => s.sku !== removedSku.sku)
+      .map(s => [s.sku, s.volume])
+  );
+
+  for (const row of allocRows) {
+    const pct = row.pct / 100;
+    const addVol = removedVol * pct;
+    const recipient = recipientBySku.get(row.sku);
+    if (recipient) {
+      const recipientMarketingVarCpu = getVariableMarketingCpu(recipient);
+      const recipientSgaVarCpu = getVariableSgaCpu(recipient);
+      recipient.volume += addVol;
+      recipient.revenue += addVol * recipient.aspPerBbl;
+      recipient.cogs += addVol * (recipient.brewMatCpu + recipient.pkgMatCpu + recipient.conversionCpu);
+      recipient.grossMargin += addVol * (recipient.aspPerBbl - recipient.brewMatCpu - recipient.pkgMatCpu - recipient.conversionCpu);
+      recipient.operatingExpense += addVol * (recipient.freightCpu + recipientMarketingVarCpu + recipientSgaVarCpu);
+      recipient.operatingIncome += addVol * (recipient.aspPerBbl - recipient.brewMatCpu - recipient.pkgMatCpu - recipient.conversionCpu - recipient.freightCpu - recipientMarketingVarCpu - recipientSgaVarCpu);
+      recipient.conversionTotal += addVol * recipient.conversionCpu;
+      recipient.brewMatTotal += addVol * recipient.brewMatCpu;
+      recipient.pkgMatTotal += addVol * recipient.pkgMatCpu;
+      recipient.freightTotal += addVol * recipient.freightCpu;
+      recipient.marketingTotal += addVol * recipientMarketingVarCpu;
+      recipient.sgaTotal += addVol * recipientSgaVarCpu;
+      absorbedVol += addVol;
+      absorbedBySku.set(row.sku, (absorbedBySku.get(row.sku) || 0) + addVol);
+    }
+  }
+
+  let conversionScaleBenefit = 0;
+  let weightedScalePctNumerator = 0;
+  let weightedScalePctDenominator = 0;
+  for (const [sku, skuAbsorbedVol] of absorbedBySku.entries()) {
+    if (skuAbsorbedVol <= 0) continue;
+    const recipient = recipientBySku.get(sku);
+    if (!recipient) continue;
+    const baseVol = baseVolumeBySku.get(sku) || 0;
+    const scaleSavePct = getConversionScaleSavePct(skuAbsorbedVol, baseVol);
+    const convDropPerBbl = recipient.conversionCpu * scaleSavePct;
+    const skuBenefit = recipient.volume * convDropPerBbl;
+    if (skuBenefit <= 0) continue;
+
+    recipient.cogs -= skuBenefit;
+    recipient.grossMargin += skuBenefit;
+    recipient.operatingIncome += skuBenefit;
+    recipient.conversionTotal -= skuBenefit;
+    conversionScaleBenefit += skuBenefit;
+    weightedScalePctNumerator += scaleSavePct * recipient.volume;
+    weightedScalePctDenominator += recipient.volume;
+  }
+
+  const avgAppliedScaleSavePct = weightedScalePctDenominator
+    ? weightedScalePctNumerator / weightedScalePctDenominator
+    : 0;
+
+  if (!forceFullRecovery && lostRow && lostRow.pct > 0) {
+    lostVol = removedVol * (lostRow.pct / 100);
+  }
+
+  const removedFixedRetentionCost = getRemovedFixedRetentionCost(removedSku, removedVol);
+  const scenario = portfolioTotals(scenarioSkus);
+  const scenarioOI = scenario.operatingIncome - removedFixedRetentionCost;
+  const netOI = scenarioOI - baseline.operatingIncome;
+
+  return {
+    baseline,
+    scenario,
+    scenarioOI,
+    netOI,
+    removedVol,
+    absorbedVol,
+    lostVol,
+    allocRows,
+    recipientBySku,
+    conversionScaleBenefit,
+    avgAppliedScaleSavePct
+  };
+}
+
 function renderStep2() {
   const panel = document.getElementById("step2-panel");
   const lockedMsg = document.getElementById("step2-locked-msg");
@@ -903,9 +996,6 @@ function bindStep2Controls() {
     const storyEl = document.getElementById("sim-impact-story");
     if (!cardsEl) return;
 
-    // Baseline: all SKUs
-    const baseline = portfolioTotals(simState.allSkus);
-
     // Scenario: remove selected SKU, reallocate volume per subRows
     const removedSku = simState.selectedSku;
     if (!removedSku) {
@@ -915,96 +1005,38 @@ function bindStep2Controls() {
       }
       return;
     }
-
-    // Build scenario SKUs: remove selected, adjust recipients
-    const scenarioSkus = simState.allSkus
-      .filter(s => s.sku !== removedSku.sku)
-      .map(sku => ({ ...sku }));
-    const recipientBySku = new Map(scenarioSkus.map(sku => [sku.sku, sku]));
-
-    // Find allocation rows (excluding lost sales)
-    const allocRows = simState.subRows.filter(r => r.type !== "lost_sales" && r.pct > 0);
-    const lostRow = simState.subRows.find(r => r.type === "lost_sales");
-    const removedVol = removedSku.volume;
-    let absorbedVol = 0;
-    let lostVol = 0;
-    const absorbedBySku = new Map();
-    const baseVolumeBySku = new Map(
-      simState.allSkus
-        .filter(s => s.sku !== removedSku.sku)
-        .map(s => [s.sku, s.volume])
-    );
-
-    // Apply allocations to recipient SKUs
-    for (const row of allocRows) {
-      const pct = row.pct / 100;
-      const addVol = removedVol * pct;
-      const recipient = recipientBySku.get(row.sku);
-      if (recipient) {
-        const recipientMarketingVarCpu = getVariableMarketingCpu(recipient);
-        const recipientSgaVarCpu = getVariableSgaCpu(recipient);
-        recipient.volume += addVol;
-        recipient.revenue += addVol * recipient.aspPerBbl;
-        recipient.cogs += addVol * (recipient.brewMatCpu + recipient.pkgMatCpu + recipient.conversionCpu);
-        recipient.grossMargin += addVol * (recipient.aspPerBbl - recipient.brewMatCpu - recipient.pkgMatCpu - recipient.conversionCpu);
-        recipient.operatingExpense += addVol * (recipient.freightCpu + recipientMarketingVarCpu + recipientSgaVarCpu);
-        recipient.operatingIncome += addVol * (recipient.aspPerBbl - recipient.brewMatCpu - recipient.pkgMatCpu - recipient.conversionCpu - recipient.freightCpu - recipientMarketingVarCpu - recipientSgaVarCpu);
-        // Update totals for weighted averages
-        recipient.conversionTotal += addVol * recipient.conversionCpu;
-        recipient.brewMatTotal += addVol * recipient.brewMatCpu;
-        recipient.pkgMatTotal += addVol * recipient.pkgMatCpu;
-        recipient.freightTotal += addVol * recipient.freightCpu;
-        recipient.marketingTotal += addVol * recipientMarketingVarCpu;
-        recipient.sgaTotal += addVol * recipientSgaVarCpu;
-        absorbedVol += addVol;
-        absorbedBySku.set(row.sku, (absorbedBySku.get(row.sku) || 0) + addVol);
-      }
-    }
-
-    // Apply conversion scale-efficiency benefit to the full recipient volume
-    // for SKUs that absorbed displaced demand.
-    let conversionScaleBenefit = 0;
-    let weightedScalePctNumerator = 0;
-    let weightedScalePctDenominator = 0;
-    for (const [sku, skuAbsorbedVol] of absorbedBySku.entries()) {
-      if (skuAbsorbedVol <= 0) continue;
-      const recipient = recipientBySku.get(sku);
-      if (!recipient) continue;
-      const baseVol = baseVolumeBySku.get(sku) || 0;
-      const scaleSavePct = getConversionScaleSavePct(skuAbsorbedVol, baseVol);
-      const convDropPerBbl = recipient.conversionCpu * scaleSavePct;
-      const skuBenefit = recipient.volume * convDropPerBbl;
-      if (skuBenefit <= 0) continue;
-
-      recipient.cogs -= skuBenefit;
-      recipient.grossMargin += skuBenefit;
-      recipient.operatingIncome += skuBenefit;
-      recipient.conversionTotal -= skuBenefit;
-      conversionScaleBenefit += skuBenefit;
-      weightedScalePctNumerator += scaleSavePct * recipient.volume;
-      weightedScalePctDenominator += recipient.volume;
-    }
-    const avgAppliedScaleSavePct = weightedScalePctDenominator
-      ? weightedScalePctNumerator / weightedScalePctDenominator
-      : 0;
-    // Lost sales
-    if (!simState.bestCaseEnabled && lostRow && lostRow.pct > 0) {
-      lostVol = removedVol * (lostRow.pct / 100);
-    }
-
-    // Fixed portions of removed SKU marketing and SG&A are retained after delist.
-    const removedFixedRetentionCost = getRemovedFixedRetentionCost(removedSku, removedVol);
-
-    // Recompute scenario portfolio
-    const scenario = portfolioTotals(scenarioSkus);
+    const outcome = evaluateScenarioOutcome(removedSku, simState.subRows, simState.bestCaseEnabled);
+    const baseline = outcome.baseline;
+    const scenario = outcome.scenario;
     const baselineOI = baseline.operatingIncome;
-    const scenarioOI = scenario.operatingIncome - removedFixedRetentionCost;
+    const scenarioOI = outcome.scenarioOI;
+    const netOI = outcome.netOI;
+    const removedVol = outcome.removedVol;
+    const absorbedVol = outcome.absorbedVol;
+    const lostVol = outcome.lostVol;
+    const allocRows = outcome.allocRows;
+    const recipientBySku = outcome.recipientBySku;
+    const conversionScaleBenefit = outcome.conversionScaleBenefit;
+    const avgAppliedScaleSavePct = outcome.avgAppliedScaleSavePct;
+
     const baselineMargin = baseline.revenue ? baselineOI / baseline.revenue : 0;
     const scenarioMargin = scenario.revenue ? scenarioOI / scenario.revenue : 0;
     const baselineOpIncomePerBbl = baseline.volume ? baselineOI / baseline.volume : 0;
     const scenarioOpIncomePerBbl = scenario.volume ? scenarioOI / scenario.volume : 0;
 
-    const opIncomeDelta = scenarioOI - baselineOI;
+    let marketComparison = null;
+    if (simState.bestCaseEnabled && Array.isArray(simState.manualAllocBackup) && simState.manualAllocBackup.length) {
+      const hasMarketAlloc = simState.manualAllocBackup.some(r => (r.pct || 0) > 0);
+      if (hasMarketAlloc) {
+        const marketOutcome = evaluateScenarioOutcome(removedSku, simState.manualAllocBackup, false);
+        marketComparison = {
+          marketNetOI: marketOutcome.netOI,
+          deltaVsMarket: netOI - marketOutcome.netOI
+        };
+      }
+    }
+
+    const opIncomeDelta = netOI;
     const marginDelta = scenarioMargin - baselineMargin;
     const volumeDelta = scenario.volume - baseline.volume;
     const opIncomePerBblDelta = scenarioOpIncomePerBbl - baselineOpIncomePerBbl;
@@ -1093,7 +1125,6 @@ function bindStep2Controls() {
       }
     }
 
-    const netOI = scenarioOI - baselineOI;
     const steps = [
       { label: "Revenue Lost from Removed SKU", chartLabel: "Revenue Lost", value: -lostRevenue },
       { label: "Revenue Recovered by Replacements", chartLabel: "Revenue Recovered", value: recoveredRevenue },
@@ -1111,6 +1142,15 @@ function bindStep2Controls() {
       const netTone = getMetricToneClass(netOI);
       const topHeadwind = [...steps].sort((a, b) => a.value - b.value).find(s => s.value < 0);
       const topTailwind = [...steps].sort((a, b) => b.value - a.value).find(s => s.value > 0);
+      const comparisonTone = marketComparison
+        ? (marketComparison.deltaVsMarket >= 0 ? "is-positive" : "is-negative")
+        : "is-neutral";
+      const comparisonHtml = marketComparison
+        ? `<div class="sim-impact-compare ${comparisonTone}">
+            Incremental upside vs Market plan: ${toSignedMoney(marketComparison.deltaVsMarket)}
+            <span>(Best ${toSignedMoney(netOI)} vs Market ${toSignedMoney(marketComparison.marketNetOI)})</span>
+          </div>`
+        : "";
 
       storyEl.innerHTML = `
         <p class="sim-impact-kicker">${simState.bestCaseEnabled ? "Impact Story · Best Case (Theoretical Upside)" : "Impact Story"}</p>
@@ -1118,6 +1158,7 @@ function bindStep2Controls() {
           Removing <strong>${removedSku.sku}</strong> shifts portfolio Operating Income by
           <span class="${netTone}">${toSignedMoney(netOI)}</span>.
         </p>
+        ${comparisonHtml}
         <div class="sim-impact-drivers">
           <div class="sim-impact-driver">
             <p class="sim-impact-driver-label">Demand Recovery</p>
