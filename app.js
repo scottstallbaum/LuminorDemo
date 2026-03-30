@@ -21,6 +21,62 @@ const staticDescriptorData = Array.isArray(window.DEMO_DESCRIPTOR_DATA)
   ? window.DEMO_DESCRIPTOR_DATA
   : [];
 
+const staticStdConversionData = Array.isArray(window.DEMO_STD_CONVERSION_DATA)
+  ? window.DEMO_STD_CONVERSION_DATA
+  : [];
+
+function normalizeStdConversionRow(row) {
+  const plantOsku = cleanCell(getField(row, [
+    "Plant + OSKU",
+    "plantOsku",
+    "plant_osku",
+    "Plant+OSKU",
+    "Plant_OSKU"
+  ], ""), "");
+
+  const clientStdConversionCpu = parseOptionalNum(getField(row, [
+    "clientStdConversionCpu",
+    "client_std_conversion_cpu",
+    "clientStandardConversionCpu",
+    "client_standard_conversion_cpu",
+    "standardConversionCpu",
+    "standard_conversion_cpu",
+    "stdConversionCpu",
+    "std_conversion_cpu",
+    "conversionStandardCpu",
+    "conversion_standard_cpu",
+    "std conversion cpu",
+    "client standard conversion cost",
+    "Total"
+  ], null));
+
+  return {
+    plantOsku,
+    clientStdConversionCpu
+  };
+}
+
+function buildStdConversionLookup(rows) {
+  const map = new Map();
+  rows.forEach((row) => {
+    if (!row.plantOsku || !Number.isFinite(row.clientStdConversionCpu)) return;
+    map.set(normalizeKey(row.plantOsku), row.clientStdConversionCpu);
+  });
+  return map;
+}
+
+const stdConversionLookup = buildStdConversionLookup(staticStdConversionData.map(normalizeStdConversionRow));
+
+function applyStdConversionLookup(row) {
+  if (Number.isFinite(row.clientStdConversionCpu)) return row;
+  const key = normalizeKey(row.plantOsku || "");
+  if (!key || !stdConversionLookup.has(key)) return row;
+  return {
+    ...row,
+    clientStdConversionCpu: stdConversionLookup.get(key)
+  };
+}
+
 function normalizeStaticCostRow(row) {
   return {
     period: cleanCell(getField(row, ["period", "Period"], "Unknown")),
@@ -49,6 +105,20 @@ function normalizeStaticCostRow(row) {
     laborCpu: parseNum(getField(row, ["laborCpu", "labor_cpu", "Labor_CPU", "labor_cost_per_unit"])),
     overheadCpu: parseNum(getField(row, ["overheadCpu", "overhead_cpu", "Overhead_CPU", "overhead_cost_per_unit"])),
     conversionCpu: parseNum(getField(row, ["conversionCpu", "conversion_cpu"])),
+    clientStdConversionCpu: parseOptionalNum(getField(row, [
+      "clientStdConversionCpu",
+      "client_std_conversion_cpu",
+      "clientStandardConversionCpu",
+      "client_standard_conversion_cpu",
+      "standardConversionCpu",
+      "standard_conversion_cpu",
+      "stdConversionCpu",
+      "std_conversion_cpu",
+      "conversionStandardCpu",
+      "conversion_standard_cpu",
+      "std conversion cpu",
+      "client standard conversion cost"
+    ], null)),
     salesAdminCpu: parseNum(getField(row, ["salesAdminCpu", "sales_admin_cpu"])),
     marketingAdminCpu: parseNum(getField(row, ["marketingAdminCpu", "marketing_admin_cpu"])),
     tenthAndBlakeCpu: parseNum(getField(row, ["tenthAndBlakeCpu", "tenth_and_blake_cpu"])),
@@ -184,6 +254,14 @@ const els = {
   insightStripPanel: document.getElementById("insight-strip-panel"),
   insightStrip: document.getElementById("insight-strip"),
   insightStripSubtitle: document.getElementById("insight-strip-subtitle"),
+  segmentRealityPanel: document.getElementById("segment-reality-panel"),
+  segmentRealityDimension: document.getElementById("segment-reality-dimension"),
+  segmentRealitySort: document.getElementById("segment-reality-sort"),
+  segmentRealityTopN: document.getElementById("segment-reality-topn"),
+  segmentRealitySubtitle: document.getElementById("segment-reality-subtitle"),
+  segmentRealityEmpty: document.getElementById("segment-reality-empty"),
+  segmentRealityChart: document.getElementById("segment-reality-chart"),
+  segmentRealityFooter: document.getElementById("segment-reality-footer"),
   comparisonPanel: document.getElementById("comparison-panel"),
   comparisonCurrentWaterfall: document.getElementById("comparison-current-waterfall"),
   comparisonCompareWaterfall: document.getElementById("comparison-compare-waterfall"),
@@ -215,7 +293,10 @@ const els = {
 };
 
 const state = {
-  records: staticCostData.map(normalizeStaticCostRow).map(withDescriptorDefaults),
+  records: staticCostData
+    .map(normalizeStaticCostRow)
+    .map(applyStdConversionLookup)
+    .map(withDescriptorDefaults),
   descriptorLookup: {},
   filters: {
     plant: "All",
@@ -239,6 +320,12 @@ const state = {
   axisMode: "dollar",
   comparisonMode: false,
   skuRankingMetric: "revenue",
+  segmentReality: {
+    dimension: "priceSegment",
+    sort: "gmOverstatement-desc",
+    topN: 999,
+    selectedGroup: ""
+  },
   whaleCurveSelection: { point1: null, point2: null },
   breakdown: {
     stepKey: null,
@@ -256,6 +343,7 @@ let marginChart;
 let breakdownChart;
 let whaleCurveChart;
 let bubbleChart;
+let segmentRealityChart;
 
 const BREAKDOWN_CLICKABLE_KEYS = ["conversion", "sga"];
 const PIE_COLORS = [
@@ -369,6 +457,11 @@ function toSignedMoney(value) {
   return value < 0 ? `-${abs}` : abs;
 }
 
+function toSignedMoneyDec(value) {
+  const abs = toMoneyDec(Math.abs(value || 0));
+  return value < 0 ? `-${abs}` : abs;
+}
+
 function getMetricToneClass(value) {
   if ((value || 0) > 0) return "is-positive";
   if ((value || 0) < 0) return "is-negative";
@@ -384,6 +477,13 @@ function parseNum(value) {
     .replace(/^\((.*)\)$/, "-$1")
     .replace(/[$,%\s,]/g, "");
   return Number(normalized) || 0;
+}
+
+function parseOptionalNum(value) {
+  if (value === undefined || value === null) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  return parseNum(value);
 }
 
 function cleanCell(value, fallback = "Unknown") {
@@ -418,6 +518,20 @@ function normalizeImportedRow(row) {
     laborCpu: parseNum(getField(row, ["labor_cpu", "Labor_CPU", "labor_cost_per_unit"])),
     overheadCpu: parseNum(getField(row, ["overhead_cpu", "Overhead_CPU", "overhead_cost_per_unit"])),
     conversionCpu: parseNum(getField(row, ["conversionCpu", "conversion_cpu"])),
+    clientStdConversionCpu: parseOptionalNum(getField(row, [
+      "clientStdConversionCpu",
+      "client_std_conversion_cpu",
+      "clientStandardConversionCpu",
+      "client_standard_conversion_cpu",
+      "standardConversionCpu",
+      "standard_conversion_cpu",
+      "stdConversionCpu",
+      "std_conversion_cpu",
+      "conversionStandardCpu",
+      "conversion_standard_cpu",
+      "std conversion cpu",
+      "client standard conversion cost"
+    ], null)),
     salesAdminCpu: parseNum(getField(row, ["salesAdminCpu", "sales_admin_cpu"])),
     marketingAdminCpu: parseNum(getField(row, ["marketingAdminCpu", "marketing_admin_cpu"])),
     tenthAndBlakeCpu: parseNum(getField(row, ["tenthAndBlakeCpu", "tenth_and_blake_cpu"])),
@@ -447,7 +561,7 @@ function normalizeImportedRow(row) {
     productionBbl: parseNum(getField(row, ["2012 Production BBL by Plant by OSKU", "production_bbl", "productionBbl"]))
   };
 
-  return withDescriptorDefaults(normalized);
+  return withDescriptorDefaults(applyStdConversionLookup(normalized));
 }
 
 function normalizeDescriptorRow(row) {
@@ -670,6 +784,9 @@ function computeRow(row) {
   const brewMat = row.brewMatCpu || 0;
   const pkgMat = row.pkgMatCpu || 0;
   const conversion = row.conversionCpu || 0;
+  const hasClientStdConversionCpu = Number.isFinite(row.clientStdConversionCpu);
+  const clientStdConversionCpu = hasClientStdConversionCpu ? row.clientStdConversionCpu : conversion;
+  const clientStdConversionDeltaCpu = hasClientStdConversionCpu ? (conversion - clientStdConversionCpu) : 0;
   const unitCogs = brewMat + pkgMat + conversion;
   
   const revenue = row.volume * row.asp;
@@ -729,6 +846,11 @@ function computeRow(row) {
     brewMatTotal: brewMat * row.volume,
     pkgMatTotal: pkgMat * row.volume,
     conversionTotal: conversion * row.volume,
+    clientStdConversionCpu,
+    hasClientStdConversionCpu,
+    clientStdConversionTotal: clientStdConversionCpu * row.volume,
+    clientStdConversionDeltaCpu,
+    clientStdConversionDeltaTotal: clientStdConversionDeltaCpu * row.volume,
     freightTotal: freight * row.volume,
     marketingTotal: marketing * row.volume,
     sgaTotal: sga * row.volume,
@@ -748,6 +870,12 @@ function aggregate(rows) {
     acc.brewMat += row.brewMatTotal || 0;
     acc.pkgMat += row.pkgMatTotal || 0;
     acc.conversion += row.conversionTotal || 0;
+    if (row.hasClientStdConversionCpu) {
+      acc.actualConversionCoveredTotal += row.conversionTotal || 0;
+      acc.clientStdConversionCoveredTotal += row.clientStdConversionTotal || 0;
+      acc.clientStdConversionDeltaTotal += row.clientStdConversionDeltaTotal || 0;
+      acc.clientStdConversionCoverageVolume += row.volume || 0;
+    }
     acc.freight += row.freightTotal || 0;
     acc.marketing += row.marketingTotal || 0;
     acc.sga += row.sgaTotal || 0;
@@ -762,6 +890,10 @@ function aggregate(rows) {
     brewMat: 0,
     pkgMat: 0,
     conversion: 0,
+    actualConversionCoveredTotal: 0,
+    clientStdConversionCoveredTotal: 0,
+    clientStdConversionDeltaTotal: 0,
+    clientStdConversionCoverageVolume: 0,
     freight: 0,
     marketing: 0,
     sga: 0,
@@ -781,6 +913,19 @@ function aggregate(rows) {
 
   totals.gmPct = totals.revenue ? totals.grossMargin / totals.revenue : 0;
   totals.omPct = totals.revenue ? totals.operatingIncome / totals.revenue : 0;
+  totals.actualConversionCpu = totals.volume ? totals.conversion / totals.volume : 0;
+  totals.actualConversionCpuCovered = totals.clientStdConversionCoverageVolume
+    ? totals.actualConversionCoveredTotal / totals.clientStdConversionCoverageVolume
+    : null;
+  totals.clientStdConversionCpu = totals.clientStdConversionCoverageVolume
+    ? totals.clientStdConversionCoveredTotal / totals.clientStdConversionCoverageVolume
+    : null;
+  totals.clientStdConversionDeltaCpu = totals.clientStdConversionCoverageVolume
+    ? totals.actualConversionCpuCovered - totals.clientStdConversionCpu
+    : null;
+  totals.clientStdCoveragePct = totals.volume
+    ? totals.clientStdConversionCoverageVolume / totals.volume
+    : 0;
   return totals;
 }
 
@@ -851,6 +996,33 @@ function bindFilterEvents() {
     els.skuRankingMetric.value = state.skuRankingMetric;
     els.skuRankingMetric.addEventListener("change", () => {
       state.skuRankingMetric = els.skuRankingMetric.value;
+      render();
+    });
+  }
+}
+
+function bindSegmentRealityEvents() {
+  if (els.segmentRealityDimension) {
+    els.segmentRealityDimension.value = state.segmentReality.dimension;
+    els.segmentRealityDimension.addEventListener("change", () => {
+      state.segmentReality.dimension = els.segmentRealityDimension.value;
+      state.segmentReality.selectedGroup = "";
+      render();
+    });
+  }
+
+  if (els.segmentRealitySort) {
+    els.segmentRealitySort.value = state.segmentReality.sort;
+    els.segmentRealitySort.addEventListener("change", () => {
+      state.segmentReality.sort = els.segmentRealitySort.value;
+      render();
+    });
+  }
+
+  if (els.segmentRealityTopN) {
+    els.segmentRealityTopN.value = String(state.segmentReality.topN);
+    els.segmentRealityTopN.addEventListener("change", () => {
+      state.segmentReality.topN = parseInt(els.segmentRealityTopN.value, 10) || 999;
       render();
     });
   }
@@ -1394,7 +1566,15 @@ function renderSummaryKpis(totals, rows = []) {
   if (els.kpiRevenuePerSku) els.kpiRevenuePerSku.textContent = `${toMoneyDec(revenuePerSku)} / SKU`;
   if (els.kpiGrossMarginPerSku) els.kpiGrossMarginPerSku.textContent = `${toMoneyDec(grossMarginPerSku)} / SKU`;
   if (els.kpiOperatingIncomePerSku) els.kpiOperatingIncomePerSku.textContent = `${toMoneyDec(operatingIncomePerSku)} / SKU`;
-  if (els.kpiVolumePerSku) els.kpiVolumePerSku.textContent = `${Math.round(volumePerSku).toLocaleString()} bbl / SKU`;
+  if (els.kpiVolumePerSku) {
+    const baseVolumeText = `${Math.round(volumePerSku).toLocaleString()} bbl / SKU`;
+    if (totals.clientStdConversionCoverageVolume > 0) {
+      const gapText = `${toSignedMoneyDec(totals.clientStdConversionDeltaCpu || 0)} / bbl vs Standard Converstion Cost/bbl`;
+      els.kpiVolumePerSku.textContent = `${baseVolumeText} · ${gapText}`;
+    } else {
+      els.kpiVolumePerSku.textContent = baseVolumeText;
+    }
+  }
 
   els.kpiGrossMargin.className = getMetricToneClass(totals.grossMargin || 0);
   els.kpiOperatingIncome.className = getMetricToneClass(totals.operatingIncome || 0);
@@ -1433,6 +1613,16 @@ function buildInsightCards(rows) {
   const minShare = 0.05;
   const cards = [];
   const usedLabels = new Set();
+
+  if (totals.clientStdConversionCoverageVolume > 0) {
+    const tone = (totals.clientStdConversionDeltaCpu || 0) > 0 ? "negative" : "positive";
+    cards.push({
+      eyebrow: "Costing Reality Check",
+      headline: `Actual conversion cost is ${toSignedMoneyDec(totals.clientStdConversionDeltaCpu || 0)} per bbl vs Standard Converstion Cost/bbl.` ,
+      detail: `Actual ${toMoneyDec(totals.actualConversionCpuCovered || 0)} vs Standard Converstion Cost/bbl ${toMoneyDec(totals.clientStdConversionCpu || 0)} on ${toWholePct(totals.clientStdCoveragePct)} of volume · total variance ${toSignedMoney(totals.clientStdConversionDeltaTotal || 0)}`,
+      tone
+    });
+  }
 
   const segments = aggregateByDimension(rows, "priceSegment").filter((item) => item.revenue / totals.revenue >= minShare);
   let bestMix = null;
@@ -1570,9 +1760,15 @@ function renderInsightStrip(rows) {
   const cards = buildInsightCards(rows);
   const totals = aggregate(rows);
   if (els.insightStripSubtitle) {
-    els.insightStripSubtitle.textContent = rows.length
-      ? `${rows.length.toLocaleString()} records in current view · ${Math.round(totals.volume || 0).toLocaleString()} bbl · ${toSignedMoney(totals.operatingIncome || 0)} operating income`
-      : "No data for current filters.";
+    if (!rows.length) {
+      els.insightStripSubtitle.textContent = "No data for current filters.";
+    } else {
+      const baseSubtitle = `${rows.length.toLocaleString()} records in current view · ${Math.round(totals.volume || 0).toLocaleString()} bbl · ${toSignedMoney(totals.operatingIncome || 0)} operating income`;
+      const stdSubtitle = totals.clientStdConversionCoverageVolume > 0
+        ? ` · conversion gap ${toSignedMoneyDec(totals.clientStdConversionDeltaCpu || 0)} / bbl vs Standard Converstion Cost/bbl`
+        : "";
+      els.insightStripSubtitle.textContent = `${baseSubtitle}${stdSubtitle}`;
+    }
   }
 
   if (!cards.length) {
@@ -1790,6 +1986,252 @@ function buildWhaleCurveData(rows) {
   points.unshift({ x: 0, y: 0, sku: null, cumulative: 0, index: -1 });
 
   return { points, peakIndex: peakIndex + 1, total, peakValue };
+}
+
+function getDimensionLabel(dimensionKey) {
+  return drillOptions.find((option) => option.value === dimensionKey)?.label || dimensionKey;
+}
+
+function buildSegmentRealityGroups(rows) {
+  const dimensionKey = state.segmentReality.dimension;
+  const byGroup = rows.reduce((acc, row) => {
+    const key = String(row[dimensionKey] || "Unknown").trim() || "Unknown";
+    if (!acc[key]) {
+      acc[key] = {
+        key,
+        label: key,
+        volume: 0,
+        revenue: 0,
+        grossMargin: 0,
+        coveredVolume: 0,
+        actualConversionCoveredTotal: 0,
+        stdConversionCoveredTotal: 0
+      };
+    }
+
+    const g = acc[key];
+    g.volume += row.volume || 0;
+    g.revenue += row.revenue || 0;
+    g.grossMargin += row.grossMargin || 0;
+
+    if (row.hasClientStdConversionCpu) {
+      g.coveredVolume += row.volume || 0;
+      g.actualConversionCoveredTotal += row.conversionTotal || 0;
+      g.stdConversionCoveredTotal += row.clientStdConversionTotal || 0;
+    }
+
+    return acc;
+  }, {});
+
+  const rowsWithMetrics = Object.values(byGroup)
+    .filter((g) => g.coveredVolume > 0 && g.revenue > 0)
+    .map((g) => {
+      const gmOverstatementTotal = g.actualConversionCoveredTotal - g.stdConversionCoveredTotal;
+      const clientReportedGrossMargin = g.grossMargin + gmOverstatementTotal;
+      const alignedGmPct = g.grossMargin / g.revenue;
+      const clientReportedGmPct = clientReportedGrossMargin / g.revenue;
+      return {
+        ...g,
+        gmOverstatementTotal,
+        clientReportedGrossMargin,
+        alignedGmPct,
+        clientReportedGmPct,
+        gmPctDelta: alignedGmPct - clientReportedGmPct,
+        actualConversionCpu: g.actualConversionCoveredTotal / g.coveredVolume,
+        stdConversionCpu: g.stdConversionCoveredTotal / g.coveredVolume,
+        conversionGapCpu: (g.actualConversionCoveredTotal - g.stdConversionCoveredTotal) / g.coveredVolume,
+        coveragePct: g.volume ? g.coveredVolume / g.volume : 0
+      };
+    });
+
+  const [sortKey, sortDir] = String(state.segmentReality.sort || "gmOverstatement-desc").split("-");
+  rowsWithMetrics.sort((a, b) => {
+    const diff = (a[sortKey] || 0) - (b[sortKey] || 0);
+    return sortDir === "asc" ? diff : -diff;
+  });
+
+  const topN = Math.max(1, state.segmentReality.topN || 999);
+  return rowsWithMetrics.slice(0, topN);
+}
+
+function renderSegmentRealityFooter(groups) {
+  if (!els.segmentRealityFooter) return;
+
+  if (!groups.length) {
+    els.segmentRealityFooter.innerHTML = "";
+    return;
+  }
+
+  const selected = state.segmentReality.selectedGroup;
+  const dimensionLabel = getDimensionLabel(state.segmentReality.dimension);
+
+  els.segmentRealityFooter.innerHTML = `
+    <table class="segment-reality-table">
+      <thead>
+        <tr>
+          <th>${dimensionLabel}</th>
+          ${groups.map((g) => `
+            <th>
+              <button class="segment-reality-col-link ${selected === g.label ? "is-active" : ""}" type="button" data-group="${encodeURIComponent(g.label)}">
+                ${g.label}
+              </button>
+            </th>
+          `).join("")}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Conversion-aligned GM %</td>
+          ${groups.map((g) => `<td>${toPct(g.alignedGmPct)}</td>`).join("")}
+        </tr>
+        <tr>
+          <td>Client-reported GM %</td>
+          ${groups.map((g) => `<td>${toPct(g.clientReportedGmPct)}</td>`).join("")}
+        </tr>
+        <tr>
+          <td>Actual Conv $/bbl</td>
+          ${groups.map((g) => `<td>${toMoneyDec(g.actualConversionCpu)}</td>`).join("")}
+        </tr>
+        <tr>
+          <td>Standard Converstion Cost/bbl</td>
+          ${groups.map((g) => `<td>${toMoneyDec(g.stdConversionCpu)}</td>`).join("")}
+        </tr>
+        <tr>
+          <td>Conv Gap $/bbl</td>
+          ${groups.map((g) => `<td class="${getMetricToneClass(g.conversionGapCpu)}">${toSignedMoneyDec(g.conversionGapCpu)}</td>`).join("")}
+        </tr>
+      </tbody>
+    </table>
+  `;
+
+  els.segmentRealityFooter.querySelectorAll(".segment-reality-col-link").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const groupLabel = decodeURIComponent(btn.dataset.group || "");
+      state.segmentReality.selectedGroup = state.segmentReality.selectedGroup === groupLabel ? "" : groupLabel;
+      state.drill.dimension = state.segmentReality.dimension;
+      state.drill.value = state.segmentReality.selectedGroup || "All";
+      if (els.drillDimension) els.drillDimension.value = state.drill.dimension;
+      updateDrillValueOptions();
+      render();
+    });
+  });
+}
+
+function renderSegmentRealityCheck(rows) {
+  if (!els.segmentRealityPanel) return;
+
+  if (state.comparisonMode) {
+    els.segmentRealityPanel.classList.add("is-hidden");
+    return;
+  }
+
+  els.segmentRealityPanel.classList.remove("is-hidden");
+
+  const groups = buildSegmentRealityGroups(rows);
+  const dimensionLabel = getDimensionLabel(state.segmentReality.dimension);
+
+  if (els.segmentRealitySubtitle) {
+    const coverageRows = rows.filter((r) => r.hasClientStdConversionCpu);
+    const coveredVolume = coverageRows.reduce((sum, r) => sum + (r.volume || 0), 0);
+    const totalVolume = rows.reduce((sum, r) => sum + (r.volume || 0), 0);
+    const coveragePct = totalVolume ? coveredVolume / totalVolume : 0;
+    els.segmentRealitySubtitle.textContent = `${dimensionLabel} view · click any bar/column to drill dashboard · standard coverage ${toPct(coveragePct)} of filtered volume`;
+  }
+
+  if (!groups.length || !els.segmentRealityChart) {
+    if (segmentRealityChart) {
+      segmentRealityChart.destroy();
+      segmentRealityChart = null;
+    }
+    if (els.segmentRealityEmpty) els.segmentRealityEmpty.classList.remove("is-hidden");
+    renderSegmentRealityFooter([]);
+    return;
+  }
+
+  if (els.segmentRealityEmpty) els.segmentRealityEmpty.classList.add("is-hidden");
+
+  const labels = groups.map((g) => g.label);
+  const standardGm = groups.map((g) => (g.clientReportedGmPct || 0) * 100);
+  const alignedGm = groups.map((g) => (g.alignedGmPct || 0) * 100);
+
+  if (segmentRealityChart) {
+    segmentRealityChart.destroy();
+    segmentRealityChart = null;
+  }
+
+  segmentRealityChart = new Chart(els.segmentRealityChart, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "As-Reported GM%",
+          data: standardGm,
+          backgroundColor: "rgba(184, 204, 145, 0.92)",
+          borderColor: "rgba(184, 204, 145, 1)",
+          borderWidth: 1,
+          borderRadius: 5
+        },
+        {
+          label: "Conversion-aligned GM%",
+          data: alignedGm,
+          backgroundColor: "rgba(79, 135, 199, 0.92)",
+          borderColor: "rgba(79, 135, 199, 1)",
+          borderWidth: 1,
+          borderRadius: 5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: (_, elements) => {
+        if (!elements.length) return;
+        const idx = elements[0].index;
+        const groupLabel = labels[idx];
+        state.segmentReality.selectedGroup = state.segmentReality.selectedGroup === groupLabel ? "" : groupLabel;
+        state.drill.dimension = state.segmentReality.dimension;
+        state.drill.value = state.segmentReality.selectedGroup || "All";
+        if (els.drillDimension) els.drillDimension.value = state.drill.dimension;
+        updateDrillValueOptions();
+        render();
+      },
+      plugins: {
+        legend: {
+          labels: { color: "#9fb0d3" }
+        },
+        tooltip: {
+          callbacks: {
+            afterBody: (items) => {
+              const idx = items[0]?.dataIndex ?? 0;
+              const g = groups[idx];
+              return [
+                `Actual Conv: ${toMoneyDec(g.actualConversionCpu)} / bbl`,
+                `Standard Converstion Cost/bbl: ${toMoneyDec(g.stdConversionCpu)}`,
+                `Conv Gap: ${toSignedMoneyDec(g.conversionGapCpu)} / bbl`,
+                `GM Overstatement: ${toSignedMoney(g.gmOverstatementTotal)}`
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          ticks: {
+            color: "#9fb0d3",
+            callback: (v) => `${v}%`
+          },
+          grid: { color: "rgba(159,176,211,.12)" }
+        },
+        x: {
+          ticks: { color: "#9fb0d3" },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+
+  renderSegmentRealityFooter(groups);
 }
 
 function renderWhaleCurveReport(allPoints) {
@@ -2346,6 +2788,7 @@ function render() {
       scope: "comparison-case"
     });
     els.insightStripPanel?.classList.add("is-hidden");
+    els.segmentRealityPanel?.classList.add("is-hidden");
     renderBreakdownPanel(totals);
     return;
   }
@@ -2353,6 +2796,7 @@ function render() {
   renderSingleMode(totals);
   renderSummaryKpis(totals, focusedRows);
   renderInsightStrip(focusedRows);
+  renderSegmentRealityCheck(focusedRows);
   renderSkuRanking(focusedRows, {
     scope: "single"
   });
@@ -2364,6 +2808,7 @@ function render() {
 updateFilterOptions();
 updateComparisonFilterOptions();
 bindFilterEvents();
+bindSegmentRealityEvents();
 bindComparisonFilterEvents();
 bindDrillEvents();
 bindReset();

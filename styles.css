@@ -278,6 +278,69 @@ textarea {
   gap: .75rem;
 }
 
+.segment-reality-controls {
+  display: flex;
+  gap: .55rem;
+  flex-wrap: wrap;
+  align-items: end;
+}
+
+.segment-reality-controls label {
+  min-width: 140px;
+}
+
+.segment-reality-chart-wrap {
+  position: relative;
+  min-height: 320px;
+}
+
+.segment-reality-footer {
+  margin-top: .6rem;
+  overflow-x: auto;
+}
+
+.segment-reality-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .78rem;
+}
+
+.segment-reality-table th,
+.segment-reality-table td {
+  border-top: 1px solid var(--line);
+  padding: .45rem .5rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.segment-reality-table th:first-child,
+.segment-reality-table td:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: #0f1a2d;
+}
+
+.segment-reality-col-link {
+  border: 1px solid transparent;
+  border-radius: .4rem;
+  padding: .15rem .4rem;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.segment-reality-col-link:hover {
+  border-color: var(--line);
+  background: rgba(79,159,255,.08);
+}
+
+.segment-reality-col-link.is-active {
+  border-color: rgba(79,159,255,.6);
+  background: rgba(79,159,255,.18);
+}
+
 .comparison-card {
   display: grid;
   gap: .45rem;

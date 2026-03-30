@@ -113,6 +113,20 @@ function normalizeStaticCostRow(row) {
     laborCpu: parseNum(getField(row, ["laborCpu", "labor_cpu", "Labor_CPU"])),
     overheadCpu: parseNum(getField(row, ["overheadCpu", "overhead_cpu", "Overhead_CPU"])),
     conversionCpu: parseNum(getField(row, ["conversionCpu", "conversion_cpu"])),
+    clientStdConversionCpu: parseOptionalNum(getField(row, [
+      "clientStdConversionCpu",
+      "client_std_conversion_cpu",
+      "clientStandardConversionCpu",
+      "client_standard_conversion_cpu",
+      "standardConversionCpu",
+      "standard_conversion_cpu",
+      "stdConversionCpu",
+      "std_conversion_cpu",
+      "conversionStandardCpu",
+      "conversion_standard_cpu",
+      "std conversion cpu",
+      "client standard conversion cost"
+    ], null)),
     salesAdminCpu: parseNum(getField(row, ["salesAdminCpu", "sales_admin_cpu"])),
     marketingAdminCpu: parseNum(getField(row, ["marketingAdminCpu", "marketing_admin_cpu"])),
     sgaCpu: parseNum(getField(row, ["sgaCpu", "sga_cpu"])),
@@ -127,6 +141,65 @@ function normalizeStaticCostRow(row) {
     containerType: cleanCell(getField(row, ["Container Type", "container_type", "containerType"], ""), ""),
     containerSize: cleanCell(getField(row, ["Container Size", "container_size", "containerSize"], "Unknown")),
     smallestPack: cleanCell(getField(row, ["Smallest Pack", "smallest_pack", "smallestPack"], "Unknown"))
+  };
+}
+
+function parseOptionalNum(value) {
+  if (value === undefined || value === null) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  return parseNum(value);
+}
+
+const _stdConversionRows = Array.isArray(window.DEMO_STD_CONVERSION_DATA)
+  ? window.DEMO_STD_CONVERSION_DATA
+  : [];
+
+function normalizeStdConversionRow(row) {
+  return {
+    plantOsku: cleanCell(getField(row, [
+      "Plant + OSKU",
+      "plantOsku",
+      "plant_osku",
+      "Plant+OSKU",
+      "Plant_OSKU"
+    ], ""), ""),
+    clientStdConversionCpu: parseOptionalNum(getField(row, [
+      "clientStdConversionCpu",
+      "client_std_conversion_cpu",
+      "clientStandardConversionCpu",
+      "client_standard_conversion_cpu",
+      "standardConversionCpu",
+      "standard_conversion_cpu",
+      "stdConversionCpu",
+      "std_conversion_cpu",
+      "conversionStandardCpu",
+      "conversion_standard_cpu",
+      "std conversion cpu",
+      "client standard conversion cost",
+      "Total"
+    ], null))
+  };
+}
+
+function buildStdConversionLookup(rows) {
+  const map = new Map();
+  rows.forEach((row) => {
+    if (!row.plantOsku || !Number.isFinite(row.clientStdConversionCpu)) return;
+    map.set(normalizeKey(row.plantOsku), row.clientStdConversionCpu);
+  });
+  return map;
+}
+
+const _stdConversionLookup = buildStdConversionLookup(_stdConversionRows.map(normalizeStdConversionRow));
+
+function applyStdConversionLookup(row) {
+  if (Number.isFinite(row.clientStdConversionCpu)) return row;
+  const key = normalizeKey(row.plantOsku || "");
+  if (!key || !_stdConversionLookup.has(key)) return row;
+  return {
+    ...row,
+    clientStdConversionCpu: _stdConversionLookup.get(key)
   };
 }
 
@@ -158,6 +231,9 @@ function computeRow(row) {
     brewMatTotal: brewMat * row.volume,
     pkgMatTotal: pkgMat * row.volume,
     conversionTotal: conversion * row.volume,
+    clientStdConversionTotal: Number.isFinite(row.clientStdConversionCpu)
+      ? row.clientStdConversionCpu * row.volume
+      : 0,
     freightTotal: freight * row.volume,
     marketingTotal: marketing * row.volume,
     sgaTotal: sga * row.volume
@@ -180,7 +256,11 @@ const _rawRecords = (Array.isArray(window.DEMO_COST_DATA) && window.DEMO_COST_DA
   ? window.DEMO_COST_DATA
   : _fallbackData;
 
-const _allRecords = _rawRecords.map(normalizeStaticCostRow).map(withDescriptorDefaults).map(computeRow);
+const _allRecords = _rawRecords
+  .map(normalizeStaticCostRow)
+  .map(withDescriptorDefaults)
+  .map(applyStdConversionLookup)
+  .map(computeRow);
 
 // ============================================================
 // SKU AGGREGATION
@@ -209,6 +289,7 @@ function aggregateSkus(records) {
         volume: 0, revenue: 0, cogs: 0, grossMargin: 0,
         operatingExpense: 0, operatingIncome: 0,
         conversionTotal: 0, brewMatTotal: 0, pkgMatTotal: 0,
+        clientStdConversionTotal: 0,
         freightTotal: 0, marketingTotal: 0, sgaTotal: 0,
         // raw rows preserved so chunk 2 can access per-plant detail
         _rows: []
@@ -223,6 +304,7 @@ function aggregateSkus(records) {
     e.operatingExpense  += r.operatingExpense;
     e.operatingIncome   += r.operatingIncome;
     e.conversionTotal   += r.conversionTotal || 0;
+    e.clientStdConversionTotal += r.clientStdConversionTotal || 0;
     e.brewMatTotal      += r.brewMatTotal    || 0;
     e.pkgMatTotal       += r.pkgMatTotal     || 0;
     e.freightTotal      += r.freightTotal    || 0;
@@ -235,6 +317,7 @@ function aggregateSkus(records) {
     ...e,
     // blended $/bbl rates (volume-weighted average across plants/periods)
     conversionCpu:  e.volume ? e.conversionTotal / e.volume : 0,
+    clientStdConversionCpu: e.clientStdConversionTotal > 0 && e.volume ? e.clientStdConversionTotal / e.volume : null,
     brewMatCpu:     e.volume ? e.brewMatTotal    / e.volume : 0,
     pkgMatCpu:      e.volume ? e.pkgMatTotal     / e.volume : 0,
     freightCpu:     e.volume ? e.freightTotal    / e.volume : 0,
@@ -478,8 +561,11 @@ function renderSelectedCard() {
   const vsAvg = avg
     ? ` (${convRatio >= 1 ? "+" : ""}${((convRatio - 1) * 100).toFixed(0)}% vs avg $${avg.toFixed(2)})`
     : "";
+  const vsClientStd = Number.isFinite(s.clientStdConversionCpu)
+    ? ` | ${toSignedMoney(s.conversionCpu - s.clientStdConversionCpu)} vs Standard Converstion Cost/bbl ${toMoneyDec(s.clientStdConversionCpu)}`
+    : "";
   const convSubEl = document.getElementById("sel-conv-vs-avg");
-  convSubEl.textContent = vsAvg;
+  convSubEl.textContent = `${vsAvg}${vsClientStd}`;
   convSubEl.className = `sim-sel-sub ${convRatio >= 1.15 ? "is-negative" : convRatio <= 0.85 ? "is-positive" : ""}`;
 
   const oiBblEl = document.getElementById("sel-oi-bbl");
