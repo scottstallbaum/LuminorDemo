@@ -1614,15 +1614,16 @@ function buildInsightCards(rows) {
   const cards = [];
   const usedLabels = new Set();
 
-  if (totals.clientStdConversionCoverageVolume > 0) {
-    const tone = (totals.clientStdConversionDeltaCpu || 0) > 0 ? "negative" : "positive";
-    cards.push({
-      eyebrow: "Costing Reality Check",
-      headline: `Actual conversion cost is ${toSignedMoneyDec(totals.clientStdConversionDeltaCpu || 0)} per bbl vs Standard Converstion Cost/bbl.` ,
-      detail: `Actual ${toMoneyDec(totals.actualConversionCpuCovered || 0)} vs Standard Converstion Cost/bbl ${toMoneyDec(totals.clientStdConversionCpu || 0)} on ${toWholePct(totals.clientStdCoveragePct)} of volume · total variance ${toSignedMoney(totals.clientStdConversionDeltaTotal || 0)}`,
-      tone
-    });
-  }
+  // TEMP: Comment out standard conversion cost insight card while investigating data gaps
+  // if (totals.clientStdConversionCoverageVolume > 0) {
+  //   const tone = (totals.clientStdConversionDeltaCpu || 0) > 0 ? "negative" : "positive";
+  //   cards.push({
+  //     eyebrow: "Costing Reality Check",
+  //     headline: `Actual conversion cost is ${toSignedMoneyDec(totals.clientStdConversionDeltaCpu || 0)} per bbl vs Standard Converstion Cost/bbl.` ,
+  //     detail: `Actual ${toMoneyDec(totals.actualConversionCpuCovered || 0)} vs Standard Converstion Cost/bbl ${toMoneyDec(totals.clientStdConversionCpu || 0)} on ${toWholePct(totals.clientStdCoveragePct)} of volume · total variance ${toSignedMoney(totals.clientStdConversionDeltaTotal || 0)}`,
+  //     tone
+  //   });
+  // }
 
   const segments = aggregateByDimension(rows, "priceSegment").filter((item) => item.revenue / totals.revenue >= minShare);
   let bestMix = null;

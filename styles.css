@@ -1755,6 +1755,10 @@ th { color: var(--muted); font-weight: 600; }
 
 .sim-empty { text-align: center; color: var(--muted); padding: 1.5rem; }
 
+/* TEMP: Hide standard cost comparison while investigating data gaps */
+#segment-reality-panel { display: none; }
+#sel-conv-vs-avg { display: none; }
+
 /* Conversion cost tone in table */
 .conv-very-high { color: #ff8c7a; font-weight: 600; }
 .conv-high { color: var(--warn); }
