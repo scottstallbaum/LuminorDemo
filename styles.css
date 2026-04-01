@@ -302,6 +302,7 @@ textarea {
 .segment-reality-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   font-size: .78rem;
 }
 
@@ -315,6 +316,7 @@ textarea {
 
 .segment-reality-table th:first-child,
 .segment-reality-table td:first-child {
+  width: 80px;
   text-align: left;
   position: sticky;
   left: 0;
@@ -339,6 +341,12 @@ textarea {
 .segment-reality-col-link.is-active {
   border-color: rgba(79,159,255,.6);
   background: rgba(79,159,255,.18);
+}
+
+.segment-reality-system-col {
+  border-left: 2px dashed rgba(159,176,211,.6);
+  font-weight: 700;
+  padding-left: .75rem !important;
 }
 
 .comparison-card {
@@ -1755,8 +1763,7 @@ th { color: var(--muted); font-weight: 600; }
 
 .sim-empty { text-align: center; color: var(--muted); padding: 1.5rem; }
 
-/* TEMP: Hide standard cost comparison while investigating data gaps */
-#segment-reality-panel { display: none; }
+/* TEMP: Hide simulator standard cost subtitle while investigating data gaps */
 #sel-conv-vs-avg { display: none; }
 
 /* Conversion cost tone in table */

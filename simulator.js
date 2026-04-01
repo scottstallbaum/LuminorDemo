@@ -125,7 +125,9 @@ function normalizeStaticCostRow(row) {
       "conversionStandardCpu",
       "conversion_standard_cpu",
       "std conversion cpu",
-      "client standard conversion cost"
+      "client standard conversion cost",
+      "Std Conversion Costs",
+      "Total Std Conversion Costs"
     ], null)),
     salesAdminCpu: parseNum(getField(row, ["salesAdminCpu", "sales_admin_cpu"])),
     marketingAdminCpu: parseNum(getField(row, ["marketingAdminCpu", "marketing_admin_cpu"])),
@@ -164,6 +166,11 @@ function normalizeStdConversionRow(row) {
       "Plant+OSKU",
       "Plant_OSKU"
     ], ""), ""),
+    orderableSkuDescription: cleanCell(getField(row, [
+      "Orderable SKU Description",
+      "orderableSkuDescription",
+      "orderable_sku_description"
+    ], ""), ""),
     clientStdConversionCpu: parseOptionalNum(getField(row, [
       "clientStdConversionCpu",
       "client_std_conversion_cpu",
@@ -177,7 +184,45 @@ function normalizeStdConversionRow(row) {
       "conversion_standard_cpu",
       "std conversion cpu",
       "client standard conversion cost",
+      "Std Conversion Costs",
+      "Total Std Conversion Costs",
       "Total"
+    ], null)),
+    clientStdBrewMatCpu: parseOptionalNum(getField(row, [
+      "clientStdBrewMatCpu",
+      "client_std_brew_mat_cpu",
+      "stdBrewMatCpu",
+      "std_brew_mat_cpu",
+      "Brew Mat $/bbl"
+    ], null)),
+    clientStdPkgMatCpu: parseOptionalNum(getField(row, [
+      "clientStdPkgMatCpu",
+      "client_std_pkg_mat_cpu",
+      "stdPkgMatCpu",
+      "std_pkg_mat_cpu",
+      "Pkg Mat $/bbl"
+    ], null)),
+    clientStdFreightCpu: parseOptionalNum(getField(row, [
+      "clientStdFreightCpu",
+      "client_std_freight_cpu",
+      "stdFreightCpu",
+      "std_freight_cpu",
+      "Freight $/bbl"
+    ], null)),
+    clientStdMarketingCpu: parseOptionalNum(getField(row, [
+      "clientStdMarketingCpu",
+      "client_std_marketing_cpu",
+      "stdMarketingCpu",
+      "std_marketing_cpu",
+      "Marketing $/bbl"
+    ], null)),
+    clientStdSgaCpu: parseOptionalNum(getField(row, [
+      "clientStdSgaCpu",
+      "client_std_sga_cpu",
+      "stdSgaCpu",
+      "std_sga_cpu",
+      "SG&A",
+      "sga"
     ], null))
   };
 }
@@ -186,7 +231,7 @@ function buildStdConversionLookup(rows) {
   const map = new Map();
   rows.forEach((row) => {
     if (!row.plantOsku || !Number.isFinite(row.clientStdConversionCpu)) return;
-    map.set(normalizeKey(row.plantOsku), row.clientStdConversionCpu);
+    map.set(normalizeKey(row.plantOsku), row);
   });
   return map;
 }
@@ -197,9 +242,27 @@ function applyStdConversionLookup(row) {
   if (Number.isFinite(row.clientStdConversionCpu)) return row;
   const key = normalizeKey(row.plantOsku || "");
   if (!key || !_stdConversionLookup.has(key)) return row;
+  const stdRow = _stdConversionLookup.get(key);
   return {
     ...row,
-    clientStdConversionCpu: _stdConversionLookup.get(key)
+    clientStdConversionCpu: Number.isFinite(row.clientStdConversionCpu)
+      ? row.clientStdConversionCpu
+      : stdRow.clientStdConversionCpu,
+    clientStdBrewMatCpu: Number.isFinite(row.clientStdBrewMatCpu)
+      ? row.clientStdBrewMatCpu
+      : stdRow.clientStdBrewMatCpu,
+    clientStdPkgMatCpu: Number.isFinite(row.clientStdPkgMatCpu)
+      ? row.clientStdPkgMatCpu
+      : stdRow.clientStdPkgMatCpu,
+    clientStdFreightCpu: Number.isFinite(row.clientStdFreightCpu)
+      ? row.clientStdFreightCpu
+      : stdRow.clientStdFreightCpu,
+    clientStdMarketingCpu: Number.isFinite(row.clientStdMarketingCpu)
+      ? row.clientStdMarketingCpu
+      : stdRow.clientStdMarketingCpu,
+    clientStdSgaCpu: Number.isFinite(row.clientStdSgaCpu)
+      ? row.clientStdSgaCpu
+      : stdRow.clientStdSgaCpu
   };
 }
 

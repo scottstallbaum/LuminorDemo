@@ -47,12 +47,65 @@ function normalizeStdConversionRow(row) {
     "conversion_standard_cpu",
     "std conversion cpu",
     "client standard conversion cost",
+    "Std Conversion Costs",
+    "Total Std Conversion Costs",
     "Total"
+  ], null));
+
+  const clientStdBrewMatCpu = parseOptionalNum(getField(row, [
+    "clientStdBrewMatCpu",
+    "client_std_brew_mat_cpu",
+    "stdBrewMatCpu",
+    "std_brew_mat_cpu",
+    "Brew Mat $/bbl"
+  ], null));
+
+  const clientStdPkgMatCpu = parseOptionalNum(getField(row, [
+    "clientStdPkgMatCpu",
+    "client_std_pkg_mat_cpu",
+    "stdPkgMatCpu",
+    "std_pkg_mat_cpu",
+    "Pkg Mat $/bbl"
+  ], null));
+
+  const clientStdFreightCpu = parseOptionalNum(getField(row, [
+    "clientStdFreightCpu",
+    "client_std_freight_cpu",
+    "stdFreightCpu",
+    "std_freight_cpu",
+    "Freight $/bbl"
+  ], null));
+
+  const clientStdMarketingCpu = parseOptionalNum(getField(row, [
+    "clientStdMarketingCpu",
+    "client_std_marketing_cpu",
+    "stdMarketingCpu",
+    "std_marketing_cpu",
+    "Marketing $/bbl"
+  ], null));
+
+  const clientStdSgaCpu = parseOptionalNum(getField(row, [
+    "clientStdSgaCpu",
+    "client_std_sga_cpu",
+    "stdSgaCpu",
+    "std_sga_cpu",
+    "SG&A",
+    "sga"
   ], null));
 
   return {
     plantOsku,
-    clientStdConversionCpu
+    orderableSkuDescription: cleanCell(getField(row, [
+      "Orderable SKU Description",
+      "orderableSkuDescription",
+      "orderable_sku_description"
+    ], ""), ""),
+    clientStdConversionCpu,
+    clientStdBrewMatCpu,
+    clientStdPkgMatCpu,
+    clientStdFreightCpu,
+    clientStdMarketingCpu,
+    clientStdSgaCpu
   };
 }
 
@@ -60,7 +113,7 @@ function buildStdConversionLookup(rows) {
   const map = new Map();
   rows.forEach((row) => {
     if (!row.plantOsku || !Number.isFinite(row.clientStdConversionCpu)) return;
-    map.set(normalizeKey(row.plantOsku), row.clientStdConversionCpu);
+    map.set(normalizeKey(row.plantOsku), row);
   });
   return map;
 }
@@ -71,9 +124,27 @@ function applyStdConversionLookup(row) {
   if (Number.isFinite(row.clientStdConversionCpu)) return row;
   const key = normalizeKey(row.plantOsku || "");
   if (!key || !stdConversionLookup.has(key)) return row;
+  const stdRow = stdConversionLookup.get(key);
   return {
     ...row,
-    clientStdConversionCpu: stdConversionLookup.get(key)
+    clientStdConversionCpu: Number.isFinite(row.clientStdConversionCpu)
+      ? row.clientStdConversionCpu
+      : stdRow.clientStdConversionCpu,
+    clientStdBrewMatCpu: Number.isFinite(row.clientStdBrewMatCpu)
+      ? row.clientStdBrewMatCpu
+      : stdRow.clientStdBrewMatCpu,
+    clientStdPkgMatCpu: Number.isFinite(row.clientStdPkgMatCpu)
+      ? row.clientStdPkgMatCpu
+      : stdRow.clientStdPkgMatCpu,
+    clientStdFreightCpu: Number.isFinite(row.clientStdFreightCpu)
+      ? row.clientStdFreightCpu
+      : stdRow.clientStdFreightCpu,
+    clientStdMarketingCpu: Number.isFinite(row.clientStdMarketingCpu)
+      ? row.clientStdMarketingCpu
+      : stdRow.clientStdMarketingCpu,
+    clientStdSgaCpu: Number.isFinite(row.clientStdSgaCpu)
+      ? row.clientStdSgaCpu
+      : stdRow.clientStdSgaCpu
   };
 }
 
@@ -117,7 +188,9 @@ function normalizeStaticCostRow(row) {
       "conversionStandardCpu",
       "conversion_standard_cpu",
       "std conversion cpu",
-      "client standard conversion cost"
+      "client standard conversion cost",
+      "Std Conversion Costs",
+      "Total Std Conversion Costs"
     ], null)),
     salesAdminCpu: parseNum(getField(row, ["salesAdminCpu", "sales_admin_cpu"])),
     marketingAdminCpu: parseNum(getField(row, ["marketingAdminCpu", "marketing_admin_cpu"])),
@@ -322,7 +395,7 @@ const state = {
   skuRankingMetric: "revenue",
   segmentReality: {
     dimension: "priceSegment",
-    sort: "gmOverstatement-desc",
+    sort: "omOverstatement-desc",
     topN: 999,
     selectedGroup: ""
   },
@@ -530,7 +603,9 @@ function normalizeImportedRow(row) {
       "conversionStandardCpu",
       "conversion_standard_cpu",
       "std conversion cpu",
-      "client standard conversion cost"
+      "client standard conversion cost",
+      "Std Conversion Costs",
+      "Total Std Conversion Costs"
     ], null)),
     salesAdminCpu: parseNum(getField(row, ["salesAdminCpu", "sales_admin_cpu"])),
     marketingAdminCpu: parseNum(getField(row, ["marketingAdminCpu", "marketing_admin_cpu"])),
@@ -1995,6 +2070,7 @@ function getDimensionLabel(dimensionKey) {
 
 function buildSegmentRealityGroups(rows) {
   const dimensionKey = state.segmentReality.dimension;
+  const normalizeSegmentLabel = (value) => String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   const byGroup = rows.reduce((acc, row) => {
     const key = String(row[dimensionKey] || "Unknown").trim() || "Unknown";
     if (!acc[key]) {
@@ -2003,56 +2079,153 @@ function buildSegmentRealityGroups(rows) {
         label: key,
         volume: 0,
         revenue: 0,
-        grossMargin: 0,
+        operatingIncome: 0,
         coveredVolume: 0,
         actualConversionCoveredTotal: 0,
-        stdConversionCoveredTotal: 0
+        stdConversionCoveredTotal: 0,
+        actualSgaCoveredTotal: 0,
+        stdSgaCoveredTotal: 0
       };
     }
 
     const g = acc[key];
     g.volume += row.volume || 0;
     g.revenue += row.revenue || 0;
-    g.grossMargin += row.grossMargin || 0;
+    g.operatingIncome += row.operatingIncome || 0;
 
     if (row.hasClientStdConversionCpu) {
       g.coveredVolume += row.volume || 0;
       g.actualConversionCoveredTotal += row.conversionTotal || 0;
       g.stdConversionCoveredTotal += row.clientStdConversionTotal || 0;
+      g.actualSgaCoveredTotal += row.sgaTotal || 0;
+      g.stdSgaCoveredTotal += Number.isFinite(row.clientStdSgaCpu)
+        ? (row.clientStdSgaCpu * (row.volume || 0))
+        : 0;
     }
 
     return acc;
   }, {});
 
   const rowsWithMetrics = Object.values(byGroup)
+    .filter((g) => String(g.label || "").trim().toLowerCase() !== "unknown")
     .filter((g) => g.coveredVolume > 0 && g.revenue > 0)
     .map((g) => {
-      const gmOverstatementTotal = g.actualConversionCoveredTotal - g.stdConversionCoveredTotal;
-      const clientReportedGrossMargin = g.grossMargin + gmOverstatementTotal;
-      const alignedGmPct = g.grossMargin / g.revenue;
-      const clientReportedGmPct = clientReportedGrossMargin / g.revenue;
+      const conversionOverstatementTotal = g.actualConversionCoveredTotal - g.stdConversionCoveredTotal;
+      const sgaOverstatementTotal = g.actualSgaCoveredTotal - g.stdSgaCoveredTotal;
+      const omOverstatementTotal = conversionOverstatementTotal + sgaOverstatementTotal;
+      const clientReportedOperatingIncome = g.operatingIncome + omOverstatementTotal;
+      const alignedOmPct = g.operatingIncome / g.revenue;
+      const clientReportedOmPct = clientReportedOperatingIncome / g.revenue;
       return {
         ...g,
-        gmOverstatementTotal,
-        clientReportedGrossMargin,
-        alignedGmPct,
-        clientReportedGmPct,
-        gmPctDelta: alignedGmPct - clientReportedGmPct,
+        conversionOverstatementTotal,
+        sgaOverstatementTotal,
+        omOverstatementTotal,
+        clientReportedOperatingIncome,
+        alignedOmPct,
+        clientReportedOmPct,
+        omPctDelta: alignedOmPct - clientReportedOmPct,
         actualConversionCpu: g.actualConversionCoveredTotal / g.coveredVolume,
         stdConversionCpu: g.stdConversionCoveredTotal / g.coveredVolume,
         conversionGapCpu: (g.actualConversionCoveredTotal - g.stdConversionCoveredTotal) / g.coveredVolume,
+        actualSgaCpu: g.actualSgaCoveredTotal / g.coveredVolume,
+        stdSgaCpu: g.stdSgaCoveredTotal / g.coveredVolume,
+        sgaGapCpu: (g.actualSgaCoveredTotal - g.stdSgaCoveredTotal) / g.coveredVolume,
+        complexityAdjOpPerBbl: g.coveredVolume ? g.operatingIncome / g.coveredVolume : 0,
+        standardOpPerBbl: g.coveredVolume ? clientReportedOperatingIncome / g.coveredVolume : 0,
         coveragePct: g.volume ? g.coveredVolume / g.volume : 0
       };
     });
 
-  const [sortKey, sortDir] = String(state.segmentReality.sort || "gmOverstatement-desc").split("-");
-  rowsWithMetrics.sort((a, b) => {
-    const diff = (a[sortKey] || 0) - (b[sortKey] || 0);
-    return sortDir === "asc" ? diff : -diff;
-  });
+  if (dimensionKey === "priceSegment") {
+    const rankMap = {
+      budget: 1,
+      nearpremium: 2,
+      premium: 3,
+      abovepremium: 4,
+      nonalcohol: 5,
+      nonalcoholic: 5
+    };
+    rowsWithMetrics.sort((a, b) => {
+      const ra = rankMap[normalizeSegmentLabel(a.label)] || 99;
+      const rb = rankMap[normalizeSegmentLabel(b.label)] || 99;
+      if (ra !== rb) return ra - rb;
+      return String(a.label).localeCompare(String(b.label));
+    });
+  } else {
+    const [sortKey, sortDir] = String(state.segmentReality.sort || "omOverstatement-desc").split("-");
+    rowsWithMetrics.sort((a, b) => {
+      const diff = (a[sortKey] || 0) - (b[sortKey] || 0);
+      return sortDir === "asc" ? diff : -diff;
+    });
+  }
 
   const topN = Math.max(1, state.segmentReality.topN || 999);
   return rowsWithMetrics.slice(0, topN);
+}
+
+function buildSegmentRealitySystemAverage(rows) {
+  const coveredRows = rows.filter((row) => row.hasClientStdConversionCpu && (row.revenue || 0) > 0);
+  if (!coveredRows.length) return null;
+
+  const totals = coveredRows.reduce((acc, row) => {
+    acc.revenue += row.revenue || 0;
+    acc.operatingIncome += row.operatingIncome || 0;
+    acc.coveredVolume += row.volume || 0;
+    acc.actualConversionCoveredTotal += row.conversionTotal || 0;
+    acc.stdConversionCoveredTotal += row.clientStdConversionTotal || 0;
+    acc.actualSgaCoveredTotal += row.sgaTotal || 0;
+    acc.stdSgaCoveredTotal += Number.isFinite(row.clientStdSgaCpu)
+      ? (row.clientStdSgaCpu * (row.volume || 0))
+      : 0;
+    return acc;
+  }, {
+    revenue: 0,
+    operatingIncome: 0,
+    coveredVolume: 0,
+    actualConversionCoveredTotal: 0,
+    stdConversionCoveredTotal: 0,
+    actualSgaCoveredTotal: 0,
+    stdSgaCoveredTotal: 0
+  });
+
+  if (!totals.revenue || !totals.coveredVolume) return null;
+
+  const conversionOverstatementTotal = totals.actualConversionCoveredTotal - totals.stdConversionCoveredTotal;
+  const sgaOverstatementTotal = totals.actualSgaCoveredTotal - totals.stdSgaCoveredTotal;
+  const omOverstatementTotal = conversionOverstatementTotal + sgaOverstatementTotal;
+  const clientReportedOperatingIncome = totals.operatingIncome + omOverstatementTotal;
+  const alignedOmPct = totals.operatingIncome / totals.revenue;
+  const clientReportedOmPct = clientReportedOperatingIncome / totals.revenue;
+
+  return {
+    key: "__system_average__",
+    label: "System Average",
+    isSystemAverage: true,
+    revenue: totals.revenue,
+    operatingIncome: totals.operatingIncome,
+    coveredVolume: totals.coveredVolume,
+    actualConversionCoveredTotal: totals.actualConversionCoveredTotal,
+    stdConversionCoveredTotal: totals.stdConversionCoveredTotal,
+    actualSgaCoveredTotal: totals.actualSgaCoveredTotal,
+    stdSgaCoveredTotal: totals.stdSgaCoveredTotal,
+    conversionOverstatementTotal,
+    sgaOverstatementTotal,
+    omOverstatementTotal,
+    clientReportedOperatingIncome,
+    alignedOmPct,
+    clientReportedOmPct,
+    omPctDelta: alignedOmPct - clientReportedOmPct,
+    actualConversionCpu: totals.actualConversionCoveredTotal / totals.coveredVolume,
+    stdConversionCpu: totals.stdConversionCoveredTotal / totals.coveredVolume,
+    conversionGapCpu: conversionOverstatementTotal / totals.coveredVolume,
+    actualSgaCpu: totals.actualSgaCoveredTotal / totals.coveredVolume,
+    stdSgaCpu: totals.stdSgaCoveredTotal / totals.coveredVolume,
+    sgaGapCpu: sgaOverstatementTotal / totals.coveredVolume,
+    complexityAdjOpPerBbl: totals.coveredVolume ? totals.operatingIncome / totals.coveredVolume : 0,
+    standardOpPerBbl: totals.coveredVolume ? clientReportedOperatingIncome / totals.coveredVolume : 0,
+    coveragePct: 1
+  };
 }
 
 function renderSegmentRealityFooter(groups) {
@@ -2063,72 +2236,46 @@ function renderSegmentRealityFooter(groups) {
     return;
   }
 
-  const selected = state.segmentReality.selectedGroup;
-  const dimensionLabel = getDimensionLabel(state.segmentReality.dimension);
-
   els.segmentRealityFooter.innerHTML = `
     <table class="segment-reality-table">
-      <thead>
-        <tr>
-          <th>${dimensionLabel}</th>
-          ${groups.map((g) => `
-            <th>
-              <button class="segment-reality-col-link ${selected === g.label ? "is-active" : ""}" type="button" data-group="${encodeURIComponent(g.label)}">
-                ${g.label}
-              </button>
-            </th>
-          `).join("")}
-        </tr>
-      </thead>
       <tbody>
         <tr>
-          <td>Conversion-aligned GM %</td>
-          ${groups.map((g) => `<td>${toPct(g.alignedGmPct)}</td>`).join("")}
+          <td>Rev/bbl</td>
+          ${groups.map((g) => {
+            const revPerBbl = g.coveredVolume ? g.revenue / g.coveredVolume : 0;
+            return `<td class="${g.isSystemAverage ? "segment-reality-system-col" : ""}">${toMoneyDec(revPerBbl)}</td>`;
+          }).join("")}
         </tr>
         <tr>
-          <td>Client-reported GM %</td>
-          ${groups.map((g) => `<td>${toPct(g.clientReportedGmPct)}</td>`).join("")}
+          <td>Cost/bbl</td>
+          ${groups.map((g) => {
+            const revPerBbl = g.coveredVolume ? g.revenue / g.coveredVolume : 0;
+            const stdCostPerBbl = revPerBbl - (g.standardOpPerBbl || 0);
+            const adjCostPerBbl = revPerBbl - (g.complexityAdjOpPerBbl || 0);
+            return `<td class="${g.isSystemAverage ? "segment-reality-system-col" : ""}">Std ${toMoneyDec(stdCostPerBbl)}<br>Adj ${toMoneyDec(adjCostPerBbl)}</td>`;
+          }).join("")}
         </tr>
         <tr>
-          <td>Actual Conv $/bbl</td>
-          ${groups.map((g) => `<td>${toMoneyDec(g.actualConversionCpu)}</td>`).join("")}
-        </tr>
-        <tr>
-          <td>Standard Converstion Cost/bbl</td>
-          ${groups.map((g) => `<td>${toMoneyDec(g.stdConversionCpu)}</td>`).join("")}
-        </tr>
-        <tr>
-          <td>Conv Gap $/bbl</td>
-          ${groups.map((g) => `<td class="${getMetricToneClass(g.conversionGapCpu)}">${toSignedMoneyDec(g.conversionGapCpu)}</td>`).join("")}
+          <td>OM/bbl</td>
+          ${groups.map((g) => {
+            const opGap = g.complexityAdjOpPerBbl - g.standardOpPerBbl;
+            const classes = `${g.isSystemAverage ? "segment-reality-system-col " : ""}${getMetricToneClass(opGap)}`;
+            return `<td class="${classes}">Std ${toMoneyDec(g.standardOpPerBbl)}<br>Adj ${toMoneyDec(g.complexityAdjOpPerBbl)}</td>`;
+          }).join("")}
         </tr>
       </tbody>
     </table>
   `;
-
-  els.segmentRealityFooter.querySelectorAll(".segment-reality-col-link").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const groupLabel = decodeURIComponent(btn.dataset.group || "");
-      state.segmentReality.selectedGroup = state.segmentReality.selectedGroup === groupLabel ? "" : groupLabel;
-      state.drill.dimension = state.segmentReality.dimension;
-      state.drill.value = state.segmentReality.selectedGroup || "All";
-      if (els.drillDimension) els.drillDimension.value = state.drill.dimension;
-      updateDrillValueOptions();
-      render();
-    });
-  });
 }
 
 function renderSegmentRealityCheck(rows) {
   if (!els.segmentRealityPanel) return;
 
-  if (state.comparisonMode) {
-    els.segmentRealityPanel.classList.add("is-hidden");
-    return;
-  }
-
   els.segmentRealityPanel.classList.remove("is-hidden");
 
   const groups = buildSegmentRealityGroups(rows);
+  const averageGroup = buildSegmentRealitySystemAverage(rows);
+  const groupsWithAverage = averageGroup ? [...groups, averageGroup] : groups;
   const dimensionLabel = getDimensionLabel(state.segmentReality.dimension);
 
   if (els.segmentRealitySubtitle) {
@@ -2139,7 +2286,7 @@ function renderSegmentRealityCheck(rows) {
     els.segmentRealitySubtitle.textContent = `${dimensionLabel} view · click any bar/column to drill dashboard · standard coverage ${toPct(coveragePct)} of filtered volume`;
   }
 
-  if (!groups.length || !els.segmentRealityChart) {
+  if (!groupsWithAverage.length || !els.segmentRealityChart) {
     if (segmentRealityChart) {
       segmentRealityChart.destroy();
       segmentRealityChart = null;
@@ -2151,9 +2298,10 @@ function renderSegmentRealityCheck(rows) {
 
   if (els.segmentRealityEmpty) els.segmentRealityEmpty.classList.add("is-hidden");
 
-  const labels = groups.map((g) => g.label);
-  const standardGm = groups.map((g) => (g.clientReportedGmPct || 0) * 100);
-  const alignedGm = groups.map((g) => (g.alignedGmPct || 0) * 100);
+  const labels = groupsWithAverage.map((g) => g.label);
+  const reportedOm = groupsWithAverage.map((g) => (g.clientReportedOmPct || 0) * 100);
+  const alignedOm = groupsWithAverage.map((g) => (g.alignedOmPct || 0) * 100);
+  const averageIndex = groupsWithAverage.findIndex((g) => g.isSystemAverage);
 
   if (segmentRealityChart) {
     segmentRealityChart.destroy();
@@ -2166,16 +2314,16 @@ function renderSegmentRealityCheck(rows) {
       labels,
       datasets: [
         {
-          label: "As-Reported GM%",
-          data: standardGm,
+          label: "As-Reported OM%",
+          data: reportedOm,
           backgroundColor: "rgba(184, 204, 145, 0.92)",
           borderColor: "rgba(184, 204, 145, 1)",
           borderWidth: 1,
           borderRadius: 5
         },
         {
-          label: "Conversion-aligned GM%",
-          data: alignedGm,
+          label: "Conversion-aligned OM%",
+          data: alignedOm,
           backgroundColor: "rgba(79, 135, 199, 0.92)",
           borderColor: "rgba(79, 135, 199, 1)",
           borderWidth: 1,
@@ -2186,6 +2334,10 @@ function renderSegmentRealityCheck(rows) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        // Keep chart plot area aligned with table value columns (first table column is row labels).
+        padding: { left: 80, right: 10 }
+      },
       onClick: (_, elements) => {
         if (!elements.length) return;
         const idx = elements[0].index;
@@ -2205,15 +2357,21 @@ function renderSegmentRealityCheck(rows) {
           callbacks: {
             afterBody: (items) => {
               const idx = items[0]?.dataIndex ?? 0;
-              const g = groups[idx];
+              const g = groupsWithAverage[idx];
               return [
                 `Actual Conv: ${toMoneyDec(g.actualConversionCpu)} / bbl`,
                 `Standard Converstion Cost/bbl: ${toMoneyDec(g.stdConversionCpu)}`,
                 `Conv Gap: ${toSignedMoneyDec(g.conversionGapCpu)} / bbl`,
-                `GM Overstatement: ${toSignedMoney(g.gmOverstatementTotal)}`
+                `Actual SG&A: ${toMoneyDec(g.actualSgaCpu)} / bbl`,
+                `Standard SG&A: ${toMoneyDec(g.stdSgaCpu)} / bbl`,
+                `SG&A Gap: ${toSignedMoneyDec(g.sgaGapCpu)} / bbl`,
+                `OM Overstatement: ${toSignedMoney(g.omOverstatementTotal)}`
               ];
             }
           }
+        },
+        segmentAverageDivider: {
+          averageIndex
         }
       },
       scales: {
@@ -2232,8 +2390,34 @@ function renderSegmentRealityCheck(rows) {
     }
   });
 
-  renderSegmentRealityFooter(groups);
+  renderSegmentRealityFooter(groupsWithAverage);
 }
+
+Chart.register({
+  id: "segmentAverageDivider",
+  afterDatasetsDraw(chart, _args, pluginOptions) {
+    const averageIndex = pluginOptions?.averageIndex;
+    if (!Number.isInteger(averageIndex) || averageIndex <= 0) return;
+    const xScale = chart.scales?.x;
+    const yScale = chart.scales?.y;
+    if (!xScale || !yScale) return;
+
+    const prevX = xScale.getPixelForTick(averageIndex - 1);
+    const avgX = xScale.getPixelForTick(averageIndex);
+    const dividerX = (prevX + avgX) / 2;
+
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = "rgba(159,176,211,.65)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(dividerX, yScale.top + 6);
+    ctx.lineTo(dividerX, yScale.bottom);
+    ctx.stroke();
+    ctx.restore();
+  }
+});
 
 function renderWhaleCurveReport(allPoints) {
   const report = els.whaleCurveReport;
@@ -2789,7 +2973,7 @@ function render() {
       scope: "comparison-case"
     });
     els.insightStripPanel?.classList.add("is-hidden");
-    els.segmentRealityPanel?.classList.add("is-hidden");
+    renderSegmentRealityCheck(focusedRows);
     renderBreakdownPanel(totals);
     return;
   }
