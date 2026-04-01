@@ -1946,3 +1946,211 @@ th { color: var(--muted); font-weight: 600; }
     font-size: .9rem;
   }
 }
+
+/* ============================================================
+   NEW PRODUCT COSTING TOOL
+   ============================================================ */
+
+.npc-layout {
+  grid-template-columns: 1fr;
+}
+
+.npc-panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.npc-titlebar {
+  background: #234d82;
+  color: #fff;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: .01em;
+  padding: .55rem .9rem;
+}
+
+.npc-columns-head {
+  display: grid;
+  grid-template-columns: 1fr 410px;
+  gap: 1rem;
+  background: #8da8cb;
+  padding: .45rem .9rem;
+  color: #fff;
+  font-size: 1.95rem;
+  font-style: italic;
+  font-weight: 700;
+  text-align: center;
+}
+
+.npc-grid {
+  display: grid;
+  grid-template-columns: 1fr 410px;
+  gap: 1rem;
+  background: #e8edf5;
+  color: #122033;
+  padding: .9rem;
+}
+
+.npc-inputs {
+  min-width: 0;
+}
+
+.npc-section {
+  margin: .45rem 0 .5rem;
+  font-size: 2rem;
+  text-decoration: underline;
+  text-underline-offset: .15em;
+  color: #13233b;
+}
+
+.npc-question-block {
+  display: grid;
+  gap: .38rem;
+}
+
+.npc-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: center;
+  gap: .8rem;
+}
+
+.npc-row label {
+  color: #0f1f34;
+  font-size: 1.7rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.npc-row select,
+.npc-row input {
+  background: #c8d2df;
+  border: 1px solid #1f2a3d;
+  border-radius: 0;
+  color: #08152a;
+  font-size: 1.7rem;
+  font-weight: 700;
+  padding: .3rem .45rem;
+  min-height: 2.15rem;
+}
+
+.npc-inline-input {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: .45rem;
+}
+
+.npc-inline-input span {
+  color: #0e1c31;
+  font-size: 1.55rem;
+  font-weight: 600;
+}
+
+.npc-output {
+  border-left: 1px solid rgba(20, 35, 57, .25);
+  padding-left: .95rem;
+}
+
+.npc-output-title {
+  margin: .45rem 0 .55rem;
+  color: #13233b;
+  font-size: 2rem;
+  text-decoration: underline;
+  text-underline-offset: .15em;
+}
+
+.npc-output-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.95rem;
+  background: #fff;
+}
+
+.npc-output-table th,
+.npc-output-table td {
+  border: 1px solid #1b273a;
+  padding: .35rem .5rem;
+}
+
+.npc-output-table th {
+  text-align: left;
+  font-weight: 500;
+  background: #f4f7fb;
+}
+
+.npc-output-table td {
+  text-align: right;
+  font-weight: 700;
+  background: #b9c7d9;
+}
+
+.npc-output-total th,
+.npc-output-total td {
+  font-size: 2.05rem;
+  font-weight: 800;
+}
+
+.npc-detail-card {
+  margin-top: .9rem;
+  border: 1px solid rgba(20, 35, 57, .25);
+  background: rgba(255, 255, 255, .72);
+  border-radius: .5rem;
+  padding: .75rem;
+}
+
+.npc-detail-card h3 {
+  margin: 0 0 .4rem;
+  font-size: 1.1rem;
+  color: #0f1d32;
+}
+
+.npc-detail-card .small {
+  margin: .22rem 0;
+  color: #304563;
+  font-size: .85rem;
+}
+
+@media (max-width: 1200px) {
+  .npc-columns-head,
+  .npc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .npc-output {
+    border-left: 0;
+    border-top: 1px solid rgba(20, 35, 57, .25);
+    padding-left: 0;
+    padding-top: .9rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .npc-titlebar {
+    font-size: 1.2rem;
+  }
+
+  .npc-columns-head {
+    font-size: 1.2rem;
+  }
+
+  .npc-row {
+    grid-template-columns: 1fr;
+    gap: .38rem;
+  }
+
+  .npc-row label,
+  .npc-row select,
+  .npc-row input,
+  .npc-output-table {
+    font-size: .98rem;
+  }
+
+  .npc-section,
+  .npc-output-title,
+  .npc-output-total th,
+  .npc-output-total td {
+    font-size: 1.1rem;
+  }
+}

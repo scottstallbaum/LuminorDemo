@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Product Costing Model - Luminor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20260401-costing1" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Luminor Demo</p>
+      <h1>New Product Introduction Costing Model</h1>
+    </div>
+    <nav class="topbar-nav">
+      <a href="index.html" class="ghost topbar-back">← Dashboard</a>
+      <a href="simulator.html" class="ghost topbar-back">SKU Rationalization →</a>
+    </nav>
+  </header>
+
+  <main class="layout npc-layout">
+    <section class="panel panel-wide npc-panel">
+      <div class="npc-titlebar">MillerCoors New Product Introduction Costing Model</div>
+      <div class="npc-columns-head">
+        <div>Input</div>
+        <div>Output</div>
+      </div>
+
+      <div class="npc-grid">
+        <section class="npc-inputs">
+          <h2 class="npc-section">Product Information</h2>
+          <div class="npc-row">
+            <label for="npc-plant">Plant</label>
+            <select id="npc-plant"></select>
+          </div>
+          <div class="npc-row">
+            <label for="npc-family">Brand Family</label>
+            <select id="npc-family"></select>
+          </div>
+          <div class="npc-row">
+            <label for="npc-volume">What is the anticipated full-year volume in the second year of production?</label>
+            <div class="npc-inline-input">
+              <input id="npc-volume" type="number" min="0" step="100" value="40000" />
+              <span>bbl</span>
+            </div>
+          </div>
+
+          <h2 class="npc-section">Brewing</h2>
+          <div id="npc-brewing" class="npc-question-block"></div>
+
+          <h2 class="npc-section">Packaging</h2>
+          <div id="npc-packaging" class="npc-question-block"></div>
+
+          <h2 class="npc-section">Distribution</h2>
+          <div id="npc-distribution" class="npc-question-block"></div>
+
+          <h2 class="npc-section">Other</h2>
+          <div class="npc-row">
+            <label for="npc-capex">What, if any, additional capital investment is required?</label>
+            <div class="npc-inline-input">
+              <span>$</span>
+              <input id="npc-capex" type="number" min="0" step="1000" value="100000" />
+            </div>
+          </div>
+          <div id="npc-other" class="npc-question-block"></div>
+          <div class="npc-row">
+            <label for="npc-buffer">What size buffer would you like to apply?</label>
+            <div class="npc-inline-input">
+              <input id="npc-buffer" type="number" min="0" step="1" value="0" />
+              <span>%</span>
+            </div>
+          </div>
+        </section>
+
+        <aside class="npc-output">
+          <h2 class="npc-output-title">Complexity-Adj Cost/bbl</h2>
+          <table class="npc-output-table">
+            <tbody>
+              <tr>
+                <th>Material costs</th>
+                <td id="npc-out-material">$0.00</td>
+              </tr>
+              <tr>
+                <th>Conversion costs</th>
+                <td id="npc-out-conversion">$0.00</td>
+              </tr>
+              <tr>
+                <th>Mkt, Freight, Corp costs</th>
+                <td id="npc-out-other">$0.00</td>
+              </tr>
+              <tr class="npc-output-total">
+                <th>TOTAL</th>
+                <td id="npc-out-total">$0.00</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="npc-detail-card">
+            <h3>Calculation Detail</h3>
+            <p id="npc-selected-key" class="small"></p>
+            <p id="npc-vol-adjust" class="small"></p>
+            <p id="npc-vol-ranges" class="small"></p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="new-product-costing.js?v=20260401-costing1"></script>
+</body>
+</html>
