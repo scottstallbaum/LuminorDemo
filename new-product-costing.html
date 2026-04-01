@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>New Product Costing Model - Luminor</title>
+  <title>New Product Introduction Costing Model - Luminor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260401-costing1" />
+  <link rel="stylesheet" href="styles.css?v=20260401-costing2" />
 </head>
 <body>
   <header class="topbar">
@@ -21,85 +21,99 @@
     </nav>
   </header>
 
-  <main class="layout npc-layout">
-    <section class="panel panel-wide npc-panel">
-      <div class="npc-titlebar">MillerCoors New Product Introduction Costing Model</div>
-      <div class="npc-columns-head">
-        <div>Input</div>
-        <div>Output</div>
+  <main class="layout">
+    <section class="panel panel-wide">
+      <div class="panel-head">
+        <h2>Cost Estimation</h2>
+        <p class="small">Product Information</p>
       </div>
 
       <div class="npc-grid">
         <section class="npc-inputs">
-          <h2 class="npc-section">Product Information</h2>
-          <div class="npc-row">
-            <label for="npc-plant">Plant</label>
-            <select id="npc-plant"></select>
-          </div>
-          <div class="npc-row">
-            <label for="npc-family">Brand Family</label>
-            <select id="npc-family"></select>
-          </div>
-          <div class="npc-row">
-            <label for="npc-volume">What is the anticipated full-year volume in the second year of production?</label>
-            <div class="npc-inline-input">
-              <input id="npc-volume" type="number" min="0" step="100" value="40000" />
-              <span>bbl</span>
+          <div class="npc-section-group">
+            <h3 class="npc-section-title">Reference Product</h3>
+            <div class="npc-row">
+              <label for="npc-plant">Plant</label>
+              <select id="npc-plant"></select>
+            </div>
+            <div class="npc-row">
+              <label for="npc-family">Brand Family</label>
+              <select id="npc-family"></select>
             </div>
           </div>
 
-          <h2 class="npc-section">Brewing</h2>
-          <div id="npc-brewing" class="npc-question-block"></div>
-
-          <h2 class="npc-section">Packaging</h2>
-          <div id="npc-packaging" class="npc-question-block"></div>
-
-          <h2 class="npc-section">Distribution</h2>
-          <div id="npc-distribution" class="npc-question-block"></div>
-
-          <h2 class="npc-section">Other</h2>
-          <div class="npc-row">
-            <label for="npc-capex">What, if any, additional capital investment is required?</label>
-            <div class="npc-inline-input">
-              <span>$</span>
-              <input id="npc-capex" type="number" min="0" step="1000" value="100000" />
+          <div class="npc-section-group">
+            <h3 class="npc-section-title">Volume &amp; Investment</h3>
+            <div class="npc-row">
+              <label for="npc-volume">Anticipated full-year volume (Year 2)</label>
+              <div class="npc-input-suffix">
+                <input id="npc-volume" type="number" min="0" step="100" value="40000" />
+                <span>bbl</span>
+              </div>
+            </div>
+            <div class="npc-row">
+              <label for="npc-capex">Additional capital investment</label>
+              <div class="npc-input-suffix">
+                <span>$</span>
+                <input id="npc-capex" type="number" min="0" step="1000" value="100000" />
+              </div>
+            </div>
+            <div class="npc-row">
+              <label for="npc-buffer">Buffer</label>
+              <div class="npc-input-suffix">
+                <input id="npc-buffer" type="number" min="0" step="1" value="0" />
+                <span>%</span>
+              </div>
             </div>
           </div>
-          <div id="npc-other" class="npc-question-block"></div>
-          <div class="npc-row">
-            <label for="npc-buffer">What size buffer would you like to apply?</label>
-            <div class="npc-inline-input">
-              <input id="npc-buffer" type="number" min="0" step="1" value="0" />
-              <span>%</span>
-            </div>
+
+          <div class="npc-section-group">
+            <h3 class="npc-section-title">Brewing</h3>
+            <div id="npc-brewing" class="npc-qblock"></div>
+          </div>
+
+          <div class="npc-section-group">
+            <h3 class="npc-section-title">Packaging</h3>
+            <div id="npc-packaging" class="npc-qblock"></div>
+          </div>
+
+          <div class="npc-section-group">
+            <h3 class="npc-section-title">Distribution</h3>
+            <div id="npc-distribution" class="npc-qblock"></div>
+          </div>
+
+          <div class="npc-section-group">
+            <h3 class="npc-section-title">Other</h3>
+            <div id="npc-other" class="npc-qblock"></div>
           </div>
         </section>
 
-        <aside class="npc-output">
-          <h2 class="npc-output-title">Complexity-Adj Cost/bbl</h2>
-          <table class="npc-output-table">
-            <tbody>
-              <tr>
-                <th>Material costs</th>
-                <td id="npc-out-material">$0.00</td>
-              </tr>
-              <tr>
-                <th>Conversion costs</th>
-                <td id="npc-out-conversion">$0.00</td>
-              </tr>
-              <tr>
-                <th>Mkt, Freight, Corp costs</th>
-                <td id="npc-out-other">$0.00</td>
-              </tr>
-              <tr class="npc-output-total">
-                <th>TOTAL</th>
-                <td id="npc-out-total">$0.00</td>
-              </tr>
-            </tbody>
-          </table>
+        <aside class="npc-output-panel">
+          <div class="npc-output-box">
+            <p class="npc-output-label">Complexity-Adjusted Cost/bbl</p>
+            <table class="npc-output-table">
+              <tbody>
+                <tr>
+                  <td>Material costs</td>
+                  <td id="npc-out-material">$0.00</td>
+                </tr>
+                <tr>
+                  <td>Conversion costs</td>
+                  <td id="npc-out-conversion">$0.00</td>
+                </tr>
+                <tr>
+                  <td>Mkt, Freight, Corp costs</td>
+                  <td id="npc-out-other">$0.00</td>
+                </tr>
+                <tr class="npc-total-row">
+                  <td>TOTAL</td>
+                  <td id="npc-out-total">$0.00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          <div class="npc-detail-card">
-            <h3>Calculation Detail</h3>
+          <div class="npc-detail">
             <p id="npc-selected-key" class="small"></p>
             <p id="npc-vol-adjust" class="small"></p>
             <p id="npc-vol-ranges" class="small"></p>
@@ -109,6 +123,6 @@
     </section>
   </main>
 
-  <script src="new-product-costing.js?v=20260401-costing1"></script>
+  <script src="new-product-costing.js?v=20260401-costing2"></script>
 </body>
 </html>

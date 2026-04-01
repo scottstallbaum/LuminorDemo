@@ -313,7 +313,7 @@ async function bootstrap() {
 
 bootstrap().catch((err) => {
   // Surface initialization failures in-page for easier debugging.
-  const target = document.querySelector(".npc-panel");
+  const target = document.querySelector(".panel-wide");
   if (target) {
     const pre = document.createElement("pre");
     pre.className = "small";
