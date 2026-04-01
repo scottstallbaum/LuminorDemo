@@ -2081,16 +2081,7 @@ th { color: var(--muted); font-weight: 600; }
 }
 
 .npc-detail {
-  padding: .8rem;
-  background: rgba(159, 176, 211, .06);
-  border: 1px solid var(--line);
-  border-radius: .5rem;
-}
-
-.npc-detail .small {
-  margin: .25rem 0;
-  font-size: .75rem;
-  color: var(--muted);
+  display: none;
 }
 
 @media (max-width: 1200px) {
