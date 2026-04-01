@@ -1952,14 +1952,14 @@ th { color: var(--muted); font-weight: 600; }
    ============================================================ */
 
 .panel-wide { grid-column: span 12; }
-.panel-head { margin: 0 0 1.1rem; }
-.panel-head h2 { margin: 0 0 .3rem; font-size: 1.1rem; }
+.panel-head { margin: 0 0 .75rem; }
+.panel-head h2 { margin: 0 0 .2rem; font-size: 1.1rem; }
 .panel-head .small { margin: 0; color: var(--muted); }
 
 .npc-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
-  gap: 1.5rem;
+  gap: 1.2rem;
 }
 
 .npc-inputs {
@@ -1967,7 +1967,7 @@ th { color: var(--muted); font-weight: 600; }
 }
 
 .npc-section-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: .95rem;
 }
 
 .npc-section-group:last-child {
@@ -1975,8 +1975,8 @@ th { color: var(--muted); font-weight: 600; }
 }
 
 .npc-section-title {
-  margin: 0 0 .8rem;
-  font-size: .95rem;
+  margin: 0 0 .45rem;
+  font-size: .82rem;
   font-weight: 600;
   color: var(--accent);
   text-transform: uppercase;
@@ -1985,17 +1985,17 @@ th { color: var(--muted); font-weight: 600; }
 
 .npc-qblock {
   display: grid;
-  gap: .75rem;
+  gap: .45rem;
 }
 
 .npc-row {
   display: grid;
-  gap: .4rem;
+  gap: .25rem;
 }
 
 .npc-row label {
   color: var(--muted);
-  font-size: .82rem;
+  font-size: .78rem;
   font-weight: 500;
 }
 
@@ -2005,9 +2005,9 @@ th { color: var(--muted); font-weight: 600; }
   background: #0d1528;
   color: var(--text);
   border: 1px solid var(--line);
-  border-radius: .5rem;
-  padding: .45rem .5rem;
-  font-size: .85rem;
+  border-radius: .4rem;
+  padding: .35rem .45rem;
+  font-size: .8rem;
 }
 
 .npc-input-suffix {
