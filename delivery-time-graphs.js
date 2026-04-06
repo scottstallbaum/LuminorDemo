@@ -88,12 +88,12 @@
     const strategic = [];
 
     for (let i = 0; i < 260; i++) {
-      const x = (r1() * 420) - 120;
-      const y = Math.max(0.15, (r1() * 10.5) + (x > 100 ? 1.1 : 0));
+      const x = (r1() * 180) - 80;
+      const y = Math.max(0.15, (r1() * 10.5) + (x > 35 ? 1.1 : 0));
       const point = { x, y };
       if (x < 0 && y >= 6) {
         atRisk.push(point);
-      } else if (x >= 80 && y >= 6) {
+      } else if (x >= 35 && y >= 6) {
         strategic.push(point);
       } else {
         neutral.push(point);
@@ -144,17 +144,17 @@
         scales: {
           x: {
             ...baseOptions.scales.x,
-            title: { display: true, text: "Economic Contribution ($)", color: COLORS.muted },
-            min: -140,
-            max: 330,
+            title: { display: true, text: "Contribution Margin %", color: COLORS.muted },
+            min: -80,
+            max: 100,
             ticks: {
               color: COLORS.muted,
-              callback: (v) => `$${Number(v).toFixed(0)}`
+              callback: (v) => `${Number(v).toFixed(0)}%`
             }
           },
           y: {
             ...baseOptions.scales.y,
-            title: { display: true, text: "Volume (k units)", color: COLORS.muted },
+            title: { display: true, text: "Volume", color: COLORS.muted },
             min: 0,
             max: 12,
             ticks: {
