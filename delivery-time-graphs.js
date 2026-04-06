@@ -59,21 +59,8 @@
 
       const xZero = x.getPixelForValue(0);
       const yMid = y.getPixelForValue(6);
-      const left = x.left;
-      const right = x.right;
-      const top = y.top;
-        const bottom = y.bottom;
 
       ctx.save();
-        // Subtle quadrant coloring for fast visual scanning.
-        ctx.fillStyle = "rgba(255,109,109,.08)";
-        ctx.fillRect(left, top, xZero - left, yMid - top);
-        ctx.fillStyle = "rgba(255,174,87,.08)";
-        ctx.fillRect(xZero, top, right - xZero, yMid - top);
-        ctx.fillStyle = "rgba(88,178,255,.08)";
-        ctx.fillRect(left, yMid, xZero - left, bottom - yMid);
-        ctx.fillStyle = "rgba(69,208,162,.08)";
-        ctx.fillRect(xZero, yMid, right - xZero, bottom - yMid);
 
       ctx.setLineDash([5, 4]);
       ctx.strokeStyle = "rgba(159,176,211,.55)";
@@ -91,20 +78,23 @@
   };
 
   function makeSkuScatter() {
-    const atRisk = [];
-    const neutral = [];
-    const strategic = [];
+    const quadTopLeft = [];
+    const quadTopRight = [];
+    const quadBottomLeft = [];
+    const quadBottomRight = [];
 
     for (let i = 0; i < 260; i++) {
-      const x = (r1() * 180) - 80;
-      const y = Math.max(0.15, (r1() * 10.5) + (x > 35 ? 1.1 : 0));
+      const x = (r1() * 120) - 60;
+      const y = Math.max(0.15, (r1() * 10.5) + (x > 20 ? 1.0 : 0));
       const point = { x, y };
       if (x < 0 && y >= 6) {
-        atRisk.push(point);
-      } else if (x >= 35 && y >= 6) {
-        strategic.push(point);
+        quadTopLeft.push(point);
+      } else if (x >= 0 && y >= 6) {
+        quadTopRight.push(point);
+      } else if (x < 0 && y < 6) {
+        quadBottomLeft.push(point);
       } else {
-        neutral.push(point);
+        quadBottomRight.push(point);
       }
     }
 
@@ -113,25 +103,32 @@
       data: {
         datasets: [
           {
-            label: "At-risk (high volume, low contribution)",
-            data: atRisk,
+            label: "Quadrant 1",
+            data: quadTopLeft,
             backgroundColor: "rgba(255,109,109,.68)",
             borderColor: "rgba(255,109,109,1)",
             pointRadius: 3.2
           },
           {
-            label: "Core SKUs",
-            data: neutral,
-            backgroundColor: "rgba(88,178,255,.45)",
-            borderColor: "rgba(88,178,255,.95)",
-            pointRadius: 2.8
+            label: "Quadrant 2",
+            data: quadTopRight,
+            backgroundColor: "rgba(255,174,87,.68)",
+            borderColor: "rgba(255,174,87,1)",
+            pointRadius: 3.2
           },
           {
-            label: "Strategic (high contribution)",
-            data: strategic,
+            label: "Quadrant 3",
+            data: quadBottomLeft,
+            backgroundColor: "rgba(88,178,255,.62)",
+            borderColor: "rgba(88,178,255,1)",
+            pointRadius: 2.9
+          },
+          {
+            label: "Quadrant 4",
+            data: quadBottomRight,
             backgroundColor: "rgba(69,208,162,.72)",
             borderColor: "rgba(69,208,162,1)",
-            pointRadius: 3.4
+            pointRadius: 3.0
           }
         ]
       },
@@ -145,8 +142,8 @@
           x: {
             ...baseOptions.scales.x,
             title: { display: true, text: "Contribution Margin %", color: COLORS.muted },
-            min: -80,
-            max: 100,
+            min: -60,
+            max: 60,
             ticks: {
               color: COLORS.muted,
               callback: (v) => `${Number(v).toFixed(0)}%`
