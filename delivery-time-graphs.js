@@ -73,11 +73,6 @@
 
       ctx.setLineDash([]);
 
-      ctx.fillStyle = "rgba(159,176,211,.9)";
-      ctx.font = "500 11px Inter";
-      ctx.fillText("Low contribution", x.left + 8, y.bottom - 8);
-      ctx.fillText("High contribution", x.right - 110, y.bottom - 8);
-
       ctx.restore();
     }
   };
