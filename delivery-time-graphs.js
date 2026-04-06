@@ -427,6 +427,57 @@
       EC: "EC"
     };
 
+    const abbrevGroupName = {
+      "Gross to Net Sales": "GTN SALES",
+      COGS: "COGS",
+      Warehousing: "WHSE",
+      Transportation: "TRANSP",
+      Marketing: "MKTG",
+      "Selling Costs": "SELL COSTS",
+      "Working Capital": "WC",
+      EC: "EC"
+    };
+
+    function wrapLabelLines(ctx, text, maxWidth) {
+      const words = text.split(/\s+/).filter(Boolean);
+      if (!words.length) return [];
+      const lines = [];
+      let line = words[0];
+
+      for (let i = 1; i < words.length; i++) {
+        const next = `${line} ${words[i]}`;
+        if (ctx.measureText(next).width <= maxWidth) {
+          line = next;
+        } else {
+          lines.push(line);
+          line = words[i];
+        }
+      }
+      lines.push(line);
+      return lines;
+    }
+
+    function fitGroupLabel(ctx, groupName, maxWidth) {
+      const full = shortGroupName[groupName] || groupName.toUpperCase();
+      const abbrev = abbrevGroupName[groupName] || full;
+
+      for (let size = 9; size >= 7; size--) {
+        ctx.font = `700 ${size}px Inter`;
+        const fullLines = wrapLabelLines(ctx, full, maxWidth);
+        if (fullLines.length <= 2 && fullLines.every((line) => ctx.measureText(line).width <= maxWidth)) {
+          return { lines: fullLines, size };
+        }
+
+        const abbrevLines = wrapLabelLines(ctx, abbrev, maxWidth);
+        if (abbrevLines.length <= 2 && abbrevLines.every((line) => ctx.measureText(line).width <= maxWidth)) {
+          return { lines: abbrevLines, size };
+        }
+      }
+
+      ctx.font = "700 7px Inter";
+      return { lines: [abbrev], size: 7 };
+    }
+
     const groupStyles = {
       "Gross to Net Sales": {
         fill: "rgba(58,178,225,.86)",
@@ -536,7 +587,7 @@
 
     groupIndexes.forEach((range, name) => {
       groups.push({
-        label: name.toUpperCase(),
+        name,
         color: (groupStyles[name] || groupStyles.COGS).header,
         start: range.start,
         end: range.end
@@ -602,13 +653,9 @@
           const endBounds = getBounds(group.end);
           const mid = (startBounds.left + endBounds.right) / 2;
           const availableWidth = Math.max(28, (endBounds.right - startBounds.left) - 8);
-          let labelFontSize = 9;
-
-          while (labelFontSize > 7) {
-            ctx.font = `700 ${labelFontSize}px Inter`;
-            if (ctx.measureText(group.label).width <= availableWidth) break;
-            labelFontSize -= 1;
-          }
+          const fitted = fitGroupLabel(ctx, group.name, availableWidth);
+          const lineHeight = fitted.size + 1;
+          const startY = (chartArea.top - 9) - (((fitted.lines.length - 1) * lineHeight) / 2);
 
           ctx.strokeStyle = group.color;
           ctx.lineWidth = 2;
@@ -618,7 +665,10 @@
           ctx.stroke();
 
           ctx.fillStyle = group.color;
-          ctx.fillText(group.label, mid, chartArea.top - 9);
+          ctx.font = `700 ${fitted.size}px Inter`;
+          fitted.lines.forEach((line, lineIndex) => {
+            ctx.fillText(line, mid, startY + (lineIndex * lineHeight));
+          });
         });
         ctx.restore();
       }
@@ -644,7 +694,7 @@
       options: {
         ...baseOptions,
         layout: {
-          padding: { top: 36, right: 6, bottom: 0, left: 0 }
+          padding: { top: 40, right: 6, bottom: 0, left: 0 }
         },
         plugins: {
           ...baseOptions.plugins,
