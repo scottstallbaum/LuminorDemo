@@ -428,12 +428,12 @@
     };
 
     const abbrevGroupName = {
-      "Gross to Net Sales": "GTN SALES",
+      "Gross to Net Sales": "GROSS TO NET",
       COGS: "COGS",
       Warehousing: "WHSE",
       Transportation: "TRANSP",
       Marketing: "MKTG",
-      "Selling Costs": "SELL COSTS",
+      "Selling Costs": "SELLING",
       "Working Capital": "WC",
       EC: "EC"
     };
