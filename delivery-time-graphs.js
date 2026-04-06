@@ -579,28 +579,35 @@
       }
     });
 
-    const firstIndexByGroup = new Map();
+    const groupRanges = new Map();
     const groupOrder = [];
+    const lastIndex = modelSteps.length - 1;
+
     modelSteps.forEach((step, idx) => {
-      if (!firstIndexByGroup.has(step.group)) {
-        firstIndexByGroup.set(step.group, idx);
-        groupOrder.push(step.group);
+      const groupName = (step.kind === "anchor" && idx > 0)
+        ? modelSteps[idx - 1].group
+        : step.group;
+
+      if (!groupRanges.has(groupName)) {
+        groupRanges.set(groupName, { start: idx, end: idx });
+        groupOrder.push(groupName);
+      } else {
+        groupRanges.get(groupName).end = idx;
+      }
+
+      if (step.kind === "anchor" || (step.kind === "total" && idx === lastIndex)) {
+        netTickIndexes.add(idx);
       }
     });
 
-    groupOrder.forEach((groupName, idx) => {
-      const start = firstIndexByGroup.get(groupName);
-      const end = idx < groupOrder.length - 1
-        ? firstIndexByGroup.get(groupOrder[idx + 1])
-        : (modelSteps.length - 1);
-
+    groupOrder.forEach((groupName) => {
+      const range = groupRanges.get(groupName);
       groups.push({
         name: groupName,
         color: (groupStyles[groupName] || groupStyles.COGS).header,
-        start,
-        end
+        start: range.start,
+        end: range.end
       });
-      netTickIndexes.add(end);
     });
 
     const waterfallBridgePlugin = {
