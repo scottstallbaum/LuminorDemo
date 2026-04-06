@@ -578,10 +578,10 @@
     ctx.font = `700 ${titleSize}px Inter`;
     titleLines = splitTitle(panelW - 34);
 
-    const titleLineHeight = title ? (titleSize + 4) : 0;
-    const noteBand = note ? 18 : 0;
-    const topPad = title ? 10 : 0;
-    const bottomPad = title ? 10 : 0;
+    const titleLineHeight = title ? (titleSize + 2) : 0;
+    const noteBand = note ? 12 : 0;
+    const topPad = title ? 6 : 0;
+    const bottomPad = title ? 4 : 0;
     const titleBand = title ? ((titleLines.length * titleLineHeight) + noteBand + topPad + bottomPad) : 16;
     const panelH = canvas.height + (panelPad * 2) + titleBand;
 
@@ -631,7 +631,7 @@
       if (note) {
         ctx.fillStyle = "#9fb0d3";
         ctx.font = "500 12px Inter";
-        const noteY = titleStartY + (titleLines.length * titleLineHeight) + 3;
+        const noteY = titleStartY + (titleLines.length * titleLineHeight) + 1;
         ctx.fillText(note, panelX + (panelW / 2), noteY);
       }
     }
