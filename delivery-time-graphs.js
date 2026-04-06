@@ -802,22 +802,24 @@
   }
 
   function makeLeadTimeCharts() {
-    const labels = Array.from({ length: 52 }, (_, i) => `C${i + 1}`);
-    const goodLeadTimes = labels.map((_, i) => {
-      const base = 13.1 + (Math.sin(i / 3.9) * 0.45);
-      const noise = (r1() - 0.5) * 2.1;
-      const occasionalBump = (i % 17 === 0) ? 0.9 : 0;
-      return Math.max(10.2, Math.min(16.6, base + noise + occasionalBump));
-    });
+    const goodLeadTimes = [
+      12.4, 11.8, 11.2, 12.1, 10.4, 10.5, 12.0, 11.7, 11.3, 9.9,
+      12.1, 13.9, 13.1, 14.5, 11.0, 11.8, 12.4, 11.9, 13.7, 12.0,
+      12.0, 13.1, 12.1, 12.8, 10.8, 9.9, 12.1, 13.9, 13.1, 12.0,
+      13.9, 11.7, 12.1, 12.0, 11.2, 12.7, 12.0, 12.4, 12.0, 10.2,
+      11.9, 12.4, 11.4, 12.0, 12.0, 12.0, 11.4, 14.5, 12.1, 12.4,
+      11.3, 13.4
+    ];
+    const labels = Array.from({ length: goodLeadTimes.length }, (_, i) => `C${i + 1}`);
     const profitableAvg = goodLeadTimes.reduce((a, b) => a + b, 0) / goodLeadTimes.length;
-    const badLeadTimes = labels.map((_, i) => {
-      const earlyPhase = profitableAvg - 0.35 + ((r2() - 0.5) * 3.0);
-      const lateTrend = (profitableAvg - 0.35) - ((i - 30) * 0.14);
-      const latePhase = lateTrend + ((r2() - 0.5) * 2.2);
-      const phaseValue = i < 31 ? earlyPhase : latePhase;
-      const expediteDip = (i % 12 === 0) ? -0.5 : 0;
-      return Math.max(8.0, Math.min(17.5, phaseValue + expediteDip));
-    });
+    const badLeadTimes = [
+      12.0, 11.6, 12.4, 12.9, 10.2, 13.8, 14.1, 15.6, 12.8, 12.1,
+      14.3, 13.8, 14.9, 15.5, 11.7, 13.0, 11.4, 9.6, 16.2, 14.0,
+      14.4, 14.1, 11.8, 12.3, 14.2, 14.8, 12.6, 14.9, 14.1, 13.8,
+      12.7, 15.6, 12.9, 10.0, 9.6, 8.8, 11.6, 11.2, 12.8, 9.0,
+      11.5, 11.0, 8.2, 9.0, 7.8, 7.2, 10.1, 7.7, 8.6, 8.1,
+      7.3, 6.9
+    ];
 
     new Chart(document.getElementById("dtg-leadtime-good"), {
       type: "line",
@@ -832,9 +834,10 @@
             pointBackgroundColor: "#9fc6c4",
             pointBorderColor: "#d6e6e4",
             pointBorderWidth: 1,
+            borderWidth: 2.6,
             pointRadius: 4,
             pointHoverRadius: 4.5,
-            tension: 0.16
+            tension: 0
           }
         ]
       },
@@ -854,8 +857,8 @@
           y: {
             ...baseOptions.scales.y,
             title: { display: true, text: "Lead Time (days)", color: COLORS.muted },
-            min: 8,
-            max: 22
+            min: 6,
+            max: 18
           }
         }
       }
@@ -874,9 +877,10 @@
             pointBackgroundColor: "#e86a85",
             pointBorderColor: "#e86a85",
             pointBorderWidth: 1,
+            borderWidth: 2.6,
             pointRadius: 4,
             pointHoverRadius: 4.5,
-            tension: 0.16
+            tension: 0
           },
           {
             label: `Avg profitable lead time (${profitableAvg.toFixed(1)} days)`,
@@ -906,8 +910,8 @@
           y: {
             ...baseOptions.scales.y,
             title: { display: true, text: "Lead Time (days)", color: COLORS.muted },
-            min: 8,
-            max: 22
+            min: 6,
+            max: 18
           }
         }
       }
