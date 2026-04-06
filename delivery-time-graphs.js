@@ -200,15 +200,35 @@
       { x: 0, y: 4 }
     ];
 
-    for (let i = 0; i < 42; i++) {
+    function canPlaceBubble(x, y, r) {
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        const dx = x - p.x;
+        const dy = y - p.y;
+        const dist = Math.sqrt((dx * dx) + (dy * dy));
+        if (dist < ((r + p.r) * 0.62)) return false;
+      }
+      return true;
+    }
+
+    // Fewer, cleaner bubbles with controlled overlap.
+    const targetCount = 24;
+    let attempts = 0;
+    while (pts.length < targetCount && attempts < 450) {
+      attempts += 1;
       const c = centers[Math.floor(r2() * centers.length)];
-      const x = c.x + ((r2() - 0.5) * 26);
-      const y = c.y + ((r2() - 0.5) * 24);
-      const skew = Math.pow(r2(), 2.2);
-      let r = 4 + (skew * 42);
-      if (r2() > 0.88) r += 9;
-      r = Math.max(4, Math.min(56, r));
-      pts.push({ x, y, r });
+      const x = c.x + ((r2() - 0.5) * 18);
+      const y = c.y + ((r2() - 0.5) * 16);
+      const skew = Math.pow(r2(), 1.8);
+      let r = 5 + (skew * 24);
+      if (r2() > 0.92) r += 5;
+      r = Math.max(5, Math.min(30, r));
+
+      const clampedX = Math.max(-52, Math.min(52, x));
+      const clampedY = Math.max(-52, Math.min(52, y));
+      if (canPlaceBubble(clampedX, clampedY, r)) {
+        pts.push({ x: clampedX, y: clampedY, r });
+      }
     }
 
     return new Chart(document.getElementById("dtg-seg-bubble"), {
