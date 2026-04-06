@@ -803,13 +803,20 @@
 
   function makeLeadTimeCharts() {
     const labels = Array.from({ length: 52 }, (_, i) => `C${i + 1}`);
-    const goodLeadTimes = labels.map(() => 13.3 + ((r1() - 0.5) * 4.6));
+    const goodLeadTimes = labels.map((_, i) => {
+      const base = 13.1 + (Math.sin(i / 3.9) * 0.45);
+      const noise = (r1() - 0.5) * 2.1;
+      const occasionalBump = (i % 17 === 0) ? 0.9 : 0;
+      return Math.max(10.2, Math.min(16.6, base + noise + occasionalBump));
+    });
     const profitableAvg = goodLeadTimes.reduce((a, b) => a + b, 0) / goodLeadTimes.length;
     const badLeadTimes = labels.map((_, i) => {
-      const baseline = profitableAvg - 1.1 - (i * 0.008);
-      const volatility = (r2() - 0.5) * 2.2;
-      const expediteDip = (i % 14 === 0) ? -0.45 : 0;
-      return Math.max(8.4, baseline + volatility + expediteDip);
+      const earlyPhase = profitableAvg - 0.35 + ((r2() - 0.5) * 3.0);
+      const lateTrend = (profitableAvg - 0.35) - ((i - 30) * 0.14);
+      const latePhase = lateTrend + ((r2() - 0.5) * 2.2);
+      const phaseValue = i < 31 ? earlyPhase : latePhase;
+      const expediteDip = (i % 12 === 0) ? -0.5 : 0;
+      return Math.max(8.0, Math.min(17.5, phaseValue + expediteDip));
     });
 
     new Chart(document.getElementById("dtg-leadtime-good"), {
