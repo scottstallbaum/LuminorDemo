@@ -538,8 +538,18 @@
     const netTickIndexes = new Set();
     let cumulative = 0;
 
+    const getEffectiveGroupName = (steps, idx) => {
+      const step = steps[idx];
+      if (!step) return "COGS";
+      if (step.kind === "anchor" && idx > 0) {
+        return steps[idx - 1].group;
+      }
+      return step.group;
+    };
+
     config.steps.forEach((step, index) => {
-      const style = groupStyles[step.group] || groupStyles.COGS;
+      const effectiveGroupName = getEffectiveGroupName(config.steps, index);
+      const style = groupStyles[effectiveGroupName] || groupStyles.COGS;
 
       let startValue = cumulative;
       let endValue = cumulative;
@@ -584,9 +594,7 @@
     const lastIndex = modelSteps.length - 1;
 
     modelSteps.forEach((step, idx) => {
-      const groupName = (step.kind === "anchor" && idx > 0)
-        ? modelSteps[idx - 1].group
-        : step.group;
+      const groupName = getEffectiveGroupName(modelSteps, idx);
 
       if (!groupRanges.has(groupName)) {
         groupRanges.set(groupName, { start: idx, end: idx });
