@@ -801,38 +801,79 @@
     });
   }
 
-  function makeLeadTime() {
-    const labels = Array.from({ length: 34 }, (_, i) => `C${i + 1}`);
-    const high = labels.map(() => 13 + (r1() * 3.8));
-    const low = labels.map(() => 12 + (r2() * 6.2));
-    const highAvg = high.reduce((a, b) => a + b, 0) / high.length;
+  function makeLeadTimeCharts() {
+    const labels = Array.from({ length: 52 }, (_, i) => `C${i + 1}`);
+    const goodLeadTimes = labels.map(() => 13.3 + ((r1() - 0.5) * 4.6));
+    const profitableAvg = goodLeadTimes.reduce((a, b) => a + b, 0) / goodLeadTimes.length;
+    const badLeadTimes = labels.map((_, i) => {
+      const trend = i < 32 ? 16.4 : (16.4 - ((i - 31) * 0.27));
+      return trend + ((r2() - 0.5) * 5.1);
+    });
 
-    return new Chart(document.getElementById("dtg-leadtime"), {
+    new Chart(document.getElementById("dtg-leadtime-good"), {
       type: "line",
       data: {
         labels,
         datasets: [
           {
-            label: "High-profit customers",
-            data: high,
-            borderColor: COLORS.accent,
-            backgroundColor: "rgba(69,208,162,.2)",
-            pointRadius: 2.7,
-            tension: 0.26
+            label: "Profitable customers",
+            data: goodLeadTimes,
+            borderColor: "#9fc6c4",
+            backgroundColor: "rgba(159,198,196,.22)",
+            pointBackgroundColor: "#9fc6c4",
+            pointBorderColor: "#d6e6e4",
+            pointBorderWidth: 1,
+            pointRadius: 4,
+            pointHoverRadius: 4.5,
+            tension: 0.16
+          }
+        ]
+      },
+      options: {
+        ...baseOptions,
+        plugins: {
+          ...baseOptions.plugins,
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            ...baseOptions.scales.x,
+            title: { display: true, text: "Profitable customers", color: COLORS.muted },
+            ticks: { display: false },
+            grid: { display: false }
           },
+          y: {
+            ...baseOptions.scales.y,
+            title: { display: true, text: "Lead Time (days)", color: COLORS.muted },
+            min: 8,
+            max: 22
+          }
+        }
+      }
+    });
+
+    new Chart(document.getElementById("dtg-leadtime-bad"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
           {
             label: "Unprofitable customers",
-            data: low,
-            borderColor: COLORS.danger,
-            backgroundColor: "rgba(255,109,109,.2)",
-            pointRadius: 2.7,
-            tension: 0.26
+            data: badLeadTimes,
+            borderColor: "#e86a85",
+            backgroundColor: "rgba(232,106,133,.2)",
+            pointBackgroundColor: "#e86a85",
+            pointBorderColor: "#e86a85",
+            pointBorderWidth: 1,
+            pointRadius: 4,
+            pointHoverRadius: 4.5,
+            tension: 0.16
           },
           {
-            label: "Average (high-profit)",
-            data: labels.map(() => highAvg),
-            borderColor: "#8da8cb",
-            borderDash: [6, 4],
+            label: `Avg profitable lead time (${profitableAvg.toFixed(1)} days)`,
+            data: labels.map(() => profitableAvg),
+            borderColor: "#9fc6c4",
+            borderDash: [6, 5],
             pointRadius: 0,
             tension: 0
           }
@@ -840,18 +881,24 @@
       },
       options: {
         ...baseOptions,
+        plugins: {
+          ...baseOptions.plugins,
+          legend: {
+            labels: { color: COLORS.muted }
+          }
+        },
         scales: {
           x: {
             ...baseOptions.scales.x,
-            title: { display: true, text: "Customers (ranked by profitability)", color: COLORS.muted },
+            title: { display: true, text: "Unprofitable customers", color: COLORS.muted },
             ticks: { display: false },
             grid: { display: false }
           },
           y: {
             ...baseOptions.scales.y,
-            title: { display: true, text: "Average Lead Time (days)", color: COLORS.muted },
+            title: { display: true, text: "Lead Time (days)", color: COLORS.muted },
             min: 8,
-            max: 20
+            max: 22
           }
         }
       }
@@ -1173,7 +1220,7 @@
         { group: "EC", kind: "total", pct: "15%", value: 0.41 }
       ]
     });
-    makeLeadTime();
+    makeLeadTimeCharts();
     makeImpact();
     bindExportButtons();
   }

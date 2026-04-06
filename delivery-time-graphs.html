@@ -83,10 +83,17 @@
         </article>
         <article class="dtg-card dtg-span-two">
           <div class="dtg-card-head">
-            <h3>Average Lead Time (high-profit vs. low-profit customers)</h3>
-            <button class="ghost dtg-export" data-canvas="dtg-leadtime">Copy Image</button>
+            <h3>Lead Times: Profitable Customers</h3>
+            <button class="ghost dtg-export" data-canvas="dtg-leadtime-good">Copy Image</button>
           </div>
-          <div class="dtg-canvas-wrap"><canvas id="dtg-leadtime"></canvas></div>
+          <div class="dtg-canvas-wrap"><canvas id="dtg-leadtime-good"></canvas></div>
+        </article>
+        <article class="dtg-card">
+          <div class="dtg-card-head">
+            <h3>Lead Times: Unprofitable Customers</h3>
+            <button class="ghost dtg-export" data-canvas="dtg-leadtime-bad">Copy Image</button>
+          </div>
+          <div class="dtg-canvas-wrap"><canvas id="dtg-leadtime-bad"></canvas></div>
         </article>
       </div>
     </section>
@@ -111,6 +118,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="delivery-time-graphs.js?v=20260406-dtg18"></script>
+  <script src="delivery-time-graphs.js?v=20260406-dtg20"></script>
 </body>
 </html>
