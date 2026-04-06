@@ -823,6 +823,25 @@
     ];
     const badLabels = Array.from({ length: badLeadTimes.length }, (_, i) => `C${i + 1}`);
 
+    const lineLegendLabels = {
+      usePointStyle: true,
+      pointStyle: "line",
+      color: COLORS.muted,
+      generateLabels(chart) {
+        const base = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+        return base.map((item) => {
+          const dataset = chart.data.datasets[item.datasetIndex] || {};
+          return {
+            ...item,
+            fillStyle: "rgba(0,0,0,0)",
+            strokeStyle: dataset.borderColor || item.strokeStyle,
+            lineWidth: dataset.borderWidth || 2,
+            lineDash: dataset.borderDash || []
+          };
+        });
+      }
+    };
+
     new Chart(document.getElementById("dtg-leadtime-good"), {
       type: "line",
       data: {
@@ -857,16 +876,17 @@
           ...baseOptions.plugins,
           legend: {
             display: true,
-            labels: {
-              color: COLORS.muted,
-              usePointStyle: false
-            }
+            labels: lineLegendLabels
           }
         },
         scales: {
           x: {
             ...baseOptions.scales.x,
-            title: { display: true, text: "Profitable customers (ranked from most to least profitable)", color: COLORS.muted },
+            title: {
+              display: true,
+              text: ["Profitable customers", "(ranked from most to least profitable)"],
+              color: COLORS.muted
+            },
             ticks: { display: false },
             grid: { display: false }
           },
@@ -913,16 +933,17 @@
         plugins: {
           ...baseOptions.plugins,
           legend: {
-            labels: {
-              color: COLORS.muted,
-              usePointStyle: false
-            }
+            labels: lineLegendLabels
           }
         },
         scales: {
           x: {
             ...baseOptions.scales.x,
-            title: { display: true, text: "Unprofitable customers (ranked from most to least profitable)", color: COLORS.muted },
+            title: {
+              display: true,
+              text: ["Unprofitable customers", "(ranked from most to least profitable)"],
+              color: COLORS.muted
+            },
             ticks: { display: false },
             grid: { display: false }
           },
