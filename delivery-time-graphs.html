@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Delivery Time Optimization Graph Pack — Luminor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20260406-dtg1" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Luminor Demo</p>
+      <h1>Delivery Time Optimization — Graph Pack</h1>
+      <p class="subtitle">Standalone visual outputs for PPT paste-in (no slide layout).</p>
+    </div>
+    <nav class="topbar-nav">
+      <a href="index.html" class="ghost topbar-back">← Dashboard</a>
+      <a href="simulator.html" class="ghost topbar-back">Portfolio Management Simulator →</a>
+    </nav>
+  </header>
+
+  <main class="layout dtg-layout">
+    <section class="panel panel-wide dtg-panel">
+      <div class="panel-head panel-head-inline">
+        <div>
+          <h2>1. Segmentation Setup</h2>
+          <p class="small">Use these three visuals to establish cohorts and benchmark groups.</p>
+        </div>
+      </div>
+      <div class="dtg-grid dtg-grid-three">
+        <article class="dtg-card">
+          <div class="dtg-card-head">
+            <h3>Economic Contribution vs. Volume (by SKU)</h3>
+            <button class="ghost dtg-export" data-canvas="dtg-sku-scatter">Download PNG</button>
+          </div>
+          <div class="dtg-canvas-wrap"><canvas id="dtg-sku-scatter"></canvas></div>
+        </article>
+        <article class="dtg-card">
+          <div class="dtg-card-head">
+            <h3>Customer Segmentation (requirements clusters)</h3>
+            <button class="ghost dtg-export" data-canvas="dtg-seg-bubble">Download PNG</button>
+          </div>
+          <div class="dtg-canvas-wrap"><canvas id="dtg-seg-bubble"></canvas></div>
+        </article>
+        <article class="dtg-card">
+          <div class="dtg-card-head">
+            <h3>Economic Contribution % vs. Volume (by customer)</h3>
+            <button class="ghost dtg-export" data-canvas="dtg-customer-scatter">Download PNG</button>
+          </div>
+          <div class="dtg-canvas-wrap"><canvas id="dtg-customer-scatter"></canvas></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel panel-wide dtg-panel">
+      <div class="panel-head panel-head-inline">
+        <div>
+          <h2>2. Group Comparison + Service Baseline</h2>
+          <p class="small">Compare profitable vs. unprofitable high-volume cohorts and service behavior.</p>
+        </div>
+      </div>
+      <div class="dtg-grid dtg-grid-two">
+        <article class="dtg-card">
+          <div class="dtg-card-head">
+            <h3>Group 1 Economic Comparison (unprofitable high-volume)</h3>
+            <button class="ghost dtg-export" data-canvas="dtg-group1-waterfall">Download PNG</button>
+          </div>
+          <div class="dtg-canvas-wrap"><canvas id="dtg-group1-waterfall"></canvas></div>
+        </article>
+        <article class="dtg-card">
+          <div class="dtg-card-head">
+            <h3>Group 2 Economic Comparison (profitable high-volume)</h3>
+            <button class="ghost dtg-export" data-canvas="dtg-group2-waterfall">Download PNG</button>
+          </div>
+          <div class="dtg-canvas-wrap"><canvas id="dtg-group2-waterfall"></canvas></div>
+        </article>
+        <article class="dtg-card dtg-span-two">
+          <div class="dtg-card-head">
+            <h3>Average Lead Time (high-profit vs. low-profit customers)</h3>
+            <button class="ghost dtg-export" data-canvas="dtg-leadtime">Download PNG</button>
+          </div>
+          <div class="dtg-canvas-wrap"><canvas id="dtg-leadtime"></canvas></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel panel-wide dtg-panel">
+      <div class="panel-head panel-head-inline">
+        <div>
+          <h2>3. Estimated Financial Impact</h2>
+          <p class="small">Translate lead-time performance gap into economics by lever.</p>
+        </div>
+      </div>
+      <div class="dtg-grid dtg-grid-one">
+        <article class="dtg-card">
+          <div class="dtg-card-head">
+            <h3>Estimated Financial Impact (annualized)</h3>
+            <button class="ghost dtg-export" data-canvas="dtg-impact">Download PNG</button>
+          </div>
+          <div class="dtg-canvas-wrap"><canvas id="dtg-impact"></canvas></div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="delivery-time-graphs.js?v=20260406-dtg1"></script>
+</body>
+</html>
