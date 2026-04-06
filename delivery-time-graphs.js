@@ -192,24 +192,24 @@
   function makeSegBubble() {
     // Fixed bubble placement/size modeled from the reference composition.
     const pts = [
-      { x: -46, y: 42, r: 9 },
-      { x: -22, y: 27, r: 28 },
-      { x: -29, y: 7, r: 24 },
-      { x: -9, y: -21, r: 12 },
-      { x: -43, y: -26, r: 13 },
-      { x: -31, y: -39, r: 12 },
-      { x: -20, y: -45, r: 20 },
-      { x: -2, y: -31, r: 6 },
-      { x: 0, y: 18, r: 10 },
-      { x: 7, y: 13, r: 17 },
-      { x: 13, y: 3, r: 9 },
-      { x: 18, y: -22, r: 18 },
-      { x: 16, y: -11, r: 10 },
-      { x: 24, y: 24, r: 23 },
-      { x: 42, y: 22, r: 33 },
-      { x: 50, y: 8, r: 14 },
-      { x: 34, y: -27, r: 32 },
-      { x: 54, y: -45, r: 8 }
+      { x: -46, y: 72, r: 9 },
+      { x: -22, y: 61, r: 28 },
+      { x: -29, y: 49, r: 24 },
+      { x: -9, y: 34, r: 12 },
+      { x: -43, y: 31, r: 13 },
+      { x: -31, y: 24, r: 12 },
+      { x: -20, y: 22, r: 20 },
+      { x: -2, y: 30, r: 6 },
+      { x: 0, y: 56, r: 10 },
+      { x: 7, y: 53, r: 17 },
+      { x: 13, y: 46, r: 9 },
+      { x: 18, y: 34, r: 18 },
+      { x: 16, y: 40, r: 10 },
+      { x: 24, y: 63, r: 23 },
+      { x: 42, y: 62, r: 33 },
+      { x: 50, y: 55, r: 14 },
+      { x: 34, y: 32, r: 32 },
+      { x: 54, y: 24, r: 8 }
     ];
 
     const segCrosshairPlugin = {
@@ -274,15 +274,18 @@
               color: COLORS.muted,
               callback: (v) => `${Number(v).toFixed(0)}%`
             },
-            grid: { display: false }
+            grid: { color: "rgba(159,176,211,.12)" }
           },
           y: {
             ...baseOptions.scales.y,
-            title: { display: true, text: "Cost to Serve Spread", color: COLORS.muted },
-            min: -55,
-            max: 55,
-            ticks: { display: false },
-            grid: { display: false }
+            title: { display: true, text: "Cost to Serve %", color: COLORS.muted },
+            min: 20,
+            max: 80,
+            ticks: {
+              color: COLORS.muted,
+              callback: (v) => `${Number(v).toFixed(0)}%`
+            },
+            grid: { color: "rgba(159,176,211,.12)" }
           }
         }
       },
