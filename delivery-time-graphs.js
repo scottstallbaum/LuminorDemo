@@ -596,8 +596,8 @@
         }
 
         ctx.textAlign = "center";
-        ctx.textBaseline = "alphabetic";
-        ctx.font = "700 10px Inter";
+        ctx.textBaseline = "middle";
+        ctx.font = "700 11px Inter";
         groups.forEach((group) => {
           const startBounds = getBounds(group.start);
           const endBounds = getBounds(group.end);
@@ -605,12 +605,12 @@
           ctx.strokeStyle = group.color;
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.moveTo(startBounds.left + 2, chartArea.top + 1);
-          ctx.lineTo(endBounds.right - 2, chartArea.top + 1);
+          ctx.moveTo(startBounds.left + 2, chartArea.top + 3);
+          ctx.lineTo(endBounds.right - 2, chartArea.top + 3);
           ctx.stroke();
 
           ctx.fillStyle = group.color;
-          ctx.fillText(group.label, mid, chartArea.top - 8);
+          ctx.fillText(group.label, mid, chartArea.top + 14);
         });
         ctx.restore();
       }
@@ -635,7 +635,7 @@
       options: {
         ...baseOptions,
         layout: {
-          padding: { top: 42, right: 6, bottom: 0, left: 0 }
+          padding: { top: 56, right: 6, bottom: 0, left: 0 }
         },
         plugins: {
           ...baseOptions.plugins,
