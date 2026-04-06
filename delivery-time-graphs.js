@@ -973,16 +973,33 @@
       "Manufacturing",
       "Total Savings"
     ];
-    const vals = [2.5, 0.9, 0.7, 0.6, 0.2, 0.15, 5.05];
+    const benefitVals = [2.5, 0.9, 0.7, 0.6, 0.2, 0.15];
+    const totalSavings = benefitVals.reduce((sum, val) => sum + val, 0);
+
+    let running = 0;
+    const bars = benefitVals.map((val) => {
+      const start = running;
+      running += val;
+      return [start, running];
+    });
+    bars.push([0, totalSavings]);
+
+    const barColors = labels.map((label) =>
+      label === "Total Savings" ? "rgba(69,208,162,.72)" : "rgba(88,178,255,.72)"
+    );
+    const borderColors = labels.map((label) =>
+      label === "Total Savings" ? "rgba(69,208,162,1)" : "rgba(88,178,255,1)"
+    );
+
     return new Chart(document.getElementById("dtg-impact"), {
       type: "bar",
       data: {
         labels,
         datasets: [{
           label: "$MM",
-          data: vals,
-          backgroundColor: labels.map((l) => l === "Total Savings" ? "rgba(69,208,162,.72)" : "rgba(88,178,255,.72)"),
-          borderColor: labels.map((l) => l === "Total Savings" ? "rgba(69,208,162,1)" : "rgba(88,178,255,1)"),
+          data: bars,
+          backgroundColor: barColors,
+          borderColor: borderColors,
           borderWidth: 1,
           borderRadius: 4
         }]
@@ -990,10 +1007,6 @@
       options: {
         ...baseOptions,
         indexAxis: "y",
-        plugins: {
-          ...baseOptions.plugins,
-          legend: { display: false }
-        },
         scales: {
           x: {
             ...baseOptions.scales.x,
@@ -1004,6 +1017,24 @@
           y: {
             ...baseOptions.scales.y,
             grid: { display: false }
+          }
+        },
+        plugins: {
+          ...baseOptions.plugins,
+          legend: { display: false },
+          tooltip: {
+            ...baseOptions.plugins.tooltip,
+            callbacks: {
+              label: (item) => {
+                const idx = item.dataIndex;
+                if (idx === labels.length - 1) {
+                  return `Total: $${totalSavings.toFixed(2)}MM`;
+                }
+                const val = benefitVals[idx];
+                const cumulative = bars[idx][1];
+                return [`Benefit: $${val.toFixed(2)}MM`, `Cumulative: $${cumulative.toFixed(2)}MM`];
+              }
+            }
           }
         }
       }
