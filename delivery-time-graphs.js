@@ -509,17 +509,21 @@
     });
   }
 
-  function getChartTitle(canvas) {
+  function getChartMeta(canvas) {
     const card = canvas.closest(".dtg-card");
     const titleEl = card?.querySelector(".dtg-card-head h3");
-    return titleEl?.textContent?.trim() || "";
+    const noteEl = card?.querySelector(".dtg-card-head .dtg-inline-note");
+    return {
+      title: titleEl?.textContent?.trim() || "",
+      note: noteEl?.textContent?.trim() || ""
+    };
   }
 
   function buildExportCanvas(canvas) {
-    const title = getChartTitle(canvas);
+    const { title, note } = getChartMeta(canvas);
     const outerPad = 34;
     const panelPad = 18;
-    const titleBand = title ? 54 : 16;
+    const titleBand = title ? (note ? 74 : 58) : 16;
     const panelW = canvas.width + (panelPad * 2);
     const panelH = canvas.height + (panelPad * 2) + titleBand;
 
@@ -560,11 +564,23 @@
     ctx.stroke();
 
     if (title) {
-      ctx.fillStyle = "#e8eefc";
-      ctx.font = "700 22px Inter";
-      ctx.textBaseline = "middle";
+      let titleSize = 22;
       ctx.textAlign = "center";
-      ctx.fillText(title, panelX + (panelW / 2), panelY + (titleBand / 2) + 2);
+      ctx.textBaseline = "middle";
+      while (titleSize > 14) {
+        ctx.font = `700 ${titleSize}px Inter`;
+        if (ctx.measureText(title).width <= (panelW - 34)) break;
+        titleSize -= 1;
+      }
+
+      ctx.fillStyle = "#e8eefc";
+      ctx.fillText(title, panelX + (panelW / 2), panelY + 26);
+
+      if (note) {
+        ctx.fillStyle = "#9fb0d3";
+        ctx.font = "500 12px Inter";
+        ctx.fillText(note, panelX + (panelW / 2), panelY + 49);
+      }
     }
 
     const chartX = panelX + panelPad;
