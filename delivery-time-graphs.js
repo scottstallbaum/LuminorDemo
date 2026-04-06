@@ -218,7 +218,7 @@
         if (chart.canvas.id !== "dtg-seg-bubble") return;
         const { ctx, scales: { x, y } } = chart;
         const xZero = x.getPixelForValue(0);
-        const yZero = y.getPixelForValue(0);
+        const yFifty = y.getPixelForValue(50);
 
         ctx.save();
         ctx.strokeStyle = "rgba(159,176,211,.7)";
@@ -226,8 +226,8 @@
         ctx.beginPath();
         ctx.moveTo(xZero, y.top);
         ctx.lineTo(xZero, y.bottom);
-        ctx.moveTo(x.left, yZero);
-        ctx.lineTo(x.right, yZero);
+        ctx.moveTo(x.left, yFifty);
+        ctx.lineTo(x.right, yFifty);
         ctx.stroke();
         ctx.restore();
       }
@@ -267,7 +267,7 @@
         scales: {
           x: {
             ...baseOptions.scales.x,
-            title: { display: true, text: "Economic Contribution $", color: COLORS.muted },
+            title: { display: true, text: "Contribution Margin %", color: COLORS.muted },
             min: -60,
             max: 60,
             ticks: {
