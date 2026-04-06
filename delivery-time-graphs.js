@@ -96,21 +96,31 @@
       }
     }
 
-    // Broad cloud
-    for (let i = 0; i < 760; i++) {
-      const x = (r1() * 120) - 60;
-      const y = Math.max(0.15, (r1() * 10.5) + (x > 20 ? 1.0 : 0));
-      addPointToQuadrant({ x, y });
+    function randNormal() {
+      const u = Math.max(1e-6, r1());
+      const v = Math.max(1e-6, r1());
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
     }
 
-    // Diagonal concentration (bottom-left to top-right trend)
-    for (let i = 0; i < 260; i++) {
-      const x = -60 + (i / 259) * 120 + ((r1() - 0.5) * 8);
-      const y = 6 + (x / 12) + ((r1() - 0.5) * 1.6);
-      const clampedX = Math.max(-60, Math.min(60, x));
-      const clampedY = Math.max(0.15, Math.min(11.85, y));
-      addPointToQuadrant({ x: clampedX, y: clampedY });
+    function addCluster(centerX, centerY, spreadX, spreadY, count) {
+      for (let i = 0; i < count; i++) {
+        const x = centerX + (randNormal() * spreadX);
+        const y = centerY + (randNormal() * spreadY);
+        addPointToQuadrant({
+          x: Math.max(-60, Math.min(60, x)),
+          y: Math.max(0.15, Math.min(11.85, y))
+        });
+      }
     }
+
+    // Natural-looking quadrant clouds (closer to the original reference style).
+    addCluster(-22, 8.2, 14.5, 1.35, 260);
+    addCluster(22, 8.3, 14.5, 1.35, 300);
+    addCluster(-21, 2.6, 14.5, 1.75, 290);
+    addCluster(22, 2.8, 14.5, 1.85, 320);
+
+    // Add a light center cloud so the split lines feel less artificial.
+    addCluster(0, 6.0, 8.5, 1.0, 120);
 
     return new Chart(document.getElementById("dtg-sku-scatter"), {
       type: "scatter",
