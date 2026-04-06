@@ -857,8 +857,8 @@
           y: {
             ...baseOptions.scales.y,
             title: { display: true, text: "Lead Time (days)", color: COLORS.muted },
-            min: 6,
-            max: 18
+            min: 7,
+            max: 16.5
           }
         }
       }
@@ -910,8 +910,8 @@
           y: {
             ...baseOptions.scales.y,
             title: { display: true, text: "Lead Time (days)", color: COLORS.muted },
-            min: 6,
-            max: 18
+            min: 7,
+            max: 16.5
           }
         }
       }
