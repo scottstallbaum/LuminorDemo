@@ -51,41 +51,134 @@
     }
   };
 
+  const skuScatterGuidePlugin = {
+    id: "skuScatterGuidePlugin",
+    afterDraw(chart) {
+      if (chart.canvas.id !== "dtg-sku-scatter") return;
+      const { ctx, scales: { x, y } } = chart;
+
+      const zoneLeft = x.getPixelForValue(80);
+      const zoneRight = x.getPixelForValue(330);
+      const zoneTop = y.getPixelForValue(12);
+      const zoneBottom = y.getPixelForValue(6);
+      const xZero = x.getPixelForValue(0);
+      const yMid = y.getPixelForValue(6);
+
+      ctx.save();
+
+      // Highlight desirable high-contribution, high-volume zone.
+      ctx.fillStyle = "rgba(69,208,162,.12)";
+      ctx.strokeStyle = "rgba(69,208,162,.65)";
+      ctx.lineWidth = 1;
+      ctx.fillRect(zoneLeft, zoneTop, zoneRight - zoneLeft, zoneBottom - zoneTop);
+      ctx.strokeRect(zoneLeft, zoneTop, zoneRight - zoneLeft, zoneBottom - zoneTop);
+
+      ctx.setLineDash([5, 4]);
+      ctx.strokeStyle = "rgba(159,176,211,.55)";
+      ctx.beginPath();
+      ctx.moveTo(xZero, y.top);
+      ctx.lineTo(xZero, y.bottom);
+      ctx.moveTo(x.left, yMid);
+      ctx.lineTo(x.right, yMid);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+      ctx.fillStyle = "#aef4dd";
+      ctx.font = "600 12px Inter";
+      ctx.fillText("Priority Opportunity Zone", zoneLeft + 8, zoneTop + 16);
+
+      ctx.fillStyle = "rgba(159,176,211,.9)";
+      ctx.font = "500 11px Inter";
+      ctx.fillText("Low contribution", x.left + 8, y.bottom - 8);
+      ctx.fillText("High contribution", x.right - 110, y.bottom - 8);
+
+      ctx.restore();
+    }
+  };
+
   function makeSkuScatter() {
-    const data = [];
+    const atRisk = [];
+    const neutral = [];
+    const strategic = [];
+
     for (let i = 0; i < 260; i++) {
       const x = (r1() * 420) - 120;
       const y = Math.max(0.15, (r1() * 10.5) + (x > 100 ? 1.1 : 0));
-      data.push({ x, y });
+      const point = { x, y };
+      if (x < 0 && y >= 6) {
+        atRisk.push(point);
+      } else if (x >= 80 && y >= 6) {
+        strategic.push(point);
+      } else {
+        neutral.push(point);
+      }
     }
+
     return new Chart(document.getElementById("dtg-sku-scatter"), {
       type: "scatter",
       data: {
-        datasets: [{
-          label: "SKUs",
-          data,
-          backgroundColor: "rgba(88,178,255,.5)",
-          borderColor: "rgba(88,178,255,.95)",
-          pointRadius: 3
-        }]
+        datasets: [
+          {
+            label: "At-risk (high volume, low contribution)",
+            data: atRisk,
+            backgroundColor: "rgba(255,109,109,.68)",
+            borderColor: "rgba(255,109,109,1)",
+            pointRadius: 3.2
+          },
+          {
+            label: "Core SKUs",
+            data: neutral,
+            backgroundColor: "rgba(88,178,255,.45)",
+            borderColor: "rgba(88,178,255,.95)",
+            pointRadius: 2.8
+          },
+          {
+            label: "Strategic (high contribution)",
+            data: strategic,
+            backgroundColor: "rgba(69,208,162,.72)",
+            borderColor: "rgba(69,208,162,1)",
+            pointRadius: 3.4
+          }
+        ]
       },
       options: {
         ...baseOptions,
+        plugins: {
+          ...baseOptions.plugins,
+          legend: {
+            labels: {
+              color: COLORS.muted,
+              boxWidth: 11,
+              boxHeight: 11,
+              usePointStyle: true,
+              pointStyle: "circle"
+            }
+          }
+        },
         scales: {
           x: {
             ...baseOptions.scales.x,
             title: { display: true, text: "Economic Contribution ($)", color: COLORS.muted },
             min: -140,
-            max: 330
+            max: 330,
+            ticks: {
+              color: COLORS.muted,
+              callback: (v) => `$${Number(v).toFixed(0)}`
+            }
           },
           y: {
             ...baseOptions.scales.y,
             title: { display: true, text: "Volume (k units)", color: COLORS.muted },
             min: 0,
-            max: 12
+            max: 12,
+            ticks: {
+              color: COLORS.muted,
+              callback: (v) => `${v}k`
+            }
           }
         }
-      }
+      },
+      plugins: [skuScatterGuidePlugin]
     });
   }
 
