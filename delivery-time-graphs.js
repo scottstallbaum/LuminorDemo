@@ -190,47 +190,27 @@
   }
 
   function makeSegBubble() {
-    const pts = [];
-
-    const centers = [
-      { x: -30, y: 24 },
-      { x: 30, y: 23 },
-      { x: -28, y: -20 },
-      { x: 28, y: -18 },
-      { x: 0, y: 8 },
-      { x: 0, y: -8 }
+    // Fixed bubble placement/size modeled from the reference composition.
+    const pts = [
+      { x: -46, y: 42, r: 9 },
+      { x: -22, y: 27, r: 28 },
+      { x: -29, y: 7, r: 24 },
+      { x: -9, y: -21, r: 12 },
+      { x: -43, y: -26, r: 13 },
+      { x: -31, y: -39, r: 12 },
+      { x: -20, y: -45, r: 20 },
+      { x: -2, y: -31, r: 6 },
+      { x: 0, y: 18, r: 10 },
+      { x: 7, y: 13, r: 17 },
+      { x: 13, y: 3, r: 9 },
+      { x: 18, y: -22, r: 18 },
+      { x: 16, y: -11, r: 10 },
+      { x: 24, y: 24, r: 23 },
+      { x: 42, y: 22, r: 33 },
+      { x: 50, y: 8, r: 14 },
+      { x: 34, y: -27, r: 32 },
+      { x: 54, y: -45, r: 8 }
     ];
-
-    function canPlaceBubble(x, y, r) {
-      for (let i = 0; i < pts.length; i++) {
-        const p = pts[i];
-        const dx = x - p.x;
-        const dy = y - p.y;
-        const dist = Math.sqrt((dx * dx) + (dy * dy));
-        if (dist < ((r + p.r) * 0.46)) return false;
-      }
-      return true;
-    }
-
-    // Closer to reference: fewer bubbles with visible size variation.
-    const targetCount = 18;
-    let attempts = 0;
-    while (pts.length < targetCount && attempts < 420) {
-      attempts += 1;
-      const c = centers[Math.floor(r2() * centers.length)];
-      const x = c.x + ((r2() - 0.5) * 24);
-      const y = c.y + ((r2() - 0.5) * 22);
-      const skew = Math.pow(r2(), 1.1);
-      let r = 4 + (skew * 26);
-      if (r2() > 0.82) r += 10;
-      r = Math.max(5, Math.min(36, r));
-
-      const clampedX = Math.max(-58, Math.min(58, x));
-      const clampedY = Math.max(-50, Math.min(50, y));
-      if (canPlaceBubble(clampedX, clampedY, r)) {
-        pts.push({ x: clampedX, y: clampedY, r });
-      }
-    }
 
     const segCrosshairPlugin = {
       id: "segCrosshairPlugin",
