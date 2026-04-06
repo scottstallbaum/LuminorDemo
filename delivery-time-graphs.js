@@ -207,23 +207,23 @@
         const dx = x - p.x;
         const dy = y - p.y;
         const dist = Math.sqrt((dx * dx) + (dy * dy));
-        if (dist < ((r + p.r) * 0.56)) return false;
+        if (dist < ((r + p.r) * 0.46)) return false;
       }
       return true;
     }
 
     // Closer to reference: fewer bubbles with visible size variation.
-    const targetCount = 16;
+    const targetCount = 18;
     let attempts = 0;
     while (pts.length < targetCount && attempts < 420) {
       attempts += 1;
       const c = centers[Math.floor(r2() * centers.length)];
-      const x = c.x + ((r2() - 0.5) * 22);
-      const y = c.y + ((r2() - 0.5) * 20);
-      const skew = Math.pow(r2(), 1.5);
-      let r = 6 + (skew * 16);
-      if (r2() > 0.9) r += 8;
-      r = Math.max(7, Math.min(28, r));
+      const x = c.x + ((r2() - 0.5) * 24);
+      const y = c.y + ((r2() - 0.5) * 22);
+      const skew = Math.pow(r2(), 1.1);
+      let r = 4 + (skew * 26);
+      if (r2() > 0.82) r += 10;
+      r = Math.max(5, Math.min(36, r));
 
       const clampedX = Math.max(-58, Math.min(58, x));
       const clampedY = Math.max(-50, Math.min(50, y));
