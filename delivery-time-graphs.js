@@ -59,8 +59,21 @@
 
       const xZero = x.getPixelForValue(0);
       const yMid = y.getPixelForValue(6);
+      const left = x.left;
+      const right = x.right;
+      const top = y.top;
+        const bottom = y.bottom;
 
       ctx.save();
+        // Subtle quadrant coloring for fast visual scanning.
+        ctx.fillStyle = "rgba(255,109,109,.08)";
+        ctx.fillRect(left, top, xZero - left, yMid - top);
+        ctx.fillStyle = "rgba(255,174,87,.08)";
+        ctx.fillRect(xZero, top, right - xZero, yMid - top);
+        ctx.fillStyle = "rgba(88,178,255,.08)";
+        ctx.fillRect(left, yMid, xZero - left, bottom - yMid);
+        ctx.fillStyle = "rgba(69,208,162,.08)";
+        ctx.fillRect(xZero, yMid, right - xZero, bottom - yMid);
 
       ctx.setLineDash([5, 4]);
       ctx.strokeStyle = "rgba(159,176,211,.55)";
@@ -126,15 +139,7 @@
         ...baseOptions,
         plugins: {
           ...baseOptions.plugins,
-          legend: {
-            labels: {
-              color: COLORS.muted,
-              boxWidth: 11,
-              boxHeight: 11,
-              usePointStyle: true,
-              pointStyle: "circle"
-            }
-          }
+          legend: { display: false }
         },
         scales: {
           x: {
@@ -149,12 +154,12 @@
           },
           y: {
             ...baseOptions.scales.y,
-            title: { display: true, text: "Volume", color: COLORS.muted },
+            title: { display: true, text: "Volume (units)", color: COLORS.muted },
             min: 0,
             max: 12,
             ticks: {
               color: COLORS.muted,
-              callback: (v) => `${v}k`
+              callback: (v) => `${v}`
             }
           }
         }
