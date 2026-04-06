@@ -750,6 +750,7 @@
           x: {
             ...baseOptions.scales.x,
             grid: { display: false },
+            title: { display: true, text: "As % of Net Sales", color: COLORS.muted },
             ticks: {
               color: COLORS.muted,
               callback: (_value, index) => {
