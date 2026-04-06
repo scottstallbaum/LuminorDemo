@@ -625,7 +625,7 @@ function renderSelectedCard() {
     ? ` (${convRatio >= 1 ? "+" : ""}${((convRatio - 1) * 100).toFixed(0)}% vs avg $${avg.toFixed(2)})`
     : "";
   const vsClientStd = Number.isFinite(s.clientStdConversionCpu)
-    ? ` | ${toSignedMoney(s.conversionCpu - s.clientStdConversionCpu)} vs Standard Converstion Cost/bbl ${toMoneyDec(s.clientStdConversionCpu)}`
+    ? ` | ${toSignedMoney(s.conversionCpu - s.clientStdConversionCpu)} vs Standard Conversion Cost/bbl ${toMoneyDec(s.clientStdConversionCpu)}`
     : "";
   const convSubEl = document.getElementById("sel-conv-vs-avg");
   convSubEl.textContent = `${vsAvg}${vsClientStd}`;

@@ -1645,7 +1645,7 @@ function renderSummaryKpis(totals, rows = []) {
   if (els.kpiVolumePerSku) {
     const baseVolumeText = `${Math.round(volumePerSku).toLocaleString()} bbl / SKU`;
     if (totals.clientStdConversionCoverageVolume > 0) {
-      const gapText = `${toSignedMoneyDec(totals.clientStdConversionDeltaCpu || 0)} / bbl vs Standard Converstion Cost/bbl`;
+      const gapText = `${toSignedMoneyDec(totals.clientStdConversionDeltaCpu || 0)} / bbl vs Standard Conversion Cost/bbl`;
       els.kpiVolumePerSku.textContent = `${baseVolumeText} · ${gapText}`;
     } else {
       els.kpiVolumePerSku.textContent = baseVolumeText;
@@ -1695,8 +1695,8 @@ function buildInsightCards(rows) {
   //   const tone = (totals.clientStdConversionDeltaCpu || 0) > 0 ? "negative" : "positive";
   //   cards.push({
   //     eyebrow: "Costing Reality Check",
-  //     headline: `Actual conversion cost is ${toSignedMoneyDec(totals.clientStdConversionDeltaCpu || 0)} per bbl vs Standard Converstion Cost/bbl.` ,
-  //     detail: `Actual ${toMoneyDec(totals.actualConversionCpuCovered || 0)} vs Standard Converstion Cost/bbl ${toMoneyDec(totals.clientStdConversionCpu || 0)} on ${toWholePct(totals.clientStdCoveragePct)} of volume · total variance ${toSignedMoney(totals.clientStdConversionDeltaTotal || 0)}`,
+  //     headline: `Actual conversion cost is ${toSignedMoneyDec(totals.clientStdConversionDeltaCpu || 0)} per bbl vs Standard Conversion Cost/bbl.` ,
+  //     detail: `Actual ${toMoneyDec(totals.actualConversionCpuCovered || 0)} vs Standard Conversion Cost/bbl ${toMoneyDec(totals.clientStdConversionCpu || 0)} on ${toWholePct(totals.clientStdCoveragePct)} of volume · total variance ${toSignedMoney(totals.clientStdConversionDeltaTotal || 0)}`,
   //     tone
   //   });
   // }
@@ -1842,7 +1842,7 @@ function renderInsightStrip(rows) {
     } else {
       const baseSubtitle = `${rows.length.toLocaleString()} records in current view · ${Math.round(totals.volume || 0).toLocaleString()} bbl · ${toSignedMoney(totals.operatingIncome || 0)} operating income`;
       const stdSubtitle = totals.clientStdConversionCoverageVolume > 0
-        ? ` · conversion gap ${toSignedMoneyDec(totals.clientStdConversionDeltaCpu || 0)} / bbl vs Standard Converstion Cost/bbl`
+        ? ` · conversion gap ${toSignedMoneyDec(totals.clientStdConversionDeltaCpu || 0)} / bbl vs Standard Conversion Cost/bbl`
         : "";
       els.insightStripSubtitle.textContent = `${baseSubtitle}${stdSubtitle}`;
     }
@@ -2411,7 +2411,7 @@ function renderSegmentRealityCheck(rows) {
               const g = groupsWithAverage[idx];
               return [
                 `Actual Conv: ${toMoneyDec(g.actualConversionCpu)} / bbl`,
-                `Standard Converstion Cost/bbl: ${toMoneyDec(g.stdConversionCpu)}`,
+                `Standard Conversion Cost/bbl: ${toMoneyDec(g.stdConversionCpu)}`,
                 `Conv Gap: ${toSignedMoneyDec(g.conversionGapCpu)} / bbl`,
                 `Actual SG&A: ${toMoneyDec(g.actualSgaCpu)} / bbl`,
                 `Standard SG&A: ${toMoneyDec(g.stdSgaCpu)} / bbl`,
@@ -2486,7 +2486,8 @@ function renderWhaleCurveReport(allPoints, metricLabel) {
   }
 
   if (point1 !== null && point2 === null) {
-    const pct = (point1 / (allPoints.length - 1) * 100).toFixed(1);
+    const skuDenominator = Math.max(1, allPoints.length - 2);
+    const pct = (point1 / skuDenominator * 100).toFixed(1);
     report.innerHTML = `<p class="whale-report-empty">Point 1 set at ${pct}% — click a second point.</p>`;
     clearBtn?.classList.remove("is-hidden");
     return;
@@ -2505,8 +2506,9 @@ function renderWhaleCurveReport(allPoints, metricLabel) {
   const avgRevenue = skuCount ? totalRevenue / skuCount : 0;
   const avgOpIncome = skuCount ? totalOpIncome / skuCount : 0;
 
-  const loPct = (lo / (allPoints.length - 2) * 100).toFixed(1);
-  const hiPct = (hi / (allPoints.length - 2) * 100).toFixed(1);
+  const skuDenominator = Math.max(1, allPoints.length - 2);
+  const loPct = (lo / skuDenominator * 100).toFixed(1);
+  const hiPct = (hi / skuDenominator * 100).toFixed(1);
 
   clearBtn?.classList.remove("is-hidden");
 
