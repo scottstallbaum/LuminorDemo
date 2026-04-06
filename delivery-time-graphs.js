@@ -419,18 +419,54 @@
     });
   }
 
+  function downloadCanvasPng(canvas, id) {
+    const a = document.createElement("a");
+    a.href = canvas.toDataURL("image/png", 1.0);
+    a.download = `${id}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  async function copyCanvasToClipboard(canvas) {
+    if (!navigator.clipboard || !window.ClipboardItem) return false;
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    if (!blob) return false;
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    return true;
+  }
+
+  function flashButton(btn, text) {
+    const original = btn.textContent;
+    btn.textContent = text;
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.disabled = false;
+    }, 900);
+  }
+
   function bindExportButtons() {
     document.querySelectorAll(".dtg-export").forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-canvas");
         const canvas = document.getElementById(id);
         if (!canvas) return;
-        const a = document.createElement("a");
-        a.href = canvas.toDataURL("image/png", 1.0);
-        a.download = `${id}.png`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+
+        // Primary action: copy image for direct Ctrl+V into PowerPoint.
+        try {
+          const copied = await copyCanvasToClipboard(canvas);
+          if (copied) {
+            flashButton(btn, "Copied");
+            return;
+          }
+        } catch (_err) {
+          // Fallback handled below.
+        }
+
+        // Fallback for environments without clipboard-image support.
+        downloadCanvasPng(canvas, id);
+        flashButton(btn, "Downloaded");
       });
     });
   }
