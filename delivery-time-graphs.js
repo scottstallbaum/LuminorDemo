@@ -810,7 +810,7 @@
       11.9, 12.4, 11.4, 12.0, 12.0, 12.0, 11.4, 14.5, 12.1, 12.4,
       11.3, 13.4
     ];
-    const labels = Array.from({ length: goodLeadTimes.length }, (_, i) => `C${i + 1}`);
+    const goodLabels = Array.from({ length: goodLeadTimes.length }, (_, i) => `C${i + 1}`);
     const profitableAvg = goodLeadTimes.reduce((a, b) => a + b, 0) / goodLeadTimes.length;
     const badLeadTimes = [
       12.0, 11.6, 12.4, 12.9, 10.2, 13.8, 14.1, 15.6, 12.8, 12.1,
@@ -818,13 +818,15 @@
       14.4, 14.1, 11.8, 12.3, 14.2, 14.8, 12.6, 14.9, 14.1, 13.8,
       12.7, 15.6, 12.9, 10.0, 9.6, 8.8, 11.6, 11.2, 12.8, 9.0,
       11.5, 11.0, 8.2, 9.0, 7.8, 7.2, 10.1, 7.7, 8.6, 8.1,
-      7.3, 6.9
+      7.3, 6.9, 7.1, 6.8, 7.4, 6.7, 7.0, 6.6, 7.2, 6.9,
+      6.8, 7.1, 6.7, 6.5
     ];
+    const badLabels = Array.from({ length: badLeadTimes.length }, (_, i) => `C${i + 1}`);
 
     new Chart(document.getElementById("dtg-leadtime-good"), {
       type: "line",
       data: {
-        labels,
+        labels: goodLabels,
         datasets: [
           {
             label: "Profitable customers",
@@ -867,7 +869,7 @@
     new Chart(document.getElementById("dtg-leadtime-bad"), {
       type: "line",
       data: {
-        labels,
+        labels: badLabels,
         datasets: [
           {
             label: "Unprofitable customers",
@@ -884,7 +886,7 @@
           },
           {
             label: `Avg profitable lead time (${profitableAvg.toFixed(1)} days)`,
-            data: labels.map(() => profitableAvg),
+            data: badLabels.map(() => profitableAvg),
             borderColor: "#9fc6c4",
             borderDash: [6, 5],
             pointRadius: 0,
