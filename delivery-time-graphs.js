@@ -515,15 +515,17 @@
   function getChartMeta(canvas) {
     const card = canvas.closest(".dtg-card");
     const titleEl = card?.querySelector(".dtg-card-head h3");
+    const subtitleEl = card?.querySelector(".dtg-card-head .dtg-subtitle");
     const noteEl = card?.querySelector(".dtg-card-head .dtg-inline-note");
     return {
       title: titleEl?.textContent?.trim() || "",
+      subtitle: subtitleEl?.textContent?.trim() || "",
       note: noteEl?.textContent?.trim() || ""
     };
   }
 
   function buildExportCanvas(canvas) {
-    const { title, note } = getChartMeta(canvas);
+    const { title, subtitle, note } = getChartMeta(canvas);
     const outerPad = 34;
     const panelPadX = 18;
     const panelPadTop = 8;
@@ -584,10 +586,11 @@
     titleLines = splitTitle(panelW - 34);
 
     const titleLineHeight = title ? (titleSize + 2) : 0;
+    const subtitleBand = subtitle ? 14 : 0;
     const noteBand = note ? 12 : 0;
     const topPad = title ? 6 : 0;
     const bottomPad = title ? 4 : 0;
-    const titleBand = title ? ((titleLines.length * titleLineHeight) + noteBand + topPad + bottomPad) : 16;
+    const titleBand = title ? ((titleLines.length * titleLineHeight) + subtitleBand + noteBand + topPad + bottomPad) : 16;
     const panelH = canvas.height + panelPadTop + panelPadBottom + titleBand;
 
     exportCanvas.width = panelW + (outerPad * 2);
@@ -633,10 +636,17 @@
         ctx.fillText(line, panelX + (panelW / 2), titleStartY + (idx * titleLineHeight));
       });
 
+      if (subtitle) {
+        ctx.fillStyle = "#9fb0d3";
+        ctx.font = "500 12px Inter";
+        const subtitleY = titleStartY + (titleLines.length * titleLineHeight) - 1;
+        ctx.fillText(subtitle, panelX + (panelW / 2), subtitleY);
+      }
+
       if (note) {
         ctx.fillStyle = "#9fb0d3";
         ctx.font = "500 12px Inter";
-        const noteY = titleStartY + (titleLines.length * titleLineHeight) + 1;
+        const noteY = titleStartY + (titleLines.length * titleLineHeight) + (subtitle ? 13 : 1);
         ctx.fillText(note, panelX + (panelW / 2), noteY);
       }
     }

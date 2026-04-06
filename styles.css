@@ -2172,6 +2172,13 @@ th { color: var(--muted); font-weight: 600; }
   color: var(--text);
 }
 
+.dtg-subtitle {
+  margin: .12rem 0 0;
+  font-size: .72rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
 .dtg-inline-note {
   margin: .18rem 0 0;
   font-size: .68rem;
