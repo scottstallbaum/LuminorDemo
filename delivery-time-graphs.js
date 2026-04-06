@@ -191,25 +191,57 @@
 
   function makeSegBubble() {
     const pts = [];
-    for (let i = 0; i < 24; i++) {
-      const x = (r2() * 100) - 50;
-      const y = (r2() * 100) - 50;
-      const r = Math.round((r2() * 18) + 6);
+
+    const centers = [
+      { x: -30, y: 26 },
+      { x: 24, y: 24 },
+      { x: -24, y: -20 },
+      { x: 26, y: -18 },
+      { x: 0, y: 4 }
+    ];
+
+    for (let i = 0; i < 42; i++) {
+      const c = centers[Math.floor(r2() * centers.length)];
+      const x = c.x + ((r2() - 0.5) * 26);
+      const y = c.y + ((r2() - 0.5) * 24);
+      const skew = Math.pow(r2(), 2.2);
+      let r = 4 + (skew * 42);
+      if (r2() > 0.88) r += 9;
+      r = Math.max(4, Math.min(56, r));
       pts.push({ x, y, r });
     }
+
     return new Chart(document.getElementById("dtg-seg-bubble"), {
       type: "bubble",
       data: {
         datasets: [{
           label: "Customer clusters",
           data: pts,
-          backgroundColor: "rgba(159,176,211,.42)",
-          borderColor: "rgba(159,176,211,.85)",
+          backgroundColor: "rgba(159,176,211,.34)",
+          borderColor: "rgba(159,176,211,.82)",
           borderWidth: 1.2
         }]
       },
       options: {
         ...baseOptions,
+        plugins: {
+          ...baseOptions.plugins,
+          legend: { display: false },
+          tooltip: {
+            ...baseOptions.plugins.tooltip,
+            callbacks: {
+              title: () => "Customer Group",
+              label: (item) => {
+                const p = item.raw || {};
+                return [
+                  `Economic Contribution: ${Number(p.x || 0).toFixed(0)}`,
+                  `Cost to Serve Spread: ${Number(p.y || 0).toFixed(0)}`,
+                  `Relative Group Size: ${Math.round((p.r || 0) * 8)}`
+                ];
+              }
+            }
+          }
+        },
         scales: {
           x: {
             ...baseOptions.scales.x,
