@@ -757,6 +757,7 @@
                 if (!step) return "";
                 return netTickIndexes.has(index) ? step.pct : "";
               },
+              autoSkip: false,
               maxRotation: 0,
               minRotation: 0,
               font: { size: 9 }
