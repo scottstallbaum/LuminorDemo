@@ -230,23 +230,6 @@
         ctx.lineTo(x.right, yFifty);
         ctx.stroke();
 
-        // Bubble-size legend cue
-        const lx = x.right - 190;
-        const ly = y.top + 14;
-        ctx.fillStyle = "rgba(176,194,212,.58)";
-        ctx.strokeStyle = "rgba(176,194,212,.22)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(lx, ly, 4.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = "#9fb0d3";
-        ctx.font = "500 10px Inter";
-        ctx.textBaseline = "middle";
-        ctx.textAlign = "left";
-        ctx.fillText("Bubble size = Number of Customers", lx + 11, ly);
-
         ctx.restore();
       }
     };

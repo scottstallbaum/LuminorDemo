@@ -2172,6 +2172,12 @@ th { color: var(--muted); font-weight: 600; }
   color: var(--text);
 }
 
+.dtg-inline-note {
+  margin: .18rem 0 0;
+  font-size: .68rem;
+  color: var(--muted);
+}
+
 .dtg-export {
   margin-top: 0;
   padding: .32rem .55rem;
