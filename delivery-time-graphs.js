@@ -916,7 +916,12 @@
             borderWidth: 2.6,
             pointRadius: 4,
             pointHoverRadius: 4.5,
-            tension: 0
+            tension: 0,
+            fill: {
+              target: { value: profitableAvg },
+              above: "rgba(0,0,0,0)",
+              below: "rgba(232,106,133,.16)"
+            }
           },
           {
             label: `Avg profitable lead time (${profitableAvg.toFixed(1)} days)`,
