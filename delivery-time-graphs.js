@@ -83,10 +83,8 @@
     const quadBottomLeft = [];
     const quadBottomRight = [];
 
-    for (let i = 0; i < 640; i++) {
-      const x = (r1() * 120) - 60;
-      const y = Math.max(0.15, (r1() * 10.5) + (x > 20 ? 1.0 : 0));
-      const point = { x, y };
+    function addPointToQuadrant(point) {
+      const { x, y } = point;
       if (x < 0 && y >= 6) {
         quadTopLeft.push(point);
       } else if (x >= 0 && y >= 6) {
@@ -96,6 +94,22 @@
       } else {
         quadBottomRight.push(point);
       }
+    }
+
+    // Broad cloud
+    for (let i = 0; i < 760; i++) {
+      const x = (r1() * 120) - 60;
+      const y = Math.max(0.15, (r1() * 10.5) + (x > 20 ? 1.0 : 0));
+      addPointToQuadrant({ x, y });
+    }
+
+    // Diagonal concentration (bottom-left to top-right trend)
+    for (let i = 0; i < 260; i++) {
+      const x = -60 + (i / 259) * 120 + ((r1() - 0.5) * 8);
+      const y = 6 + (x / 12) + ((r1() - 0.5) * 1.6);
+      const clampedX = Math.max(-60, Math.min(60, x));
+      const clampedY = Math.max(0.15, Math.min(11.85, y));
+      addPointToQuadrant({ x: clampedX, y: clampedY });
     }
 
     return new Chart(document.getElementById("dtg-sku-scatter"), {
