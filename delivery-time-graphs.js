@@ -597,20 +597,28 @@
 
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.font = "700 11px Inter";
         groups.forEach((group) => {
           const startBounds = getBounds(group.start);
           const endBounds = getBounds(group.end);
           const mid = (startBounds.left + endBounds.right) / 2;
+          const availableWidth = Math.max(28, (endBounds.right - startBounds.left) - 8);
+          let labelFontSize = 9;
+
+          while (labelFontSize > 7) {
+            ctx.font = `700 ${labelFontSize}px Inter`;
+            if (ctx.measureText(group.label).width <= availableWidth) break;
+            labelFontSize -= 1;
+          }
+
           ctx.strokeStyle = group.color;
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.moveTo(startBounds.left + 2, chartArea.top + 3);
-          ctx.lineTo(endBounds.right - 2, chartArea.top + 3);
+          ctx.moveTo(startBounds.left + 2, chartArea.top + 2);
+          ctx.lineTo(endBounds.right - 2, chartArea.top + 2);
           ctx.stroke();
 
           ctx.fillStyle = group.color;
-          ctx.fillText(group.label, mid, chartArea.top + 14);
+          ctx.fillText(group.label, mid, chartArea.top - 9);
         });
         ctx.restore();
       }
@@ -636,7 +644,7 @@
       options: {
         ...baseOptions,
         layout: {
-          padding: { top: 56, right: 6, bottom: 0, left: 0 }
+          padding: { top: 36, right: 6, bottom: 0, left: 0 }
         },
         plugins: {
           ...baseOptions.plugins,
