@@ -595,7 +595,7 @@
         groupRanges.get(groupName).end = idx;
       }
 
-      if (step.kind === "anchor" || (step.kind === "total" && idx === lastIndex)) {
+      if (idx === 0 || step.kind === "anchor" || (step.kind === "total" && idx === lastIndex)) {
         netTickIndexes.add(idx);
       }
     });
