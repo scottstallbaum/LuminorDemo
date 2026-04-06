@@ -427,25 +427,66 @@
 
   function buildExportCanvas(canvas) {
     const title = getChartTitle(canvas);
-    const titlePad = title ? 44 : 0;
+    const outerPad = 34;
+    const panelPad = 18;
+    const titleBand = title ? 54 : 16;
+    const panelW = canvas.width + (panelPad * 2);
+    const panelH = canvas.height + (panelPad * 2) + titleBand;
+
     const exportCanvas = document.createElement("canvas");
-    exportCanvas.width = canvas.width;
-    exportCanvas.height = canvas.height + titlePad;
+    exportCanvas.width = panelW + (outerPad * 2);
+    exportCanvas.height = panelH + (outerPad * 2);
     const ctx = exportCanvas.getContext("2d");
     if (!ctx) return canvas;
 
-    // Flatten with a solid backdrop so PPT paste preserves dark styling.
-    ctx.fillStyle = "#0d1528";
+    const panelX = outerPad;
+    const panelY = outerPad;
+
+    function roundRectPath(x, y, w, h, r) {
+      const rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.arcTo(x + w, y, x + w, y + h, rr);
+      ctx.arcTo(x + w, y + h, x, y + h, rr);
+      ctx.arcTo(x, y + h, x, y, rr);
+      ctx.arcTo(x, y, x + w, y, rr);
+      ctx.closePath();
+    }
+
+    // Build a finished export card with balanced whitespace for slide use.
+    ctx.fillStyle = "#0b1220";
     ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+    ctx.shadowColor = "rgba(0,0,0,.35)";
+    ctx.shadowBlur = 24;
+    ctx.shadowOffsetY = 8;
+    roundRectPath(panelX, panelY, panelW, panelH, 14);
+    ctx.fillStyle = "#121c2f";
+    ctx.fill();
+
+    ctx.shadowColor = "transparent";
+    roundRectPath(panelX, panelY, panelW, panelH, 14);
+    ctx.strokeStyle = "#24314d";
+    ctx.lineWidth = 1;
+    ctx.stroke();
 
     if (title) {
       ctx.fillStyle = "#e8eefc";
-      ctx.font = "600 22px Inter";
+      ctx.font = "700 22px Inter";
       ctx.textBaseline = "middle";
-      ctx.fillText(title, 20, 22);
+      ctx.textAlign = "center";
+      ctx.fillText(title, panelX + (panelW / 2), panelY + (titleBand / 2) + 2);
     }
 
-    ctx.drawImage(canvas, 0, titlePad);
+    const chartX = panelX + panelPad;
+    const chartY = panelY + titleBand + panelPad;
+    ctx.drawImage(canvas, chartX, chartY);
+
+    // Subtle chart frame to improve contrast after paste into PowerPoint.
+    ctx.strokeStyle = "rgba(159,176,211,.25)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(chartX + 0.5, chartY + 0.5, canvas.width - 1, canvas.height - 1);
+
     return exportCanvas;
   }
 
