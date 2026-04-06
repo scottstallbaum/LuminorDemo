@@ -840,6 +840,14 @@
             pointRadius: 4,
             pointHoverRadius: 4.5,
             tension: 0
+          },
+          {
+            label: `Avg profitable lead time (${profitableAvg.toFixed(1)} days)`,
+            data: goodLabels.map(() => profitableAvg),
+            borderColor: "#9fc6c4",
+            borderDash: [6, 5],
+            pointRadius: 0,
+            tension: 0
           }
         ]
       },
@@ -851,8 +859,7 @@
             display: true,
             labels: {
               color: COLORS.muted,
-              usePointStyle: true,
-              pointStyle: "line"
+              usePointStyle: false
             }
           }
         },
@@ -908,8 +915,7 @@
           legend: {
             labels: {
               color: COLORS.muted,
-              usePointStyle: true,
-              pointStyle: "line"
+              usePointStyle: false
             }
           }
         },
