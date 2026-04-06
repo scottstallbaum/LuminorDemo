@@ -847,12 +847,19 @@
         ...baseOptions,
         plugins: {
           ...baseOptions.plugins,
-          legend: { display: false }
+          legend: {
+            display: true,
+            labels: {
+              color: COLORS.muted,
+              usePointStyle: true,
+              pointStyle: "line"
+            }
+          }
         },
         scales: {
           x: {
             ...baseOptions.scales.x,
-            title: { display: true, text: "Profitable customers", color: COLORS.muted },
+            title: { display: true, text: "Profitable customers (ranked from most to least profitable)", color: COLORS.muted },
             ticks: { display: false },
             grid: { display: false }
           },
@@ -860,7 +867,7 @@
             ...baseOptions.scales.y,
             title: { display: true, text: "Lead Time (days)", color: COLORS.muted },
             min: 7,
-            max: 16.5
+            max: 17
           }
         }
       }
@@ -899,13 +906,17 @@
         plugins: {
           ...baseOptions.plugins,
           legend: {
-            labels: { color: COLORS.muted }
+            labels: {
+              color: COLORS.muted,
+              usePointStyle: true,
+              pointStyle: "line"
+            }
           }
         },
         scales: {
           x: {
             ...baseOptions.scales.x,
-            title: { display: true, text: "Unprofitable customers", color: COLORS.muted },
+            title: { display: true, text: "Unprofitable customers (ranked from most to least profitable)", color: COLORS.muted },
             ticks: { display: false },
             grid: { display: false }
           },
@@ -913,7 +924,7 @@
             ...baseOptions.scales.y,
             title: { display: true, text: "Lead Time (days)", color: COLORS.muted },
             min: 7,
-            max: 16.5
+            max: 17
           }
         }
       }
