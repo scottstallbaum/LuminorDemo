@@ -453,13 +453,12 @@
       ctx.closePath();
     }
 
-    // Build a finished export card with balanced whitespace for slide use.
-    ctx.fillStyle = "#0b1220";
-    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+    // Keep outer area transparent so pasted image does not show a dark rectangle.
+    ctx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
 
-    ctx.shadowColor = "rgba(0,0,0,.35)";
-    ctx.shadowBlur = 24;
-    ctx.shadowOffsetY = 8;
+    ctx.shadowColor = "rgba(0,0,0,.22)";
+    ctx.shadowBlur = 14;
+    ctx.shadowOffsetY = 5;
     roundRectPath(panelX, panelY, panelW, panelH, 14);
     ctx.fillStyle = "#121c2f";
     ctx.fill();
