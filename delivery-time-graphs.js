@@ -566,7 +566,7 @@
         }
         ctx.restore();
       },
-      afterDatasetsDraw(chart) {
+      afterDraw(chart) {
         const { ctx, chartArea, scales: { y } } = chart;
         const meta = chart.getDatasetMeta(0);
         if (!meta?.data?.length) return;
@@ -635,7 +635,7 @@
       options: {
         ...baseOptions,
         layout: {
-          padding: { top: 28, right: 6, bottom: 0, left: 0 }
+          padding: { top: 42, right: 6, bottom: 0, left: 0 }
         },
         plugins: {
           ...baseOptions.plugins,
