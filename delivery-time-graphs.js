@@ -806,8 +806,10 @@
     const goodLeadTimes = labels.map(() => 13.3 + ((r1() - 0.5) * 4.6));
     const profitableAvg = goodLeadTimes.reduce((a, b) => a + b, 0) / goodLeadTimes.length;
     const badLeadTimes = labels.map((_, i) => {
-      const trend = i < 32 ? 16.4 : (16.4 - ((i - 31) * 0.27));
-      return trend + ((r2() - 0.5) * 5.1);
+      const baseline = 11.4 - (i * 0.03);
+      const volatility = (r2() - 0.5) * 3.8;
+      const expediteDip = (i % 11 === 0 || i % 13 === 0) ? -1.2 : 0;
+      return Math.max(7.6, baseline + volatility + expediteDip);
     });
 
     new Chart(document.getElementById("dtg-leadtime-good"), {
