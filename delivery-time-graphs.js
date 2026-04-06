@@ -193,7 +193,7 @@
     // Fixed bubble placement/size modeled from the reference composition.
     const pts = [
       { x: -46, y: 72, r: 9 },
-      { x: -22, y: 61, r: 28 },
+      { x: -22, y: 61, r: 23 },
       { x: -29, y: 49, r: 24 },
       { x: -9, y: 34, r: 12 },
       { x: -43, y: 31, r: 13 },
@@ -205,10 +205,10 @@
       { x: 13, y: 46, r: 9 },
       { x: 18, y: 34, r: 18 },
       { x: 16, y: 40, r: 10 },
-      { x: 24, y: 63, r: 23 },
-      { x: 42, y: 62, r: 33 },
+      { x: 24, y: 63, r: 20 },
+      { x: 42, y: 62, r: 25 },
       { x: 50, y: 55, r: 14 },
-      { x: 34, y: 32, r: 32 },
+      { x: 34, y: 32, r: 24 },
       { x: 54, y: 24, r: 8 }
     ];
 
@@ -247,6 +247,9 @@
       },
       options: {
         ...baseOptions,
+        layout: {
+          padding: { top: 2, right: 4, bottom: 2, left: 2 }
+        },
         plugins: {
           ...baseOptions.plugins,
           legend: { display: false },
@@ -522,8 +525,10 @@
   function buildExportCanvas(canvas) {
     const { title, note } = getChartMeta(canvas);
     const outerPad = 34;
-    const panelPad = 18;
-    const panelW = canvas.width + (panelPad * 2);
+    const panelPadX = 18;
+    const panelPadTop = 8;
+    const panelPadBottom = 16;
+    const panelW = canvas.width + (panelPadX * 2);
     let titleSize = 22;
     let titleLines = title ? [title] : [];
 
@@ -583,7 +588,7 @@
     const topPad = title ? 6 : 0;
     const bottomPad = title ? 4 : 0;
     const titleBand = title ? ((titleLines.length * titleLineHeight) + noteBand + topPad + bottomPad) : 16;
-    const panelH = canvas.height + (panelPad * 2) + titleBand;
+    const panelH = canvas.height + panelPadTop + panelPadBottom + titleBand;
 
     exportCanvas.width = panelW + (outerPad * 2);
     exportCanvas.height = panelH + (outerPad * 2);
@@ -636,8 +641,8 @@
       }
     }
 
-    const chartX = panelX + panelPad;
-    const chartY = panelY + titleBand + panelPad;
+    const chartX = panelX + panelPadX;
+    const chartY = panelY + titleBand + panelPadTop;
     ctx.drawImage(canvas, chartX, chartY);
 
     return exportCanvas;
