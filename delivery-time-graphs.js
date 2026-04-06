@@ -83,7 +83,7 @@
     const quadBottomLeft = [];
     const quadBottomRight = [];
 
-    for (let i = 0; i < 260; i++) {
+    for (let i = 0; i < 640; i++) {
       const x = (r1() * 120) - 60;
       const y = Math.max(0.15, (r1() * 10.5) + (x > 20 ? 1.0 : 0));
       const point = { x, y };
@@ -107,28 +107,28 @@
             data: quadTopLeft,
             backgroundColor: "rgba(255,109,109,.68)",
             borderColor: "rgba(255,109,109,1)",
-            pointRadius: 3.2
+            pointRadius: 1.8
           },
           {
             label: "Quadrant 2",
             data: quadTopRight,
             backgroundColor: "rgba(255,174,87,.68)",
             borderColor: "rgba(255,174,87,1)",
-            pointRadius: 3.2
+            pointRadius: 1.8
           },
           {
             label: "Quadrant 3",
             data: quadBottomLeft,
             backgroundColor: "rgba(88,178,255,.62)",
             borderColor: "rgba(88,178,255,1)",
-            pointRadius: 2.9
+            pointRadius: 1.7
           },
           {
             label: "Quadrant 4",
             data: quadBottomRight,
             backgroundColor: "rgba(69,208,162,.72)",
             borderColor: "rgba(69,208,162,1)",
-            pointRadius: 3.0
+            pointRadius: 1.7
           }
         ]
       },
