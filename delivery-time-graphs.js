@@ -423,7 +423,7 @@
       Transportation: "TRANSPORTATION",
       Marketing: "MARKETING",
       "Selling Costs": "SELLING COSTS",
-      "Invested Capital": "INVESTED CAPITAL",
+      "Working Capital": "WORKING CAPITAL",
       EC: "EC"
     };
 
@@ -464,7 +464,7 @@
         anchor: "rgba(255,109,109,.18)",
         header: "#ff6d6d"
       },
-      "Invested Capital": {
+      "Working Capital": {
         fill: "rgba(65,193,191,.76)",
         border: "rgba(65,193,191,1)",
         anchor: "rgba(65,193,191,.2)",
@@ -680,7 +680,7 @@
               callback: (_value, index) => {
                 const step = modelSteps[index];
                 if (!step) return "";
-                return [shortGroupName[step.group] || step.group, step.pct];
+                return step.pct;
               },
               maxRotation: 0,
               minRotation: 0,
@@ -1042,8 +1042,8 @@
         { group: "Marketing", kind: "delta", pct: "1%", value: -0.02 },
         { group: "Selling Costs", kind: "anchor", pct: "1%" },
         { group: "Selling Costs", kind: "delta", pct: "2%", value: -0.11 },
-        { group: "Invested Capital", kind: "anchor", pct: "1%" },
-        { group: "Invested Capital", kind: "delta", pct: "1%", value: -0.14 },
+        { group: "Working Capital", kind: "anchor", pct: "1%" },
+        { group: "Working Capital", kind: "delta", pct: "1%", value: -0.14 },
         { group: "EC", kind: "total", pct: "-8%", value: -0.20 }
       ]
     });
@@ -1074,8 +1074,8 @@
         { group: "Marketing", kind: "delta", pct: "1%", value: -0.02 },
         { group: "Selling Costs", kind: "anchor", pct: "1%" },
         { group: "Selling Costs", kind: "delta", pct: "1%", value: -0.05 },
-        { group: "Invested Capital", kind: "anchor", pct: "1%" },
-        { group: "Invested Capital", kind: "delta", pct: "1%", value: 0.02 },
+        { group: "Working Capital", kind: "anchor", pct: "1%" },
+        { group: "Working Capital", kind: "delta", pct: "1%", value: 0.02 },
         { group: "EC", kind: "total", pct: "19%", value: 0.62 }
       ]
     });
