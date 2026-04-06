@@ -419,9 +419,40 @@
     });
   }
 
+  function getChartTitle(canvas) {
+    const card = canvas.closest(".dtg-card");
+    const titleEl = card?.querySelector(".dtg-card-head h3");
+    return titleEl?.textContent?.trim() || "";
+  }
+
+  function buildExportCanvas(canvas) {
+    const title = getChartTitle(canvas);
+    const titlePad = title ? 44 : 0;
+    const exportCanvas = document.createElement("canvas");
+    exportCanvas.width = canvas.width;
+    exportCanvas.height = canvas.height + titlePad;
+    const ctx = exportCanvas.getContext("2d");
+    if (!ctx) return canvas;
+
+    // Flatten with a solid backdrop so PPT paste preserves dark styling.
+    ctx.fillStyle = "#0d1528";
+    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+    if (title) {
+      ctx.fillStyle = "#e8eefc";
+      ctx.font = "600 22px Inter";
+      ctx.textBaseline = "middle";
+      ctx.fillText(title, 20, 22);
+    }
+
+    ctx.drawImage(canvas, 0, titlePad);
+    return exportCanvas;
+  }
+
   function downloadCanvasPng(canvas, id) {
+    const exportCanvas = buildExportCanvas(canvas);
     const a = document.createElement("a");
-    a.href = canvas.toDataURL("image/png", 1.0);
+    a.href = exportCanvas.toDataURL("image/png", 1.0);
     a.download = `${id}.png`;
     document.body.appendChild(a);
     a.click();
@@ -430,7 +461,8 @@
 
   async function copyCanvasToClipboard(canvas) {
     if (!navigator.clipboard || !window.ClipboardItem) return false;
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    const exportCanvas = buildExportCanvas(canvas);
+    const blob = await new Promise((resolve) => exportCanvas.toBlob(resolve, "image/png"));
     if (!blob) return false;
     await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
     return true;
