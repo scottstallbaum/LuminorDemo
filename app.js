@@ -2373,7 +2373,7 @@ function renderSegmentRealityCheck(rows) {
           borderRadius: 5
         },
         {
-          label: "Complexity-Adjusted OM%",
+          label: "Adjusted OM%",
           data: alignedOm,
           backgroundColor: "rgba(69, 208, 162, 0.82)",
           borderColor: "rgba(69, 208, 162, 1)",
@@ -2571,7 +2571,7 @@ function renderWhaleCurve(rows) {
 
   const activeLine = state.whaleCurveActiveLine || "adjusted";
   const activePoints = activeLine === "standard" ? stdPoints : points;
-  const activeMetricLabel = activeLine === "standard" ? "Standard Op Income" : "Adjusted Op Income";
+  const activeMetricLabel = activeLine === "standard" ? "As-Reported Op Income" : "Adjusted Op Income";
   renderWhaleCurveReport(activePoints, activeMetricLabel);
 
   const skuCount = points.length - 1;
@@ -2610,7 +2610,7 @@ function renderWhaleCurve(rows) {
     data: {
       datasets: [
         {
-          label: "Complexity-Adjusted OM",
+          label: "Adjusted OM",
           data: adjChartData,
           borderColor: "#45d0a2",
           borderWidth: activeLine === "adjusted" ? 2.5 : 1.5,
@@ -2624,7 +2624,7 @@ function renderWhaleCurve(rows) {
           }
         },
         {
-          label: "As-Reported (Standard) OM",
+          label: "As-Reported OM",
           data: stdChartData,
           borderColor: "#ffae57",
           borderWidth: activeLine === "standard" ? 2.5 : 1.5,
@@ -2639,7 +2639,7 @@ function renderWhaleCurve(rows) {
           }
         },
         {
-          label: "Adj Peak",
+          label: "Adjusted Peak",
           data: [{ x: points[peakIndex]?.x * 100, y: peakValue }],
           borderColor: "transparent",
           backgroundColor: "#45d0a2",
@@ -2648,7 +2648,7 @@ function renderWhaleCurve(rows) {
           type: "scatter"
         },
         {
-          label: "Std Peak",
+          label: "As-Reported Peak",
           data: [{ x: stdPoints[stdPeakIndex]?.x * 100, y: stdPeakValue }],
           borderColor: "transparent",
           backgroundColor: "#ffae57",
@@ -2723,10 +2723,10 @@ function renderWhaleCurve(rows) {
           callbacks: {
             title: (items) => `${items[0].parsed.x.toFixed(1)}% of SKUs`,
             label: (item) => {
-              if (item.datasetIndex === 2) return `Adj Peak: ${toMoney(item.parsed.y)}`;
-              if (item.datasetIndex === 3) return `Std Peak: ${toMoney(item.parsed.y)}`;
+              if (item.datasetIndex === 2) return `Adjusted Peak: ${toMoney(item.parsed.y)}`;
+              if (item.datasetIndex === 3) return `As-Reported Peak: ${toMoney(item.parsed.y)}`;
               if (item.datasetIndex === 4) return null;
-              const lbl = item.datasetIndex === 0 ? "Adjusted OM" : "Standard OM";
+              const lbl = item.datasetIndex === 0 ? "Adjusted OM" : "As-Reported OM";
               return `Cumulative ${lbl}: ${toMoney(item.parsed.y)}`;
             }
           },
