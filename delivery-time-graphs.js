@@ -1110,7 +1110,7 @@
     makeSegBubble();
     makeCustomerScatter();
     makeWaterfallBridge("dtg-group1-waterfall", {
-      min: 0,
+      min: -20,
       max: 140,
       steps: [
         { group: "Gross to Net Sales", kind: "total", pct: "132%", value: 3.63 },
@@ -1138,11 +1138,11 @@
         { group: "Selling Costs", kind: "delta", pct: "2%", value: -0.06 },
         { group: "Working Capital", kind: "anchor", pct: "8%" },
         { group: "Working Capital", kind: "delta", pct: "4%", value: -0.11 },
-        { group: "EC", kind: "total", pct: "4%", value: 0.10 }
+        { group: "EC", kind: "total", pct: "-4%", value: -0.10 }
       ]
     });
     makeWaterfallBridge("dtg-group2-waterfall", {
-      min: 0,
+      min: -20,
       max: 140,
       steps: [
         { group: "Gross to Net Sales", kind: "total", pct: "126%", value: 3.47 },
