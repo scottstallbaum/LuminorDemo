@@ -523,15 +523,70 @@
     const { title, note } = getChartMeta(canvas);
     const outerPad = 34;
     const panelPad = 18;
-    const titleBand = title ? (note ? 74 : 58) : 16;
     const panelW = canvas.width + (panelPad * 2);
-    const panelH = canvas.height + (panelPad * 2) + titleBand;
+    let titleSize = 22;
+    let titleLines = title ? [title] : [];
+
+    function splitTitle(maxWidth) {
+      if (!title) return [];
+      const words = title.split(/\s+/).filter(Boolean);
+      if (!words.length) return [];
+
+      // Try single-line first while shrinking font.
+      while (titleSize > 14) {
+        if (ctx.measureText(title).width <= maxWidth) return [title];
+        titleSize -= 1;
+        ctx.font = `700 ${titleSize}px Inter`;
+      }
+
+      // Allow two lines for longer titles.
+      titleSize = 18;
+      ctx.font = `700 ${titleSize}px Inter`;
+      while (titleSize > 13) {
+        let line1 = "";
+        let cut = -1;
+        for (let i = 0; i < words.length; i++) {
+          const test = line1 ? `${line1} ${words[i]}` : words[i];
+          if (ctx.measureText(test).width <= maxWidth) {
+            line1 = test;
+            cut = i;
+          } else {
+            break;
+          }
+        }
+
+        if (cut >= 0 && cut < words.length - 1) {
+          const line2 = words.slice(cut + 1).join(" ");
+          if (ctx.measureText(line2).width <= maxWidth) {
+            return [line1, line2];
+          }
+        }
+
+        titleSize -= 1;
+        ctx.font = `700 ${titleSize}px Inter`;
+      }
+
+      // Final fallback: break title near midpoint.
+      const midpoint = Math.ceil(words.length / 2);
+      return [words.slice(0, midpoint).join(" "), words.slice(midpoint).join(" ")];
+    }
 
     const exportCanvas = document.createElement("canvas");
-    exportCanvas.width = panelW + (outerPad * 2);
-    exportCanvas.height = panelH + (outerPad * 2);
     const ctx = exportCanvas.getContext("2d");
     if (!ctx) return canvas;
+
+    ctx.font = `700 ${titleSize}px Inter`;
+    titleLines = splitTitle(panelW - 34);
+
+    const titleLineHeight = title ? (titleSize + 4) : 0;
+    const noteBand = note ? 18 : 0;
+    const topPad = title ? 10 : 0;
+    const bottomPad = title ? 10 : 0;
+    const titleBand = title ? ((titleLines.length * titleLineHeight) + noteBand + topPad + bottomPad) : 16;
+    const panelH = canvas.height + (panelPad * 2) + titleBand;
+
+    exportCanvas.width = panelW + (outerPad * 2);
+    exportCanvas.height = panelH + (outerPad * 2);
 
     const panelX = outerPad;
     const panelY = outerPad;
@@ -564,22 +619,20 @@
     ctx.stroke();
 
     if (title) {
-      let titleSize = 22;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      while (titleSize > 14) {
-        ctx.font = `700 ${titleSize}px Inter`;
-        if (ctx.measureText(title).width <= (panelW - 34)) break;
-        titleSize -= 1;
-      }
-
       ctx.fillStyle = "#e8eefc";
-      ctx.fillText(title, panelX + (panelW / 2), panelY + 26);
+      ctx.font = `700 ${titleSize}px Inter`;
+      const titleStartY = panelY + topPad + (titleLineHeight / 2);
+      titleLines.forEach((line, idx) => {
+        ctx.fillText(line, panelX + (panelW / 2), titleStartY + (idx * titleLineHeight));
+      });
 
       if (note) {
         ctx.fillStyle = "#9fb0d3";
         ctx.font = "500 12px Inter";
-        ctx.fillText(note, panelX + (panelW / 2), panelY + 49);
+        const noteY = titleStartY + (titleLines.length * titleLineHeight) + 3;
+        ctx.fillText(note, panelX + (panelW / 2), noteY);
       }
     }
 
