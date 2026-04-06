@@ -416,6 +416,17 @@
   }
 
   function makeWaterfallBridge(canvasId, config) {
+    const shortGroupName = {
+      "Gross to Net Sales": "GROSS TO NET SALES",
+      COGS: "COGS",
+      Warehousing: "WAREHOUSING",
+      Transportation: "TRANSPORTATION",
+      Marketing: "MARKETING",
+      "Selling Costs": "SELLING COSTS",
+      "Invested Capital": "INVESTED CAPITAL",
+      EC: "EC"
+    };
+
     const groupStyles = {
       "Gross to Net Sales": {
         fill: "rgba(58,178,225,.86)",
@@ -666,6 +677,11 @@
             grid: { display: false },
             ticks: {
               color: COLORS.muted,
+              callback: (_value, index) => {
+                const step = modelSteps[index];
+                if (!step) return "";
+                return [shortGroupName[step.group] || step.group, step.pct];
+              },
               maxRotation: 0,
               minRotation: 0,
               font: { size: 9 }
