@@ -57,21 +57,10 @@
       if (chart.canvas.id !== "dtg-sku-scatter") return;
       const { ctx, scales: { x, y } } = chart;
 
-      const zoneLeft = x.getPixelForValue(80);
-      const zoneRight = x.getPixelForValue(330);
-      const zoneTop = y.getPixelForValue(12);
-      const zoneBottom = y.getPixelForValue(6);
       const xZero = x.getPixelForValue(0);
       const yMid = y.getPixelForValue(6);
 
       ctx.save();
-
-      // Highlight desirable high-contribution, high-volume zone.
-      ctx.fillStyle = "rgba(69,208,162,.12)";
-      ctx.strokeStyle = "rgba(69,208,162,.65)";
-      ctx.lineWidth = 1;
-      ctx.fillRect(zoneLeft, zoneTop, zoneRight - zoneLeft, zoneBottom - zoneTop);
-      ctx.strokeRect(zoneLeft, zoneTop, zoneRight - zoneLeft, zoneBottom - zoneTop);
 
       ctx.setLineDash([5, 4]);
       ctx.strokeStyle = "rgba(159,176,211,.55)";
@@ -83,9 +72,6 @@
       ctx.stroke();
 
       ctx.setLineDash([]);
-      ctx.fillStyle = "#aef4dd";
-      ctx.font = "600 12px Inter";
-      ctx.fillText("Priority Opportunity Zone", zoneLeft + 8, zoneTop + 16);
 
       ctx.fillStyle = "rgba(159,176,211,.9)";
       ctx.font = "500 11px Inter";
