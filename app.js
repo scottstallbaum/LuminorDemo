@@ -2612,6 +2612,7 @@ function renderWhaleCurve(rows) {
         {
           label: "Complexity-Adjusted OM",
           data: adjChartData,
+          borderColor: "#45d0a2",
           borderWidth: activeLine === "adjusted" ? 2.5 : 1.5,
           pointRadius: 0,
           pointHoverRadius: 5,
@@ -2625,6 +2626,7 @@ function renderWhaleCurve(rows) {
         {
           label: "As-Reported (Standard) OM",
           data: stdChartData,
+          borderColor: "#ffae57",
           borderWidth: activeLine === "standard" ? 2.5 : 1.5,
           pointRadius: 0,
           pointHoverRadius: 5,
