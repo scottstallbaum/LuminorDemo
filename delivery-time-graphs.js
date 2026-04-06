@@ -410,9 +410,15 @@
     });
   }
 
-  function formatBillions(value) {
-    const abs = Math.abs(value).toFixed(1);
-    return `${value < 0 ? "-" : ""}$${abs}B`;
+  function parsePercentLabel(label) {
+    return Number(String(label || "").replace(/%/g, "").trim()) || 0;
+  }
+
+  function formatPercent(value) {
+    const rounded = Math.abs(value - Math.round(value)) < 0.05
+      ? Math.round(value)
+      : Number(value.toFixed(1));
+    return `${rounded}%`;
   }
 
   function makeWaterfallBridge(canvasId, config) {
@@ -550,18 +556,20 @@
     config.steps.forEach((step, index) => {
       const effectiveGroupName = getEffectiveGroupName(config.steps, index);
       const style = groupStyles[effectiveGroupName] || groupStyles.COGS;
+      const pctValue = parsePercentLabel(step.pct);
 
       let startValue = cumulative;
       let endValue = cumulative;
       if (step.kind === "total") {
         startValue = 0;
-        endValue = step.value;
-        cumulative = step.value;
+        endValue = pctValue;
+        cumulative = pctValue;
       } else if (step.kind === "anchor") {
         startValue = 0;
         endValue = cumulative;
       } else {
-        endValue = cumulative + step.value;
+        const deltaValue = step.value < 0 ? -pctValue : pctValue;
+        endValue = cumulative + deltaValue;
         cumulative = endValue;
       }
 
@@ -572,6 +580,7 @@
       bars.push([low, high]);
       modelSteps.push({
         ...step,
+        metricValue: step.kind === "delta" ? (endValue - startValue) : endValue,
         start: startValue,
         end: endValue,
         running: cumulative
@@ -704,7 +713,7 @@
       data: {
         labels,
         datasets: [{
-          label: "$B",
+          label: "% of Net Sales",
           data: bars,
           borderRadius: 0,
           borderSkipped: false,
@@ -736,19 +745,19 @@
                 if (step.kind === "total") {
                   return [
                     `${step.pct}`,
-                    `Total: ${formatBillions(step.end)}`
+                    `Total: ${formatPercent(step.end)}`
                   ];
                 }
                 if (step.kind === "anchor") {
                   return [
                     `${step.pct}`,
-                    `Starting point: ${formatBillions(step.end)}`
+                    `Starting point: ${formatPercent(step.end)}`
                   ];
                 }
                 return [
                   `${step.pct}`,
-                  `Change: ${formatBillions(step.value)}`,
-                  `Running total: ${formatBillions(step.end)}`
+                  `Change: ${formatPercent(step.metricValue)}`,
+                  `Running total: ${formatPercent(step.end)}`
                 ];
               }
             }
@@ -776,10 +785,10 @@
             ...baseOptions.scales.y,
             min: config.min,
             max: config.max,
-            title: { display: false },
+            title: { display: true, text: "% of Net Sales", color: COLORS.muted },
             ticks: {
               color: COLORS.muted,
-              callback: (v) => formatBillions(Number(v)),
+              callback: (v) => formatPercent(Number(v)),
               font: { size: 10 }
             },
             grid: {
@@ -1101,8 +1110,8 @@
     makeSegBubble();
     makeCustomerScatter();
     makeWaterfallBridge("dtg-group1-waterfall", {
-      min: -0.5,
-      max: 4.0,
+      min: 0,
+      max: 140,
       steps: [
         { group: "Gross to Net Sales", kind: "total", pct: "132%", value: 3.63 },
         { group: "Gross to Net Sales", kind: "delta", pct: "29%", value: -0.80 },
@@ -1133,8 +1142,8 @@
       ]
     });
     makeWaterfallBridge("dtg-group2-waterfall", {
-      min: -0.2,
-      max: 3.8,
+      min: 0,
+      max: 140,
       steps: [
         { group: "Gross to Net Sales", kind: "total", pct: "126%", value: 3.47 },
         { group: "Gross to Net Sales", kind: "delta", pct: "23%", value: -0.64 },
