@@ -278,7 +278,7 @@
           },
           y: {
             ...baseOptions.scales.y,
-            title: { display: true, text: "Cost to Serve %", color: COLORS.muted },
+            title: { display: true, text: "Cost to Serve Spread", color: COLORS.muted },
             min: 20,
             max: 80,
             ticks: {
