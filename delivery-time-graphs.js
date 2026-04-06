@@ -481,11 +481,6 @@
     const chartY = panelY + titleBand + panelPad;
     ctx.drawImage(canvas, chartX, chartY);
 
-    // Subtle chart frame to improve contrast after paste into PowerPoint.
-    ctx.strokeStyle = "rgba(159,176,211,.25)";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(chartX + 0.5, chartY + 0.5, canvas.width - 1, canvas.height - 1);
-
     return exportCanvas;
   }
 
