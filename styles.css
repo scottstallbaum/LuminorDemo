@@ -2130,6 +2130,22 @@ th { color: var(--muted); font-weight: 600; }
   padding: .95rem 1rem;
 }
 
+.dtg-insight-callout {
+  margin: .15rem 0 .7rem;
+  padding: .55rem .7rem;
+  border: 1px solid rgba(79,159,255,.42);
+  border-radius: .55rem;
+  background: linear-gradient(90deg, rgba(79,159,255,.16), rgba(79,159,255,.05));
+  color: #d7e6ff;
+  font-size: .78rem;
+  line-height: 1.4;
+}
+
+.dtg-insight-callout strong {
+  color: #f0f6ff;
+  margin-right: .25rem;
+}
+
 .dtg-grid {
   display: grid;
   gap: .9rem;
