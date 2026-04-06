@@ -297,76 +297,116 @@
     });
   }
 
-  const benchmarkBoxesPlugin = {
-    id: "benchmarkBoxesPlugin",
+  const customerScatterGuidePlugin = {
+    id: "customerScatterGuidePlugin",
     afterDraw(chart) {
       if (chart.canvas.id !== "dtg-customer-scatter") return;
       const { ctx, scales: { x, y } } = chart;
-      const left = x.getPixelForValue(-100);
-      const mid = x.getPixelForValue(0);
-      const right = x.getPixelForValue(100);
-      const top = y.getPixelForValue(12);
-      const split = y.getPixelForValue(6);
+      const xZero = x.getPixelForValue(0);
+      const yMid = y.getPixelForValue(6);
 
       ctx.save();
-      ctx.strokeStyle = "rgba(88,178,255,.85)";
-      ctx.fillStyle = "rgba(88,178,255,.13)";
-      ctx.lineWidth = 1;
-      ctx.fillRect(left, top, mid - left, split - top);
-      ctx.strokeRect(left, top, mid - left, split - top);
-      ctx.fillStyle = "rgba(69,208,162,.13)";
-      ctx.strokeStyle = "rgba(69,208,162,.85)";
-      ctx.fillRect(mid, top, right - mid, split - top);
-      ctx.strokeRect(mid, top, right - mid, split - top);
-      ctx.fillStyle = COLORS.muted;
-      ctx.font = "600 12px Inter";
-      ctx.fillText("Benchmark Group 1", left + 10, top + 18);
-      ctx.fillText("Benchmark Group 2", mid + 10, top + 18);
+      ctx.strokeStyle = "rgba(184,170,126,.78)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(xZero, y.top);
+      ctx.lineTo(xZero, y.bottom);
+      ctx.moveTo(x.left, yMid);
+      ctx.lineTo(x.right, yMid);
+      ctx.stroke();
       ctx.restore();
     }
   };
 
   function makeCustomerScatter() {
     const pts = [];
-    for (let i = 0; i < 700; i++) {
-      const x = (r3() * 200) - 100;
-      const y = Math.max(0.1, (r3() * 10) + (x < 0 ? 0.8 : -0.2));
-      pts.push({ x, y });
+
+    function randNormal() {
+      const u = Math.max(1e-6, r3());
+      const v = Math.max(1e-6, r3());
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
     }
+
+    function addCluster(centerX, centerY, spreadX, spreadY, count) {
+      for (let i = 0; i < count; i++) {
+        pts.push({
+          x: Math.max(-60, Math.min(60, centerX + (randNormal() * spreadX))),
+          y: Math.max(0.15, Math.min(11.85, centerY + (randNormal() * spreadY)))
+        });
+      }
+    }
+
+    function addOutliers(count) {
+      for (let i = 0; i < count; i++) {
+        pts.push({
+          x: -60 + (r3() * 120),
+          y: 0.15 + (r3() * 11.7)
+        });
+      }
+    }
+
+    // Concentrated center/right clouds with lighter tailing, closer to the reference composition.
+    addCluster(-12, 7.9, 9.5, 1.0, 180);
+    addCluster(18, 8.3, 8.5, 0.95, 240);
+    addCluster(-10, 4.6, 11.5, 1.0, 180);
+    addCluster(18, 4.4, 10.5, 1.15, 220);
+    addCluster(6, 6.0, 6.5, 2.05, 110);
+    addOutliers(120);
+
     return new Chart(document.getElementById("dtg-customer-scatter"), {
       type: "scatter",
       data: {
         datasets: [{
           label: "Customers",
           data: pts,
-          backgroundColor: "rgba(255,174,87,.26)",
-          borderColor: "rgba(255,174,87,.6)",
-          pointRadius: 2
+          backgroundColor: "rgba(193,184,149,.34)",
+          borderColor: "rgba(193,184,149,.66)",
+          pointRadius: 2.2
         }]
       },
       options: {
         ...baseOptions,
         plugins: {
           ...baseOptions.plugins,
-          legend: { display: false }
+          legend: { display: false },
+          tooltip: {
+            ...baseOptions.plugins.tooltip,
+            callbacks: {
+              title: () => "Customer",
+              label: (item) => {
+                const p = item.raw || {};
+                return [
+                  `Contribution Margin: ${Number(p.x || 0).toFixed(0)}%`,
+                  `Volume: ${Number(p.y || 0).toFixed(1)} k units`
+                ];
+              }
+            }
+          }
         },
         scales: {
           x: {
             ...baseOptions.scales.x,
-            title: { display: true, text: "Economic Contribution %", color: COLORS.muted },
-            min: -100,
-            max: 100,
-            ticks: { color: COLORS.muted, callback: (v) => `${v}%` }
+            title: { display: true, text: "Contribution Margin %", color: COLORS.muted },
+            min: -60,
+            max: 60,
+            ticks: {
+              color: COLORS.muted,
+              callback: (v) => `${Number(v).toFixed(0)}%`
+            }
           },
           y: {
             ...baseOptions.scales.y,
-            title: { display: true, text: "Volume", color: COLORS.muted },
+            title: { display: true, text: "Volume (k units)", color: COLORS.muted },
             min: 0,
-            max: 12
+            max: 12,
+            ticks: {
+              color: COLORS.muted,
+              callback: (v) => `${v}`
+            }
           }
         }
       },
-      plugins: [benchmarkBoxesPlugin]
+      plugins: [customerScatterGuidePlugin]
     });
   }
 
