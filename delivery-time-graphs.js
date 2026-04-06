@@ -535,17 +535,11 @@
     const borderColor = [];
     const modelSteps = [];
     const groups = [];
-    const groupIndexes = new Map();
+    const netTickIndexes = new Set();
     let cumulative = 0;
 
     config.steps.forEach((step, index) => {
       const style = groupStyles[step.group] || groupStyles.COGS;
-      const groupRange = groupIndexes.get(step.group);
-      if (!groupRange) {
-        groupIndexes.set(step.group, { start: index, end: index });
-      } else {
-        groupRange.end = index;
-      }
 
       let startValue = cumulative;
       let endValue = cumulative;
@@ -585,13 +579,28 @@
       }
     });
 
-    groupIndexes.forEach((range, name) => {
+    const firstIndexByGroup = new Map();
+    const groupOrder = [];
+    modelSteps.forEach((step, idx) => {
+      if (!firstIndexByGroup.has(step.group)) {
+        firstIndexByGroup.set(step.group, idx);
+        groupOrder.push(step.group);
+      }
+    });
+
+    groupOrder.forEach((groupName, idx) => {
+      const start = firstIndexByGroup.get(groupName);
+      const end = idx < groupOrder.length - 1
+        ? firstIndexByGroup.get(groupOrder[idx + 1])
+        : (modelSteps.length - 1);
+
       groups.push({
-        name,
-        color: (groupStyles[name] || groupStyles.COGS).header,
-        start: range.start,
-        end: range.end
+        name: groupName,
+        color: (groupStyles[groupName] || groupStyles.COGS).header,
+        start,
+        end
       });
+      netTickIndexes.add(end);
     });
 
     const waterfallBridgePlugin = {
@@ -739,7 +748,7 @@
               callback: (_value, index) => {
                 const step = modelSteps[index];
                 if (!step) return "";
-                return step.pct;
+                return netTickIndexes.has(index) ? step.pct : "";
               },
               maxRotation: 0,
               minRotation: 0,
