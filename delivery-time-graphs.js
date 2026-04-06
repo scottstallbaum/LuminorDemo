@@ -588,8 +588,8 @@
     const titleLineHeight = title ? (titleSize + 2) : 0;
     const subtitleBand = subtitle ? 14 : 0;
     const noteBand = note ? 12 : 0;
-    const topPad = title ? 6 : 0;
-    const bottomPad = title ? 4 : 0;
+    const topPad = title ? 11 : 0;
+    const bottomPad = title ? 1 : 0;
     const titleBand = title ? ((titleLines.length * titleLineHeight) + subtitleBand + noteBand + topPad + bottomPad) : 16;
     const panelH = canvas.height + panelPadTop + panelPadBottom + titleBand;
 
