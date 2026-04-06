@@ -884,7 +884,7 @@
             ...baseOptions.scales.x,
             title: {
               display: true,
-              text: ["Profitable customers", "(ranked from most to least profitable)"],
+              text: ["Profitable Customers", "(ranked from most to least profitable)"],
               color: COLORS.muted
             },
             ticks: { display: false },
@@ -941,7 +941,7 @@
             ...baseOptions.scales.x,
             title: {
               display: true,
-              text: ["Unprofitable customers", "(ranked from most to least profitable)"],
+              text: ["Unprofitable Customers", "(ranked from most to least profitable)"],
               color: COLORS.muted
             },
             ticks: { display: false },
