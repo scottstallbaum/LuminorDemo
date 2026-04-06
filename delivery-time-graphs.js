@@ -193,11 +193,12 @@
     const pts = [];
 
     const centers = [
-      { x: -36, y: 28 },
-      { x: 34, y: 27 },
-      { x: -34, y: -24 },
-      { x: 35, y: -22 },
-      { x: 0, y: 4 }
+      { x: -30, y: 24 },
+      { x: 30, y: 23 },
+      { x: -28, y: -20 },
+      { x: 28, y: -18 },
+      { x: 0, y: 8 },
+      { x: 0, y: -8 }
     ];
 
     function canPlaceBubble(x, y, r) {
@@ -206,30 +207,51 @@
         const dx = x - p.x;
         const dy = y - p.y;
         const dist = Math.sqrt((dx * dx) + (dy * dy));
-        if (dist < ((r + p.r) * 0.68)) return false;
+        if (dist < ((r + p.r) * 0.56)) return false;
       }
       return true;
     }
 
-    // Fewer, cleaner bubbles with controlled overlap.
-    const targetCount = 20;
+    // Closer to reference: fewer bubbles with visible size variation.
+    const targetCount = 16;
     let attempts = 0;
-    while (pts.length < targetCount && attempts < 450) {
+    while (pts.length < targetCount && attempts < 420) {
       attempts += 1;
       const c = centers[Math.floor(r2() * centers.length)];
-      const x = c.x + ((r2() - 0.5) * 13);
-      const y = c.y + ((r2() - 0.5) * 12);
-      const skew = Math.pow(r2(), 1.8);
-      let r = 5 + (skew * 24);
-      if (r2() > 0.92) r += 5;
-      r = Math.max(5, Math.min(30, r));
+      const x = c.x + ((r2() - 0.5) * 22);
+      const y = c.y + ((r2() - 0.5) * 20);
+      const skew = Math.pow(r2(), 1.5);
+      let r = 6 + (skew * 16);
+      if (r2() > 0.9) r += 8;
+      r = Math.max(7, Math.min(28, r));
 
-      const clampedX = Math.max(-52, Math.min(52, x));
-      const clampedY = Math.max(-52, Math.min(52, y));
+      const clampedX = Math.max(-58, Math.min(58, x));
+      const clampedY = Math.max(-50, Math.min(50, y));
       if (canPlaceBubble(clampedX, clampedY, r)) {
         pts.push({ x: clampedX, y: clampedY, r });
       }
     }
+
+    const segCrosshairPlugin = {
+      id: "segCrosshairPlugin",
+      afterDraw(chart) {
+        if (chart.canvas.id !== "dtg-seg-bubble") return;
+        const { ctx, scales: { x, y } } = chart;
+        const xZero = x.getPixelForValue(0);
+        const yZero = y.getPixelForValue(0);
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(159,176,211,.7)";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(xZero, y.top);
+        ctx.lineTo(xZero, y.bottom);
+        ctx.moveTo(x.left, yZero);
+        ctx.lineTo(x.right, yZero);
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
 
     return new Chart(document.getElementById("dtg-seg-bubble"), {
       type: "bubble",
@@ -237,9 +259,9 @@
         datasets: [{
           label: "Customer clusters",
           data: pts,
-          backgroundColor: "rgba(159,176,211,.34)",
-          borderColor: "rgba(159,176,211,.82)",
-          borderWidth: 1.2
+          backgroundColor: "rgba(176,194,212,.58)",
+          borderColor: "rgba(176,194,212,.22)",
+          borderWidth: 1
         }]
       },
       options: {
@@ -265,22 +287,26 @@
         scales: {
           x: {
             ...baseOptions.scales.x,
-            title: { display: true, text: "Contribution Margin %", color: COLORS.muted },
+            title: { display: true, text: "Economic Contribution $", color: COLORS.muted },
             min: -60,
             max: 60,
             ticks: {
               color: COLORS.muted,
               callback: (v) => `${Number(v).toFixed(0)}%`
-            }
+            },
+            grid: { display: false }
           },
           y: {
             ...baseOptions.scales.y,
             title: { display: true, text: "Cost to Serve Spread", color: COLORS.muted },
             min: -55,
-            max: 55
+            max: 55,
+            ticks: { display: false },
+            grid: { display: false }
           }
         }
-      }
+      },
+      plugins: [segCrosshairPlugin]
     });
   }
 
