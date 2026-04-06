@@ -618,6 +618,7 @@
 
     return new Chart(document.getElementById(canvasId), {
       type: "bar",
+      plugins: [waterfallBridgePlugin],
       data: {
         labels,
         datasets: [{
