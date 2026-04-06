@@ -193,10 +193,10 @@
     const pts = [];
 
     const centers = [
-      { x: -30, y: 26 },
-      { x: 24, y: 24 },
-      { x: -24, y: -20 },
-      { x: 26, y: -18 },
+      { x: -36, y: 28 },
+      { x: 34, y: 27 },
+      { x: -34, y: -24 },
+      { x: 35, y: -22 },
       { x: 0, y: 4 }
     ];
 
@@ -206,19 +206,19 @@
         const dx = x - p.x;
         const dy = y - p.y;
         const dist = Math.sqrt((dx * dx) + (dy * dy));
-        if (dist < ((r + p.r) * 0.62)) return false;
+        if (dist < ((r + p.r) * 0.68)) return false;
       }
       return true;
     }
 
     // Fewer, cleaner bubbles with controlled overlap.
-    const targetCount = 24;
+    const targetCount = 20;
     let attempts = 0;
     while (pts.length < targetCount && attempts < 450) {
       attempts += 1;
       const c = centers[Math.floor(r2() * centers.length)];
-      const x = c.x + ((r2() - 0.5) * 18);
-      const y = c.y + ((r2() - 0.5) * 16);
+      const x = c.x + ((r2() - 0.5) * 13);
+      const y = c.y + ((r2() - 0.5) * 12);
       const skew = Math.pow(r2(), 1.8);
       let r = 5 + (skew * 24);
       if (r2() > 0.92) r += 5;
@@ -265,9 +265,13 @@
         scales: {
           x: {
             ...baseOptions.scales.x,
-            title: { display: true, text: "Economic Contribution ($)", color: COLORS.muted },
-            min: -55,
-            max: 55
+            title: { display: true, text: "Contribution Margin %", color: COLORS.muted },
+            min: -60,
+            max: 60,
+            ticks: {
+              color: COLORS.muted,
+              callback: (v) => `${Number(v).toFixed(0)}%`
+            }
           },
           y: {
             ...baseOptions.scales.y,
