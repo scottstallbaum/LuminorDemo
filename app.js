@@ -400,6 +400,7 @@ const state = {
     selectedGroup: ""
   },
   whaleCurveSelection: { point1: null, point2: null },
+  whaleCurveActiveLine: "adjusted",
   breakdown: {
     stepKey: null,
     totals: null,
@@ -2064,6 +2065,56 @@ function buildWhaleCurveData(rows) {
   return { points, peakIndex: peakIndex + 1, total, peakValue };
 }
 
+function buildStdWhaleCurveData(rows) {
+  // Aggregate SKU rows, accumulating standard cost fields
+  const skuMap = rows.reduce((acc, row) => {
+    const key = row.sku || "Unknown";
+    if (!acc[key]) {
+      acc[key] = { sku: key, revenue: 0, operatingIncome: 0, volume: 0,
+        convTotal: 0, stdConvTotal: 0, sgaTotal: 0, stdSgaTotal: 0, hasStd: false };
+    }
+    const a = acc[key];
+    a.revenue += row.revenue || 0;
+    a.operatingIncome += row.operatingIncome || 0;
+    a.volume += row.volume || 0;
+    if (row.hasClientStdConversionCpu) {
+      a.convTotal += row.conversionTotal || 0;
+      a.stdConvTotal += row.clientStdConversionTotal || 0;
+      a.sgaTotal += row.sgaTotal || 0;
+      a.stdSgaTotal += Number.isFinite(row.clientStdSgaCpu)
+        ? (row.clientStdSgaCpu * (row.volume || 0))
+        : (row.sgaTotal || 0);
+      a.hasStd = true;
+    }
+    return acc;
+  }, {});
+
+  const aggregated = Object.values(skuMap).map((a) => {
+    const convDiff = a.hasStd ? a.convTotal - a.stdConvTotal : 0;
+    const sgaDiff = a.hasStd ? a.sgaTotal - a.stdSgaTotal : 0;
+    const stdOm = a.operatingIncome + convDiff + sgaDiff;
+    return { ...a, stdOm };
+  }).sort((a, b) => (b.stdOm || 0) - (a.stdOm || 0));
+
+  if (!aggregated.length) return { points: [], peakIndex: 0, total: 0, peakValue: -Infinity };
+
+  const total = aggregated.reduce((sum, r) => sum + (r.stdOm || 0), 0);
+  let cumulative = 0;
+  let peakIndex = 0;
+  let peakValue = -Infinity;
+
+  const points = aggregated.map((r, i) => {
+    cumulative += r.stdOm || 0;
+    const pct = (i + 1) / aggregated.length;
+    if (cumulative > peakValue) { peakValue = cumulative; peakIndex = i; }
+    return { x: pct, y: cumulative, sku: r.sku, cumulative, index: i,
+      volume: r.volume, revenue: r.revenue, operatingIncome: r.stdOm };
+  });
+
+  points.unshift({ x: 0, y: 0, sku: null, cumulative: 0, index: -1, volume: 0, revenue: 0, operatingIncome: 0 });
+  return { points, peakIndex: peakIndex + 1, total, peakValue };
+}
+
 function getDimensionLabel(dimensionKey) {
   return drillOptions.find((option) => option.value === dimensionKey)?.label || dimensionKey;
 }
@@ -2316,16 +2367,16 @@ function renderSegmentRealityCheck(rows) {
         {
           label: "As-Reported OM%",
           data: reportedOm,
-          backgroundColor: "rgba(184, 204, 145, 0.92)",
-          borderColor: "rgba(184, 204, 145, 1)",
+          backgroundColor: "rgba(255, 174, 87, 0.82)",
+          borderColor: "rgba(255, 174, 87, 1)",
           borderWidth: 1,
           borderRadius: 5
         },
         {
-          label: "Conversion-aligned OM%",
+          label: "Complexity-Adjusted OM%",
           data: alignedOm,
-          backgroundColor: "rgba(79, 135, 199, 0.92)",
-          borderColor: "rgba(79, 135, 199, 1)",
+          backgroundColor: "rgba(69, 208, 162, 0.82)",
+          borderColor: "rgba(69, 208, 162, 1)",
           borderWidth: 1,
           borderRadius: 5
         }
@@ -2419,10 +2470,12 @@ Chart.register({
   }
 });
 
-function renderWhaleCurveReport(allPoints) {
+function renderWhaleCurveReport(allPoints, metricLabel) {
   const report = els.whaleCurveReport;
   const clearBtn = els.whaleCurveClear;
   if (!report) return;
+
+  const omLabel = metricLabel || "Op Income";
 
   const { point1, point2 } = state.whaleCurveSelection;
 
@@ -2484,11 +2537,11 @@ function renderWhaleCurveReport(allPoints) {
         <strong class="whale-stat-value">${toMoney(avgRevenue)}</strong>
       </div>
       <div class="whale-stat">
-        <span class="whale-stat-label">Total Op Income</span>
+        <span class="whale-stat-label">Total ${omLabel}</span>
         <strong class="whale-stat-value ${totalOpIncome >= 0 ? "is-positive" : "is-negative"}">${toSignedMoney(totalOpIncome)}</strong>
       </div>
       <div class="whale-stat">
-        <span class="whale-stat-label">Avg Op Income</span>
+        <span class="whale-stat-label">Avg ${omLabel}</span>
         <strong class="whale-stat-value ${avgOpIncome >= 0 ? "is-positive" : "is-negative"}">${toSignedMoney(avgOpIncome)}</strong>
       </div>
     </div>
@@ -2500,7 +2553,13 @@ function renderWhaleCurve(rows) {
 
   const { points, peakIndex, total, peakValue } = buildWhaleCurveData(rows);
 
-  // Attach volume/revenue/operatingIncome back onto each point for report use
+  // Build both adjusted and standard cost curve data
+  const stdData = buildStdWhaleCurveData(rows);
+  const stdPoints = stdData.points;
+  const stdPeakIndex = stdData.peakIndex;
+  const stdPeakValue = stdData.peakValue;
+
+  // Attach volume/revenue/operatingIncome back onto adjusted points for report use
   const aggregated = aggregateSkuRows(rows).sort((a, b) => (b.operatingIncome || 0) - (a.operatingIncome || 0));
   points.forEach((p, i) => {
     if (i === 0) { p.volume = 0; p.revenue = 0; p.operatingIncome = 0; return; }
@@ -2510,9 +2569,11 @@ function renderWhaleCurve(rows) {
     p.operatingIncome = sku?.operatingIncome || 0;
   });
 
-  renderWhaleCurveReport(points);
+  const activeLine = state.whaleCurveActiveLine || "adjusted";
+  const activePoints = activeLine === "standard" ? stdPoints : points;
+  const activeMetricLabel = activeLine === "standard" ? "Standard Op Income" : "Adjusted Op Income";
+  renderWhaleCurveReport(activePoints, activeMetricLabel);
 
-  const metricLabel = "Operating Income";
   const skuCount = points.length - 1;
   const peakPct = skuCount > 0 ? Math.round((peakIndex / skuCount) * 100) : 0;
 
@@ -2522,20 +2583,22 @@ function renderWhaleCurve(rows) {
     } else {
       const profitablePct = skuCount > 0 ? Math.round((points.filter((p, i) => i > 0 && (p.y - (points[i - 1]?.y || 0)) > 0).length / skuCount) * 100) : 0;
       els.whaleCurveSubtitle.textContent =
-        `Peak ${metricLabel} of ${toMoney(peakValue)} reached at ${peakPct}% of SKUs — ${100 - profitablePct}% of SKUs reduce total profit.`;
+        `Peak adjusted OM ${toMoney(peakValue)} at ${peakPct}% of SKUs — ${100 - profitablePct}% of SKUs reduce total profit. Click a curve to select it.`;
     }
   }
 
-  const chartData = points.map((p) => ({ x: p.x * 100, y: p.y }));
+  const adjChartData = points.map((p) => ({ x: p.x * 100, y: p.y }));
+  const stdChartData = stdPoints.map((p) => ({ x: p.x * 100, y: p.y }));
 
-  // Color segments: green up to peak, red after
-  const peakX = points[peakIndex]?.x * 100 || 100;
+  const adjPeakX = points[peakIndex]?.x * 100 || 100;
+  const stdPeakX = stdPoints[stdPeakIndex]?.x * 100 || 100;
 
-  // Build highlighted selection markers
+  // Selection markers for the active line
   const selMarkers = [];
   const { point1: sel1, point2: sel2 } = state.whaleCurveSelection;
-  if (sel1 !== null) { const sp1 = points[sel1 + 1]; if (sp1) selMarkers.push({ x: sp1.x * 100, y: sp1.y }); }
-  if (sel2 !== null) { const sp2 = points[sel2 + 1]; if (sp2) selMarkers.push({ x: sp2.x * 100, y: sp2.y }); }
+  const markerPoints = activeLine === "standard" ? stdPoints : points;
+  if (sel1 !== null) { const sp1 = markerPoints[sel1 + 1]; if (sp1) selMarkers.push({ x: sp1.x * 100, y: sp1.y }); }
+  if (sel2 !== null) { const sp2 = markerPoints[sel2 + 1]; if (sp2) selMarkers.push({ x: sp2.x * 100, y: sp2.y }); }
 
   if (whaleCurveChart) {
     whaleCurveChart.destroy();
@@ -2547,24 +2610,46 @@ function renderWhaleCurve(rows) {
     data: {
       datasets: [
         {
-          label: `Cumulative ${metricLabel}`,
-          data: chartData,
-          borderColor: chartData.map((p) => p.x <= peakX ? "#45d0a2" : "#ff8c7a"),
-          backgroundColor: "transparent",
-          borderWidth: 2.5,
+          label: "Complexity-Adjusted OM",
+          data: adjChartData,
+          borderWidth: activeLine === "adjusted" ? 2.5 : 1.5,
           pointRadius: 0,
           pointHoverRadius: 5,
           pointHoverBackgroundColor: "#ffffff",
           tension: 0.35,
+          backgroundColor: "transparent",
           segment: {
-            borderColor: (ctx) => ctx.p1.parsed.x <= peakX ? "#45d0a2" : "#ff8c7a"
+            borderColor: (ctx) => ctx.p1.parsed.x <= adjPeakX ? "#45d0a2" : "#ff8c7a"
           }
         },
         {
-          label: "Peak",
+          label: "As-Reported (Standard) OM",
+          data: stdChartData,
+          borderWidth: activeLine === "standard" ? 2.5 : 1.5,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: "#ffffff",
+          tension: 0.35,
+          backgroundColor: "transparent",
+          borderDash: [5, 3],
+          segment: {
+            borderColor: (ctx) => ctx.p1.parsed.x <= stdPeakX ? "#ffae57" : "#ff6d6d"
+          }
+        },
+        {
+          label: "Adj Peak",
           data: [{ x: points[peakIndex]?.x * 100, y: peakValue }],
           borderColor: "transparent",
-          backgroundColor: "#ffd966",
+          backgroundColor: "#45d0a2",
+          pointRadius: 7,
+          pointHoverRadius: 9,
+          type: "scatter"
+        },
+        {
+          label: "Std Peak",
+          data: [{ x: stdPoints[stdPeakIndex]?.x * 100, y: stdPeakValue }],
+          borderColor: "transparent",
+          backgroundColor: "#ffae57",
           pointRadius: 7,
           pointHoverRadius: 9,
           type: "scatter"
@@ -2589,29 +2674,58 @@ function renderWhaleCurve(rows) {
       onClick: (event, elements, chart) => {
         const canvasPosition = Chart.helpers.getRelativePosition(event, chart);
         const xVal = chart.scales.x.getValueForPixel(canvasPosition.x);
+        const yVal = chart.scales.y.getValueForPixel(canvasPosition.y);
         const pct = Math.max(0, Math.min(100, xVal)) / 100;
-        const nearest = points.slice(1).reduce((best, p, i) => {
+
+        // Determine which curve the click is nearer to by comparing y-distance at the clicked x
+        const adjNearest = points.slice(1).reduce((best, p, i) => {
           const dist = Math.abs(p.x - pct);
-          return dist < best.dist ? { dist, index: i } : best;
-        }, { dist: Infinity, index: 0 });
-        const clickedIndex = nearest.index;
-        const { point1, point2 } = state.whaleCurveSelection;
-        if (point1 === null || point2 !== null) {
+          return dist < best.dist ? { dist, index: i, y: p.y } : best;
+        }, { dist: Infinity, index: 0, y: 0 });
+        const stdNearest = stdPoints.slice(1).reduce((best, p, i) => {
+          const dist = Math.abs(p.x - pct);
+          return dist < best.dist ? { dist, index: i, y: p.y } : best;
+        }, { dist: Infinity, index: 0, y: 0 });
+
+        const adjYDist = Math.abs(adjNearest.y - yVal);
+        const stdYDist = Math.abs(stdNearest.y - yVal);
+
+        const newActiveLine = stdYDist < adjYDist ? "standard" : "adjusted";
+        const clickedIndex = newActiveLine === "standard" ? stdNearest.index : adjNearest.index;
+
+        if (state.whaleCurveActiveLine !== newActiveLine) {
+          // Switching curves resets selection
+          state.whaleCurveActiveLine = newActiveLine;
           state.whaleCurveSelection = { point1: clickedIndex, point2: null };
         } else {
-          state.whaleCurveSelection.point2 = clickedIndex;
+          const { point1, point2 } = state.whaleCurveSelection;
+          if (point1 === null || point2 !== null) {
+            state.whaleCurveSelection = { point1: clickedIndex, point2: null };
+          } else {
+            state.whaleCurveSelection.point2 = clickedIndex;
+          }
         }
         render();
       },
       interaction: { mode: "index", intersect: false },
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: true,
+          labels: {
+            color: "#9fb0d3",
+            boxWidth: 24,
+            filter: (item) => item.datasetIndex < 2
+          }
+        },
         tooltip: {
           callbacks: {
             title: (items) => `${items[0].parsed.x.toFixed(1)}% of SKUs`,
             label: (item) => {
-              if (item.datasetIndex === 1) return `Peak: ${toMoney(item.parsed.y)}`;
-              return `Cumulative ${metricLabel}: ${toMoney(item.parsed.y)}`;
+              if (item.datasetIndex === 2) return `Adj Peak: ${toMoney(item.parsed.y)}`;
+              if (item.datasetIndex === 3) return `Std Peak: ${toMoney(item.parsed.y)}`;
+              if (item.datasetIndex === 4) return null;
+              const lbl = item.datasetIndex === 0 ? "Adjusted OM" : "Standard OM";
+              return `Cumulative ${lbl}: ${toMoney(item.parsed.y)}`;
             }
           },
           backgroundColor: "rgba(15,26,45,0.95)",
@@ -2632,7 +2746,7 @@ function renderWhaleCurve(rows) {
           grid: { color: "rgba(159,176,211,.1)" }
         },
         y: {
-          title: { display: true, text: `Cumulative ${metricLabel}`, color: "#9fb0d3", font: { size: 11 } },
+          title: { display: true, text: "Cumulative Operating Income", color: "#9fb0d3", font: { size: 11 } },
           ticks: { color: "#9fb0d3", callback: (v) => toMoney(v) },
           grid: { color: "rgba(159,176,211,.1)" }
         }
@@ -2644,6 +2758,7 @@ function renderWhaleCurve(rows) {
 function bindWhaleCurveEvents() {
   els.whaleCurveClear?.addEventListener("click", () => {
     state.whaleCurveSelection = { point1: null, point2: null };
+    state.whaleCurveActiveLine = "adjusted";
     render();
   });
 }
