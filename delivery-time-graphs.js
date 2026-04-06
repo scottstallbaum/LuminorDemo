@@ -175,7 +175,7 @@
           },
           y: {
             ...baseOptions.scales.y,
-            title: { display: true, text: "Volume (units)", color: COLORS.muted },
+            title: { display: true, text: "Volume (k units)", color: COLORS.muted },
             min: 0,
             max: 12,
             ticks: {
@@ -229,6 +229,24 @@
         ctx.moveTo(x.left, yFifty);
         ctx.lineTo(x.right, yFifty);
         ctx.stroke();
+
+        // Bubble-size legend cue
+        const lx = x.right - 180;
+        const ly = y.bottom - 16;
+        ctx.fillStyle = "rgba(176,194,212,.58)";
+        ctx.strokeStyle = "rgba(176,194,212,.22)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(lx, ly, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#9fb0d3";
+        ctx.font = "500 12px Inter";
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "left";
+        ctx.fillText("Bubble size = Number of Customers", lx + 14, ly + 1);
+
         ctx.restore();
       }
     };
