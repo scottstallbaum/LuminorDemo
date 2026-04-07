@@ -250,6 +250,46 @@
     container.appendChild(table);
   }
 
+  function renderSkuShortageStrip(containerId, fulfillmentMatrix) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+
+    var totalDemandBySku = SKU_LABELS.map(function (_, si) {
+      return DEMAND.reduce(function (sum, row) { return sum + row[si]; }, 0);
+    });
+    var totalFulfilledBySku = SKU_LABELS.map(function (_, si) {
+      return fulfillmentMatrix.reduce(function (sum, row) { return sum + row[si]; }, 0);
+    });
+
+    var shortageBySku = totalDemandBySku.map(function (demand, si) {
+      return Math.max(0, demand - totalFulfilledBySku[si]);
+    });
+
+    var hasAnyShortage = shortageBySku.some(function (v) { return v > 0; });
+    var subtitle = hasAnyShortage
+      ? "Red = unmet demand units by SKU"
+      : "All SKU demand is fully met";
+
+    var chips = SKU_LABELS.map(function (sku, si) {
+      var shortage = shortageBySku[si];
+      var cls = shortage > 0 ? "dp-unit-chip is-short" : "dp-unit-chip is-ok";
+      var txt = shortage > 0 ? ("-" + shortage) : "OK";
+      return (
+        '<div class="' + cls + '">' +
+        '<span class="dp-unit-sku">' + sku + '</span>' +
+        '<strong class="dp-unit-val">' + txt + '</strong>' +
+        "</div>"
+      );
+    }).join("");
+
+    container.innerHTML =
+      '<div class="dp-units-head">' +
+      '<span class="dp-units-title">SKU Shortage vs Demand (Units)</span>' +
+      '<span class="dp-units-subtitle">' + subtitle + '</span>' +
+      "</div>" +
+      '<div class="dp-units-grid">' + chips + "</div>";
+  }
+
   // ─── Impact Chart ──────────────────────────────────────────────────────────
   function makeImpact() {
     var labels = [
@@ -328,22 +368,231 @@
     });
   }
 
-  // ─── Export Button (canvas only) ───────────────────────────────────────────
-  document.addEventListener("click", function (e) {
-    var btn = e.target.closest(".dtg-export");
-    if (!btn) return;
-    var canvasId = btn.dataset.canvas;
-    var canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    canvas.toBlob(function (blob) {
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a");
-      a.href = url;
-      a.download = canvasId + ".png";
-      a.click();
-      URL.revokeObjectURL(url);
+  function getCardMeta(el) {
+    var card = el.closest(".dtg-card");
+    var titleEl = card ? card.querySelector(".dtg-card-head h3") : null;
+    var subtitleEl = card ? card.querySelector(".dtg-card-head .dtg-subtitle") : null;
+    var noteEl = card ? card.querySelector(".dtg-card-head .dtg-inline-note") : null;
+    return {
+      title: titleEl ? titleEl.textContent.trim() : "",
+      subtitle: subtitleEl ? subtitleEl.textContent.trim() : "",
+      note: noteEl ? noteEl.textContent.trim() : "",
+    };
+  }
+
+  function buildExportCanvas(sourceCanvas, metaEl) {
+    var meta = getCardMeta(metaEl);
+    var title = meta.title;
+    var subtitle = meta.subtitle;
+    var note = meta.note;
+
+    var outerPad = 34;
+    var panelPadX = 18;
+    var panelPadTop = 8;
+    var panelPadBottom = 16;
+    var panelW = sourceCanvas.width + (panelPadX * 2);
+    var titleSize = 22;
+    var titleLines = title ? [title] : [];
+
+    var exportCanvas = document.createElement("canvas");
+    var ctx = exportCanvas.getContext("2d");
+    if (!ctx) return sourceCanvas;
+
+    function splitTitle(maxWidth) {
+      if (!title) return [];
+      var words = title.split(/\s+/).filter(Boolean);
+      if (!words.length) return [];
+
+      while (titleSize > 14) {
+        if (ctx.measureText(title).width <= maxWidth) return [title];
+        titleSize -= 1;
+        ctx.font = "700 " + titleSize + "px Inter";
+      }
+
+      titleSize = 18;
+      ctx.font = "700 " + titleSize + "px Inter";
+      while (titleSize > 13) {
+        var line1 = "";
+        var cut = -1;
+        for (var i = 0; i < words.length; i += 1) {
+          var test = line1 ? (line1 + " " + words[i]) : words[i];
+          if (ctx.measureText(test).width <= maxWidth) {
+            line1 = test;
+            cut = i;
+          } else {
+            break;
+          }
+        }
+        if (cut >= 0 && cut < words.length - 1) {
+          var line2 = words.slice(cut + 1).join(" ");
+          if (ctx.measureText(line2).width <= maxWidth) {
+            return [line1, line2];
+          }
+        }
+        titleSize -= 1;
+        ctx.font = "700 " + titleSize + "px Inter";
+      }
+
+      var midpoint = Math.ceil(words.length / 2);
+      return [words.slice(0, midpoint).join(" "), words.slice(midpoint).join(" ")];
+    }
+
+    ctx.font = "700 " + titleSize + "px Inter";
+    titleLines = splitTitle(panelW - 34);
+
+    var titleLineHeight = title ? (titleSize + 2) : 0;
+    var subtitleBand = subtitle ? 14 : 0;
+    var noteBand = note ? 12 : 0;
+    var topPad = title ? 11 : 0;
+    var bottomPad = title ? 1 : 0;
+    var titleBand = title ? ((titleLines.length * titleLineHeight) + subtitleBand + noteBand + topPad + bottomPad) : 16;
+    var panelH = sourceCanvas.height + panelPadTop + panelPadBottom + titleBand;
+
+    exportCanvas.width = panelW + (outerPad * 2);
+    exportCanvas.height = panelH + (outerPad * 2);
+
+    var panelX = outerPad;
+    var panelY = outerPad;
+
+    function roundRectPath(x, y, w, h, r) {
+      var rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.arcTo(x + w, y, x + w, y + h, rr);
+      ctx.arcTo(x + w, y + h, x, y + h, rr);
+      ctx.arcTo(x, y + h, x, y, rr);
+      ctx.arcTo(x, y, x + w, y, rr);
+      ctx.closePath();
+    }
+
+    ctx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+    ctx.shadowColor = "rgba(0,0,0,.22)";
+    ctx.shadowBlur = 14;
+    ctx.shadowOffsetY = 5;
+    roundRectPath(panelX, panelY, panelW, panelH, 14);
+    ctx.fillStyle = "#121c2f";
+    ctx.fill();
+
+    ctx.shadowColor = "transparent";
+    roundRectPath(panelX, panelY, panelW, panelH, 14);
+    ctx.strokeStyle = "#24314d";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    if (title) {
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#e8eefc";
+      ctx.font = "700 " + titleSize + "px Inter";
+      var titleStartY = panelY + topPad + (titleLineHeight / 2);
+      titleLines.forEach(function (line, idx) {
+        ctx.fillText(line, panelX + (panelW / 2), titleStartY + (idx * titleLineHeight));
+      });
+
+      if (subtitle) {
+        ctx.fillStyle = "#9fb0d3";
+        ctx.font = "500 12px Inter";
+        var subtitleY = titleStartY + (titleLines.length * titleLineHeight) - 1;
+        ctx.fillText(subtitle, panelX + (panelW / 2), subtitleY);
+      }
+
+      if (note) {
+        ctx.fillStyle = "#9fb0d3";
+        ctx.font = "500 12px Inter";
+        var noteY = titleStartY + (titleLines.length * titleLineHeight) + (subtitle ? 13 : 1);
+        ctx.fillText(note, panelX + (panelW / 2), noteY);
+      }
+    }
+
+    var chartX = panelX + panelPadX;
+    var chartY = panelY + titleBand + panelPadTop;
+    ctx.drawImage(sourceCanvas, chartX, chartY);
+
+    return exportCanvas;
+  }
+
+  function canvasToBlob(canvas) {
+    return new Promise(function (resolve) {
+      canvas.toBlob(resolve, "image/png");
     });
-  });
+  }
+
+  async function copyExportToClipboard(sourceCanvas, metaEl) {
+    if (!navigator.clipboard || !window.ClipboardItem) return false;
+    var exportCanvas = buildExportCanvas(sourceCanvas, metaEl);
+    var blob = await canvasToBlob(exportCanvas);
+    if (!blob) return false;
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    return true;
+  }
+
+  function downloadExportPng(sourceCanvas, metaEl, id) {
+    var exportCanvas = buildExportCanvas(sourceCanvas, metaEl);
+    var a = document.createElement("a");
+    a.href = exportCanvas.toDataURL("image/png", 1.0);
+    a.download = id + ".png";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function flashButton(btn, text) {
+    var original = btn.textContent;
+    btn.textContent = text;
+    btn.disabled = true;
+    setTimeout(function () {
+      btn.textContent = original;
+      btn.disabled = false;
+    }, 900);
+  }
+
+  async function captureGridCanvas(gridEl) {
+    if (!window.html2canvas) return null;
+    return window.html2canvas(gridEl, {
+      backgroundColor: null,
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+  }
+
+  function bindExportButtons() {
+    document.querySelectorAll(".dtg-export").forEach(function (btn) {
+      btn.addEventListener("click", async function () {
+        var canvasId = btn.getAttribute("data-canvas");
+        var gridId = btn.getAttribute("data-grid");
+        var exportId = btn.getAttribute("data-export-id") || canvasId || gridId || "export";
+        var sourceCanvas = null;
+        var metaEl = null;
+
+        if (gridId) {
+          var gridEl = document.getElementById(gridId);
+          if (!gridEl) return;
+          sourceCanvas = await captureGridCanvas(gridEl);
+          metaEl = gridEl;
+        } else if (canvasId) {
+          sourceCanvas = document.getElementById(canvasId);
+          metaEl = sourceCanvas;
+        }
+
+        if (!sourceCanvas || !metaEl) return;
+
+        try {
+          var copied = await copyExportToClipboard(sourceCanvas, metaEl);
+          if (copied) {
+            flashButton(btn, "Copied");
+            return;
+          }
+        } catch (_err) {
+          // Fallback handled below.
+        }
+
+        downloadExportPng(sourceCanvas, metaEl, exportId);
+        flashButton(btn, "Downloaded");
+      });
+    });
+  }
 
   // ─── Init ──────────────────────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", function () {
@@ -354,12 +603,15 @@
       showCts: false,
       fulfillmentMatrix: beforeFulfillment,
     });
+    renderSkuShortageStrip("dp-before-units", beforeFulfillment);
 
     renderGrid("dp-after-grid", {
       showCts: true,
       fulfillmentMatrix: afterFulfillment,
     });
+    renderSkuShortageStrip("dp-after-units", afterFulfillment);
 
     makeImpact();
+    bindExportButtons();
   });
 })();

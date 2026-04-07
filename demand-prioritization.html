@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260407-dp02" />
+  <link rel="stylesheet" href="styles.css?v=20260407-dp03" />
 </head>
 <body>
   <header class="topbar">
@@ -39,6 +39,7 @@
               <h3 class="dtg-card-h3">Order Fulfillment vs. Demand — Current State (FCFS)</h3>
               <p class="dtg-inline-note">~65% uniform fill rate across all customers</p>
             </div>
+            <button class="ghost dtg-export" data-grid="dp-before-grid" data-export-id="dp-before-grid">Copy Image</button>
             <div class="dp-legend">
               <span class="dp-legend-item">
                 <span class="dp-legend-swatch dp-swatch-demand"></span>SKU Order Demand (Forecast)
@@ -49,6 +50,7 @@
             </div>
           </div>
           <div class="dp-grid-wrap" id="dp-before-grid"></div>
+          <div class="dp-units-wrap" id="dp-before-units"></div>
         </article>
       </div>
     </section>
@@ -68,6 +70,7 @@
               <h3 class="dtg-card-h3">Order Fulfillment vs. Demand — Optimized</h3>
               <p class="dtg-inline-note">Cascading fill rule: priority customers first, then non-priority from lowest to highest cost-to-serve</p>
             </div>
+            <button class="ghost dtg-export" data-grid="dp-after-grid" data-export-id="dp-after-grid">Copy Image</button>
             <div class="dp-legend">
               <span class="dp-legend-item">
                 <span class="dp-legend-swatch dp-swatch-demand"></span>SKU Order Demand (Forecast)
@@ -81,6 +84,7 @@
             </div>
           </div>
           <div class="dp-grid-wrap" id="dp-after-grid"></div>
+          <div class="dp-units-wrap" id="dp-after-units"></div>
         </article>
       </div>
     </section>
@@ -107,6 +111,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="demand-prioritization.js?v=20260407-dp02"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="demand-prioritization.js?v=20260407-dp03"></script>
 </body>
 </html>

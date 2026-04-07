@@ -2169,6 +2169,83 @@ th { color: var(--muted); font-weight: 600; }
   .dp-priority-row .dp-demand-bar  { background: #3278b8; }
   .dp-priority-row .dp-fulfill-bar { background: #d9627a; }
 
+  /* ── Units / shortage strip ── */
+  .dp-units-wrap {
+    margin-top: .65rem;
+    padding-top: .55rem;
+    border-top: 1px solid rgba(159,176,211,.18);
+  }
+
+  .dp-units-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .75rem;
+    margin-bottom: .45rem;
+    flex-wrap: wrap;
+  }
+
+  .dp-units-title {
+    font-size: .74rem;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .dp-units-subtitle {
+    font-size: .71rem;
+    color: var(--muted);
+  }
+
+  .dp-units-grid {
+    display: grid;
+    grid-template-columns: repeat(15, minmax(0, 1fr));
+    gap: .35rem;
+  }
+
+  .dp-unit-chip {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: .26rem .24rem;
+    text-align: center;
+    display: grid;
+    gap: .02rem;
+  }
+
+  .dp-unit-sku {
+    color: var(--muted);
+    font-size: .63rem;
+    line-height: 1;
+  }
+
+  .dp-unit-val {
+    font-size: .72rem;
+    line-height: 1.1;
+  }
+
+  .dp-unit-chip.is-short {
+    border-color: rgba(255,109,109,.72);
+    background: rgba(255,109,109,.12);
+    color: #ffd6d6;
+  }
+
+  .dp-unit-chip.is-ok {
+    border-color: rgba(69,208,162,.62);
+    background: rgba(69,208,162,.10);
+    color: #b7f3e0;
+  }
+
+  @media (max-width: 1200px) {
+    .dp-units-grid {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .dp-units-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
 .npc-row select,
 .npc-row input {
   width: 100%;
