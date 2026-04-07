@@ -627,7 +627,7 @@
     var afterFulfillment = buildAfterFulfillment(beforeFulfillment);
 
     renderGrid("dp-before-grid", {
-      showCts: false,
+      showCts: true,
       fulfillmentMatrix: beforeFulfillment,
     });
     renderSkuShortageStrip("dp-before-grid", beforeFulfillment);

@@ -2158,7 +2158,7 @@ th { color: var(--muted); font-weight: 600; }
   /* ── Priority row highlight ── */
   .dp-priority-row td,
   .dp-priority-row th {
-    background: rgba(69,208,162,.04);
+    background: rgba(69,208,162,.13);
   }
 
   .dp-priority-row .dp-row-header {
