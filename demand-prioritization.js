@@ -126,11 +126,7 @@
     });
   }
 
-  function buildAfterFulfillment() {
-    var totalDemand = sumRow(DEMAND.flat());
-    var totalSupply = Math.round(totalDemand * BEFORE_RATE);
-    var remainingSupply = totalSupply;
-
+  function buildAfterFulfillment(beforeFulfillment) {
     var customerOrder = CUSTOMERS.map(function (customer, idx) {
       return {
         idx: idx,
@@ -148,18 +144,31 @@
       return row.map(function () { return 0; });
     });
 
-    customerOrder.forEach(function (customerMeta) {
-      var ci = customerMeta.idx;
-      var row = DEMAND[ci];
-      var rowDemand = sumRow(row);
+    // Keep SKU-level supply fixed to the same totals used in the current-state scenario.
+    var availableBySku = SKU_LABELS.map(function (_, si) {
+      return beforeFulfillment.reduce(function (sum, row) {
+        return sum + row[si];
+      }, 0);
+    });
 
-      if (rowDemand <= 0 || remainingSupply <= 0) {
-        return;
-      }
+    availableBySku.forEach(function (availableUnits, si) {
+      var remainingSkuSupply = availableUnits;
 
-      var allocatedToCustomer = Math.min(rowDemand, remainingSupply);
-      fulfillment[ci] = allocateRowByTotal(row, allocatedToCustomer);
-      remainingSupply -= sumRow(fulfillment[ci]);
+      customerOrder.forEach(function (customerMeta) {
+        if (remainingSkuSupply <= 0) {
+          return;
+        }
+
+        var ci = customerMeta.idx;
+        var demand = DEMAND[ci][si];
+        if (demand <= 0) {
+          return;
+        }
+
+        var allocated = Math.min(demand, remainingSkuSupply);
+        fulfillment[ci][si] = allocated;
+        remainingSkuSupply -= allocated;
+      });
     });
 
     return fulfillment;
@@ -597,7 +606,7 @@
   // ─── Init ──────────────────────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", function () {
     var beforeFulfillment = buildBeforeFulfillment();
-    var afterFulfillment = buildAfterFulfillment();
+    var afterFulfillment = buildAfterFulfillment(beforeFulfillment);
 
     renderGrid("dp-before-grid", {
       showCts: false,
