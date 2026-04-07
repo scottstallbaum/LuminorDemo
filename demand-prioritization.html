@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demand Prioritization — Luminor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20260407-dp01" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Luminor Demo</p>
+      <h1>Demand Prioritization — Graph Pack</h1>
+      <p class="subtitle">Standalone visual outputs for PPT paste-in (no slide layout).</p>
+    </div>
+    <nav class="topbar-nav">
+      <a href="index.html" class="ghost topbar-back">← Dashboard</a>
+      <a href="delivery-time-graphs.html" class="ghost topbar-back">Delivery Time Graphs →</a>
+    </nav>
+  </header>
+
+  <main class="layout dtg-layout">
+
+    <!-- ── Section 1: Before ─────────────────────────────────────────────── -->
+    <section class="panel panel-wide dtg-panel">
+      <div class="panel-head panel-head-inline">
+        <div>
+          <h2>1. Current State: First-Come, First-Served Allocation</h2>
+          <p class="small">When supply is constrained, available inventory is spread proportionally across all customers regardless of profitability — high-cost and low-cost relationships receive the same fill rate.</p>
+        </div>
+      </div>
+      <div class="dtg-grid dtg-grid-one">
+        <article class="dtg-card dp-card-wide">
+          <div class="dp-card-head">
+            <div>
+              <h3 class="dtg-card-h3">Order Fulfillment vs. Demand — Current State (FCFS)</h3>
+              <p class="dtg-inline-note">~65% uniform fill rate across all customers</p>
+            </div>
+            <div class="dp-legend">
+              <span class="dp-legend-item">
+                <span class="dp-legend-swatch dp-swatch-demand"></span>SKU Order Demand (Forecast)
+              </span>
+              <span class="dp-legend-item">
+                <span class="dp-legend-swatch dp-swatch-fulfill"></span>Order Fulfillment (Current)
+              </span>
+            </div>
+          </div>
+          <div class="dp-grid-wrap" id="dp-before-grid"></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ── Section 2: After ──────────────────────────────────────────────── -->
+    <section class="panel panel-wide dtg-panel">
+      <div class="panel-head panel-head-inline">
+        <div>
+          <h2>2. Optimized State: Profitability-Driven Allocation</h2>
+          <p class="small">The same total supply, intelligently redirected — lowest cost-to-serve customers receive priority fulfillment while high-cost customers absorb the shortfall.</p>
+        </div>
+      </div>
+      <div class="dtg-grid dtg-grid-one">
+        <article class="dtg-card dp-card-wide">
+          <div class="dp-card-head">
+            <div>
+              <h3 class="dtg-card-h3">Order Fulfillment vs. Demand — Optimized</h3>
+              <p class="dtg-inline-note">Priority customers: ~92% fill rate &nbsp;·&nbsp; Standard customers: ~54% fill rate</p>
+            </div>
+            <div class="dp-legend">
+              <span class="dp-legend-item">
+                <span class="dp-legend-swatch dp-swatch-demand"></span>SKU Order Demand (Forecast)
+              </span>
+              <span class="dp-legend-item">
+                <span class="dp-legend-swatch dp-swatch-fulfill"></span>Order Fulfillment (Optimized)
+              </span>
+              <span class="dp-legend-item">
+                <span class="dp-legend-swatch dp-swatch-priority"></span>Priority (lowest cost-to-serve)
+              </span>
+            </div>
+          </div>
+          <div class="dp-grid-wrap" id="dp-after-grid"></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ── Section 3: Benefits ───────────────────────────────────────────── -->
+    <section class="panel panel-wide dtg-panel">
+      <div class="panel-head panel-head-inline">
+        <div>
+          <h2>3. Estimated Financial Impact</h2>
+          <p class="small">Translate demand prioritization improvements into economics by lever.</p>
+        </div>
+      </div>
+      <div class="dtg-grid dtg-grid-one">
+        <article class="dtg-card">
+          <div class="dtg-card-head">
+            <h3>Net Economic Contribution Impact — Recommended Scenario ($M)</h3>
+            <button class="ghost dtg-export" data-canvas="dp-impact">Copy Image</button>
+          </div>
+          <div class="dtg-canvas-wrap"><canvas id="dp-impact"></canvas></div>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="demand-prioritization.js?v=20260407-dp01"></script>
+</body>
+</html>

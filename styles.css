@@ -1999,6 +1999,173 @@ th { color: var(--muted); font-weight: 600; }
   font-weight: 500;
 }
 
+  /* ─── Demand Prioritization Grid ────────────────────────────────────────── */
+
+  .dp-card-wide {
+    overflow: hidden;
+  }
+
+  .dp-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .75rem;
+    margin-bottom: .55rem;
+    flex-wrap: wrap;
+  }
+
+  .dtg-card-h3 {
+    margin: 0;
+    font-size: .83rem;
+    color: var(--text);
+  }
+
+  /* ── Legend ── */
+  .dp-legend {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .dp-legend-item {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .74rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .dp-legend-swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .dp-swatch-demand   { background: #2762a0; }
+  .dp-swatch-fulfill  { background: #d9627a; }
+  .dp-swatch-priority { background: rgba(69,208,162,.7); border-radius: 50%; }
+
+  /* ── Grid wrapper (horizontal scroll) ── */
+  .dp-grid-wrap {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  /* ── Table ── */
+  .dp-grid-table {
+    border-collapse: collapse;
+    font-size: .72rem;
+    width: 100%;
+    min-width: 860px;
+  }
+
+  .dp-grid-table th,
+  .dp-grid-table td {
+    border: 1px solid var(--line);
+    padding: 3px 4px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  /* ── Column headers (SKU-1 … SKU-15) ── */
+  .dp-col-header {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: .72rem;
+    padding: 5px 4px;
+    white-space: nowrap;
+    min-width: 50px;
+  }
+
+  /* ── CTS column header ── */
+  .dp-cts-header {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: .72rem;
+    white-space: nowrap;
+    min-width: 72px;
+    padding: 5px 6px;
+  }
+
+  /* ── Row headers (Customer 1 … Customer 10) — sticky left ── */
+  .dp-row-header {
+    text-align: left !important;
+    padding-left: 8px !important;
+    min-width: 92px;
+    white-space: nowrap;
+    color: var(--muted);
+    font-weight: 500;
+    font-size: .75rem;
+    background: #0d1528;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
+  .dp-row-header-top {
+    z-index: 2;
+  }
+
+  /* ── Data cells ── */
+  .dp-data-cell {
+    width: 50px;
+    min-width: 50px;
+    height: 46px;
+    padding: 4px 3px !important;
+  }
+
+  /* ── Mini bar chart inside each cell ── */
+  .dp-cell-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+    height: 34px;
+  }
+
+  .dp-bar {
+    width: 10px;
+    border-radius: 2px 2px 0 0;
+    min-height: 2px;
+  }
+
+  .dp-demand-bar  { background: #2762a0; }
+  .dp-fulfill-bar { background: #d9627a; }
+
+  /* ── CTS value cells ── */
+  .dp-cts-cell {
+    font-weight: 700;
+    font-size: .8rem;
+    min-width: 64px;
+    padding: 4px 6px !important;
+  }
+
+  .dp-cts-priority {
+    color: #45d0a2;
+    background: rgba(69,208,162,.13) !important;
+  }
+
+  .dp-cts-normal { color: var(--muted); }
+
+  /* ── Priority row highlight ── */
+  .dp-priority-row td,
+  .dp-priority-row th {
+    background: rgba(69,208,162,.04);
+  }
+
+  .dp-priority-row .dp-row-header {
+    background: #0b1e1d;
+    color: var(--text);
+  }
+
+  .dp-priority-row .dp-demand-bar  { background: #3278b8; }
+  .dp-priority-row .dp-fulfill-bar { background: #d9627a; }
+
 .npc-row select,
 .npc-row input {
   width: 100%;
