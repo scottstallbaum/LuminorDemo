@@ -73,14 +73,102 @@
   const MAX_DEMAND = DEMAND.flat().reduce(function (m, v) { return Math.max(m, v); }, 1);
 
   // Fill rates
-  const BEFORE_RATE        = 0.65;   // peanut-butter spread
-  const AFTER_PRIORITY     = 0.92;   // optimised: priority customers
-  const AFTER_NON_PRIORITY = 0.54;   // optimised: non-priority absorbs shortfall
+  const BEFORE_RATE = 0.65; // peanut-butter spread
+
+  function sumRow(row) {
+    return row.reduce(function (sum, val) { return sum + val; }, 0);
+  }
+
+  function allocateRowByRatio(row, ratio) {
+    return row.map(function (demand) {
+      return Math.round(demand * ratio);
+    });
+  }
+
+  function allocateRowByTotal(row, allocatedTotal) {
+    var rowDemand = sumRow(row);
+    if (rowDemand <= 0 || allocatedTotal <= 0) {
+      return row.map(function () { return 0; });
+    }
+    if (allocatedTotal >= rowDemand) {
+      return row.slice();
+    }
+
+    var scaled = row.map(function (demand) {
+      return (demand * allocatedTotal) / rowDemand;
+    });
+    var fulfillment = scaled.map(function (v) { return Math.floor(v); });
+    var filled = sumRow(fulfillment);
+    var remaining = allocatedTotal - filled;
+
+    var order = scaled
+      .map(function (v, idx) {
+        return { idx: idx, frac: v - Math.floor(v) };
+      })
+      .sort(function (a, b) {
+        return b.frac - a.frac;
+      });
+
+    for (var i = 0; i < order.length && remaining > 0; i += 1) {
+      var si = order[i].idx;
+      if (fulfillment[si] < row[si]) {
+        fulfillment[si] += 1;
+        remaining -= 1;
+      }
+    }
+
+    return fulfillment;
+  }
+
+  function buildBeforeFulfillment() {
+    return DEMAND.map(function (row) {
+      return allocateRowByRatio(row, BEFORE_RATE);
+    });
+  }
+
+  function buildAfterFulfillment() {
+    var totalDemand = sumRow(DEMAND.flat());
+    var totalSupply = Math.round(totalDemand * BEFORE_RATE);
+    var remainingSupply = totalSupply;
+
+    var customerOrder = CUSTOMERS.map(function (customer, idx) {
+      return {
+        idx: idx,
+        priority: customer.priority,
+        cts: customer.cts,
+      };
+    }).sort(function (a, b) {
+      if (a.priority !== b.priority) {
+        return a.priority ? -1 : 1;
+      }
+      return a.cts - b.cts;
+    });
+
+    var fulfillment = DEMAND.map(function (row) {
+      return row.map(function () { return 0; });
+    });
+
+    customerOrder.forEach(function (customerMeta) {
+      var ci = customerMeta.idx;
+      var row = DEMAND[ci];
+      var rowDemand = sumRow(row);
+
+      if (rowDemand <= 0 || remainingSupply <= 0) {
+        return;
+      }
+
+      var allocatedToCustomer = Math.min(rowDemand, remainingSupply);
+      fulfillment[ci] = allocateRowByTotal(row, allocatedToCustomer);
+      remainingSupply -= sumRow(fulfillment[ci]);
+    });
+
+    return fulfillment;
+  }
 
   // ─── Grid Renderer ─────────────────────────────────────────────────────────
   function renderGrid(containerId, options) {
-    var showCts  = options.showCts;
-    var fillRate = options.fillRate;   // number or function(customerIndex) → number
+    var showCts = options.showCts;
+    var fulfillmentMatrix = options.fulfillmentMatrix;
 
     var container = document.getElementById(containerId);
     if (!container) return;
@@ -129,12 +217,11 @@
       // SKU data cells
       SKU_LABELS.forEach(function (_, si) {
         var demand = DEMAND[ci][si];
+        var fulfillment = fulfillmentMatrix[ci][si];
         var td = document.createElement("td");
         td.className = "dp-data-cell";
 
         if (demand > 0) {
-          var rate = typeof fillRate === "function" ? fillRate(ci) : fillRate;
-          var fulfillment = Math.round(demand * rate);
           var dPct = Math.round((demand / MAX_DEMAND) * 100);
           var fPct = Math.round((fulfillment / MAX_DEMAND) * 100);
           td.innerHTML =
@@ -260,16 +347,17 @@
 
   // ─── Init ──────────────────────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", function () {
+    var beforeFulfillment = buildBeforeFulfillment();
+    var afterFulfillment = buildAfterFulfillment();
+
     renderGrid("dp-before-grid", {
       showCts: false,
-      fillRate: BEFORE_RATE,
+      fulfillmentMatrix: beforeFulfillment,
     });
 
     renderGrid("dp-after-grid", {
       showCts: true,
-      fillRate: function (ci) {
-        return CUSTOMERS[ci].priority ? AFTER_PRIORITY : AFTER_NON_PRIORITY;
-      },
+      fulfillmentMatrix: afterFulfillment,
     });
 
     makeImpact();
