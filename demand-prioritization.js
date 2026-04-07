@@ -82,6 +82,14 @@
     return Math.round(totalSkuDemand * rate);
   });
 
+  var TOTAL_DEMAND_BY_SKU = SKU_LABELS.map(function (_, si) {
+    return DEMAND.reduce(function (sum, row) { return sum + row[si]; }, 0);
+  });
+
+  var UNDERSUPPLIED_SKU_FLAGS = SKU_LABELS.map(function (_, si) {
+    return SUPPLY_BY_SKU[si] < TOTAL_DEMAND_BY_SKU[si];
+  });
+
   function sumRow(row) {
     return row.reduce(function (sum, val) { return sum + val; }, 0);
   }
@@ -211,9 +219,9 @@
     blankTh.className = "dp-row-header dp-row-header-top";
     headerRow.appendChild(blankTh);
 
-    SKU_LABELS.forEach(function (sku) {
+    SKU_LABELS.forEach(function (sku, si) {
       var th = document.createElement("th");
-      th.className = "dp-col-header";
+      th.className = "dp-col-header" + (UNDERSUPPLIED_SKU_FLAGS[si] ? " dp-col-header-short" : "");
       th.textContent = sku;
       headerRow.appendChild(th);
     });
@@ -246,7 +254,7 @@
         var demand = DEMAND[ci][si];
         var fulfillment = fulfillmentMatrix[ci][si];
         var td = document.createElement("td");
-        td.className = "dp-data-cell";
+        td.className = "dp-data-cell" + (UNDERSUPPLIED_SKU_FLAGS[si] ? " dp-data-cell-short" : "");
 
         if (demand > 0) {
           var dPct = Math.round((demand / MAX_DEMAND) * 100);

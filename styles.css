@@ -2083,6 +2083,12 @@ th { color: var(--muted); font-weight: 600; }
     min-width: 50px;
   }
 
+  .dp-col-header-short {
+    color: #ffd4d4;
+    background: rgba(255,109,109,.16);
+    border-bottom-color: rgba(255,109,109,.58) !important;
+  }
+
   /* ── CTS column header ── */
   .dp-cts-header {
     color: var(--muted);
@@ -2120,6 +2126,10 @@ th { color: var(--muted); font-weight: 600; }
     min-width: 50px;
     height: 46px;
     padding: 4px 3px !important;
+  }
+
+  .dp-data-cell-short {
+    background: rgba(255,109,109,.05);
   }
 
   /* ── Mini bar chart inside each cell ── */
