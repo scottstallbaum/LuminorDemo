@@ -348,6 +348,7 @@
       return [start, running];
     });
     bars.push([0, totalSavings]);
+    var xAxisMax = Math.ceil(totalSavings * 1.07);
 
     var isTotal = labels.map(function (l) {
       return (Array.isArray(l) ? l.join(" ") : l).indexOf("Total") >= 0;
@@ -374,10 +375,15 @@
           x: Object.assign({}, baseOptions.scales.x, {
             title: { display: true, text: "Estimated Annual Impact ($M)", color: COLORS.muted },
             min: 0,
-            max: 18,
+            max: xAxisMax,
           }),
           y: Object.assign({}, baseOptions.scales.y, {
             grid: { display: false },
+            ticks: Object.assign({}, baseOptions.scales.y.ticks, {
+              autoSkip: false,
+              font: { size: 10 },
+              padding: 5,
+            }),
           }),
         },
         plugins: Object.assign({}, baseOptions.plugins, {
