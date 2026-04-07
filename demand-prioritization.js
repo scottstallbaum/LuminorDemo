@@ -72,8 +72,15 @@
 
   const MAX_DEMAND = DEMAND.flat().reduce(function (m, v) { return Math.max(m, v); }, 1);
 
-  // Fill rates
-  const BEFORE_RATE = 0.65; // peanut-butter spread
+  // ~27% of SKUs are supply-constrained (4 of 15); the rest fully cover demand
+  var CONSTRAINED_SKU_INDICES = [2, 6, 9, 12]; // SKU-3, SKU-7, SKU-10, SKU-13
+  var CONSTRAINED_RATE = 0.60; // constrained SKUs can only fill ~60% of total demand
+
+  var SUPPLY_BY_SKU = SKU_LABELS.map(function (_, si) {
+    var totalSkuDemand = DEMAND.reduce(function (sum, row) { return sum + row[si]; }, 0);
+    var rate = CONSTRAINED_SKU_INDICES.indexOf(si) >= 0 ? CONSTRAINED_RATE : 1.0;
+    return Math.round(totalSkuDemand * rate);
+  });
 
   function sumRow(row) {
     return row.reduce(function (sum, val) { return sum + val; }, 0);
@@ -121,9 +128,20 @@
   }
 
   function buildBeforeFulfillment() {
-    return DEMAND.map(function (row) {
-      return allocateRowByRatio(row, BEFORE_RATE);
+    var result = DEMAND.map(function (row) {
+      return row.map(function () { return 0; });
     });
+
+    // Allocate per-SKU supply column-wise, pro-rata by each customer's share of demand
+    SKU_LABELS.forEach(function (_, si) {
+      var col = DEMAND.map(function (row) { return row[si]; });
+      var allocated = allocateRowByTotal(col, SUPPLY_BY_SKU[si]);
+      CUSTOMERS.forEach(function (_, ci) {
+        result[ci][si] = allocated[ci];
+      });
+    });
+
+    return result;
   }
 
   function buildAfterFulfillment(beforeFulfillment) {
@@ -276,7 +294,7 @@
 
     var hasAnyShortage = shortageBySku.some(function (v) { return v > 0; });
     var subtitle = hasAnyShortage
-      ? "Red = unmet demand units by SKU"
+      ? "Red = units short vs demand; green = fully met"
       : "All SKU demand is fully met";
 
     var chips = SKU_LABELS.map(function (sku, si) {
@@ -293,7 +311,7 @@
 
     container.innerHTML =
       '<div class="dp-units-head">' +
-      '<span class="dp-units-title">SKU Shortage vs Demand (Units)</span>' +
+      '<span class="dp-units-title">Supply Constraint by SKU</span>' +
       '<span class="dp-units-subtitle">' + subtitle + '</span>' +
       "</div>" +
       '<div class="dp-units-grid">' + chips + "</div>";
@@ -618,7 +636,6 @@
       showCts: true,
       fulfillmentMatrix: afterFulfillment,
     });
-    renderSkuShortageStrip("dp-after-units", afterFulfillment);
 
     makeImpact();
     bindExportButtons();
