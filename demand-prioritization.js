@@ -277,9 +277,11 @@
     container.appendChild(table);
   }
 
-  function renderSkuShortageStrip(containerId, fulfillmentMatrix) {
-    var container = document.getElementById(containerId);
-    if (!container) return;
+  function renderSkuShortageStrip(gridContainerId, fulfillmentMatrix) {
+    var gridContainer = document.getElementById(gridContainerId);
+    if (!gridContainer) return;
+    var table = gridContainer.querySelector("table");
+    if (!table) return;
 
     var totalDemandBySku = SKU_LABELS.map(function (_, si) {
       return DEMAND.reduce(function (sum, row) { return sum + row[si]; }, 0);
@@ -292,29 +294,27 @@
       return Math.max(0, demand - totalFulfilledBySku[si]);
     });
 
-    var hasAnyShortage = shortageBySku.some(function (v) { return v > 0; });
-    var subtitle = hasAnyShortage
-      ? "Red = units short vs demand; green = fully met"
-      : "All SKU demand is fully met";
+    var tfoot = document.createElement("tfoot");
+    var tr = document.createElement("tr");
+    tr.className = "dp-shortage-row";
 
-    var chips = SKU_LABELS.map(function (sku, si) {
+    var th = document.createElement("th");
+    th.className = "dp-row-header dp-shortage-label";
+    th.textContent = "Supply";
+    tr.appendChild(th);
+
+    SKU_LABELS.forEach(function (_, si) {
       var shortage = shortageBySku[si];
-      var cls = shortage > 0 ? "dp-unit-chip is-short" : "dp-unit-chip is-ok";
-      var txt = shortage > 0 ? ("-" + shortage) : "OK";
-      return (
-        '<div class="' + cls + '">' +
-        '<span class="dp-unit-sku">' + sku + '</span>' +
-        '<strong class="dp-unit-val">' + txt + '</strong>' +
-        "</div>"
-      );
-    }).join("");
+      var td = document.createElement("td");
+      td.className = "dp-shortage-cell";
+      var cls = shortage > 0 ? "dp-chip-inline is-short" : "dp-chip-inline is-ok";
+      var txt = shortage > 0 ? ("\u2212" + shortage) : "OK";
+      td.innerHTML = '<div class="' + cls + '">' + txt + "</div>";
+      tr.appendChild(td);
+    });
 
-    container.innerHTML =
-      '<div class="dp-units-head">' +
-      '<span class="dp-units-title">Supply Constraint by SKU</span>' +
-      '<span class="dp-units-subtitle">' + subtitle + '</span>' +
-      "</div>" +
-      '<div class="dp-units-grid">' + chips + "</div>";
+    tfoot.appendChild(tr);
+    table.appendChild(tfoot);
   }
 
   // ─── Impact Chart ──────────────────────────────────────────────────────────
@@ -630,7 +630,7 @@
       showCts: false,
       fulfillmentMatrix: beforeFulfillment,
     });
-    renderSkuShortageStrip("dp-before-units", beforeFulfillment);
+    renderSkuShortageStrip("dp-before-grid", beforeFulfillment);
 
     renderGrid("dp-after-grid", {
       showCts: true,
