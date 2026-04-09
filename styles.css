@@ -160,7 +160,7 @@ textarea {
 
 #sku-ranking-panel,
 #whale-curve-panel,
-#bubble-panel,
+#bubble-chart-panel,
 #scenario-panel {
   order: 60;
 }
