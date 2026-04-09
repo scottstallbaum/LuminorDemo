@@ -354,6 +354,10 @@ const els = {
   whaleCurveClear: document.getElementById("whale-curve-clear"),
   bubbleChart: document.getElementById("bubble-chart"),
   bubbleChartSubtitle: document.getElementById("bubble-chart-subtitle"),
+  omMixPanel: document.getElementById("om-mix-panel"),
+  omMixDimension: document.getElementById("om-mix-dimension"),
+  omMixSubtitle: document.getElementById("om-mix-subtitle"),
+  omMixChart: document.getElementById("om-mix-chart"),
   waterfallShell: document.querySelector(".waterfall-shell"),
   waterfall: document.getElementById("waterfall"),
   breakdownTitle: document.getElementById("breakdown-title"),
@@ -393,6 +397,7 @@ const state = {
   axisMode: "dollar",
   comparisonMode: false,
   skuRankingMetric: "revenue",
+  omMixDimension: "priceSegment",
   segmentReality: {
     dimension: "priceSegment",
     sort: "omOverstatement-desc",
@@ -1078,6 +1083,19 @@ function bindFilterEvents() {
 }
 
 function bindSegmentRealityEvents() {
+  function bindOmMixEvents() {
+    if (!els.omMixDimension) return;
+
+    els.omMixDimension.innerHTML = OM_MIX_DIMENSIONS
+      .map((option) => `<option value="${option.value}">${option.label}</option>`)
+      .join("");
+    els.omMixDimension.value = state.omMixDimension;
+
+    els.omMixDimension.addEventListener("change", () => {
+      state.omMixDimension = els.omMixDimension.value;
+      render();
+    });
+  }
   if (els.segmentRealityDimension) {
     els.segmentRealityDimension.value = state.segmentReality.dimension;
     els.segmentRealityDimension.addEventListener("change", () => {
@@ -2760,6 +2778,159 @@ function renderWhaleCurve(rows) {
 }
 
 function bindWhaleCurveEvents() {
+  function buildOmMixGroups(rows) {
+    const dimension = state.omMixDimension;
+    let groups = aggregateByDimension(rows, dimension)
+      .filter((g) => (g.revenue || 0) > 0)
+      .map((g) => ({
+        ...g,
+        omPct: g.revenue ? (g.operatingIncome / g.revenue) * 100 : 0,
+        isOther: false
+      }));
+
+    if (dimension === "brandFamily") {
+      groups.sort((a, b) => (b.revenue || 0) - (a.revenue || 0));
+      const top = groups.slice(0, 10);
+      const remainder = groups.slice(10);
+      if (remainder.length) {
+        const other = remainder.reduce((acc, g) => {
+          acc.revenue += g.revenue || 0;
+          acc.volume += g.volume || 0;
+          acc.operatingIncome += g.operatingIncome || 0;
+          return acc;
+        }, {
+          label: "Other",
+          revenue: 0,
+          volume: 0,
+          operatingIncome: 0,
+          isOther: true
+        });
+        other.omPct = other.revenue ? (other.operatingIncome / other.revenue) * 100 : 0;
+        groups = [...top, other];
+      } else {
+        groups = top;
+      }
+    }
+
+    return groups.sort((a, b) => (b.omPct || 0) - (a.omPct || 0));
+  }
+
+  function renderOmMixChart(rows) {
+    if (!els.omMixPanel || !els.omMixChart) return;
+
+    const groups = buildOmMixGroups(rows);
+    const totals = aggregate(rows);
+    const totalRevenue = groups.reduce((sum, g) => sum + (g.revenue || 0), 0);
+    const portfolioOmPct = totals.revenue ? ((totals.operatingIncome || 0) / totals.revenue) * 100 : 0;
+    const dimensionLabel = OM_MIX_DIMENSIONS.find((d) => d.value === state.omMixDimension)?.label || "Segment";
+
+    if (els.omMixSubtitle) {
+      els.omMixSubtitle.textContent = `${dimensionLabel} · bar width = revenue · y-axis = operating margin % · click a bar to drill`;
+    }
+
+    if (!groups.length || totalRevenue <= 0) {
+      els.omMixChart.innerHTML = '<div class="sku-ranking-empty">No data for current filters.</div>';
+      return;
+    }
+
+    const vals = groups.map((g) => g.omPct || 0).concat([portfolioOmPct, 0]);
+    const minVal = Math.min(...vals);
+    const maxVal = Math.max(...vals);
+    let yMin = Math.floor((minVal - 2) / 5) * 5;
+    let yMax = Math.ceil((maxVal + 2) / 5) * 5;
+    if (yMax - yMin < 15) {
+      yMax += 5;
+      yMin -= 5;
+    }
+
+    const width = 1060;
+    const height = 430;
+    const margin = { top: 16, right: 18, bottom: 110, left: 66 };
+    const plotW = width - margin.left - margin.right;
+    const plotH = height - margin.top - margin.bottom;
+
+    const y = (v) => margin.top + ((yMax - v) / (yMax - yMin)) * plotH;
+    const zeroY = y(0);
+    const avgY = y(portfolioOmPct);
+
+    const tickStep = 10;
+    const yTicks = [];
+    for (let tick = Math.ceil(yMin / tickStep) * tickStep; tick <= yMax; tick += tickStep) {
+      yTicks.push(tick);
+    }
+
+    let cumulative = 0;
+    const bars = groups.map((g, idx) => {
+      const share = (g.revenue || 0) / totalRevenue;
+      const barX = margin.left + (cumulative * plotW);
+      const barW = Math.max(8, share * plotW);
+      cumulative += share;
+
+      const value = g.omPct || 0;
+      const yTop = y(Math.max(value, 0));
+      const yBottom = y(Math.min(value, 0));
+      const barH = Math.max(2, Math.abs(yBottom - yTop));
+      const isGood = value >= portfolioOmPct;
+      const barClass = isGood ? "om-mix-bar-good" : "om-mix-bar-bad";
+      const isClickable = !(state.omMixDimension === "brandFamily" && g.isOther);
+      const drillVal = encodeURIComponent(g.label);
+      const barLabel = `${Math.round(value)}%`;
+      const revLabel = toMoney(g.revenue || 0).replace(".00", "");
+      const textX = barX + (barW / 2);
+      const showNameInside = barW > 94;
+      const shortName = String(g.label || "").length > 16 ? `${String(g.label).slice(0, 15)}…` : String(g.label);
+
+      return `
+        <g>
+          <rect class="om-mix-bar ${barClass} ${isClickable ? "om-mix-bar-click" : ""}" data-idx="${idx}" data-drill="${drillVal}" x="${barX.toFixed(2)}" y="${Math.min(yTop, yBottom).toFixed(2)}" width="${barW.toFixed(2)}" height="${barH.toFixed(2)}"></rect>
+          ${showNameInside ? `<text class="om-mix-text-main" x="${textX.toFixed(2)}" y="${(Math.min(yTop, yBottom) + 26).toFixed(2)}" text-anchor="middle">${barLabel}</text>` : ""}
+          ${showNameInside ? `<text class="om-mix-text-sub" x="${textX.toFixed(2)}" y="${(Math.min(yTop, yBottom) + 48).toFixed(2)}" text-anchor="middle">${shortName}</text>` : ""}
+          <text class="om-mix-rev" x="${textX.toFixed(2)}" y="${(zeroY - 10).toFixed(2)}" text-anchor="middle">${revLabel}</text>
+          <text class="om-mix-xlabel" transform="translate(${(barX + 4).toFixed(2)}, ${(zeroY + 22).toFixed(2)}) rotate(-38)">${g.label}</text>
+        </g>
+      `;
+    }).join("");
+
+    const grid = yTicks.map((tick) => {
+      const yy = y(tick);
+      return `
+        <line class="om-mix-grid" x1="${margin.left}" y1="${yy.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${yy.toFixed(2)}"></line>
+        <text class="om-mix-ytick" x="${(margin.left - 6).toFixed(2)}" y="${(yy + 4).toFixed(2)}" text-anchor="end">${tick}%</text>
+      `;
+    }).join("");
+
+    els.omMixChart.innerHTML = `
+      <div class="om-mix-shell">
+        <svg class="om-mix-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Operating Margin mix chart">
+          ${grid}
+          <line class="om-mix-zero" x1="${margin.left}" y1="${zeroY.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${zeroY.toFixed(2)}"></line>
+          <line class="om-mix-avg" x1="${margin.left}" y1="${avgY.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${avgY.toFixed(2)}"></line>
+          <text class="om-mix-avg-label" x="${(width - margin.right - 2).toFixed(2)}" y="${(avgY - 8).toFixed(2)}" text-anchor="end">Company OM avg ${portfolioOmPct.toFixed(1)}%</text>
+          ${bars}
+          <text class="om-mix-ytitle" transform="translate(16, ${(margin.top + (plotH / 2)).toFixed(2)}) rotate(-90)" text-anchor="middle">Operating margin %</text>
+        </svg>
+        <div class="om-mix-legend">
+          <span><i class="swatch good"></i>At/above company OM avg</span>
+          <span><i class="swatch bad"></i>Below company OM avg</span>
+          <span><i class="swatch avg"></i>Company OM avg</span>
+        </div>
+      </div>
+    `;
+
+    els.omMixChart.querySelectorAll(".om-mix-bar-click").forEach((node) => {
+      node.addEventListener("click", () => {
+        const drillValue = decodeURIComponent(node.getAttribute("data-drill") || "");
+        const sameSelection = state.drill.dimension === state.omMixDimension && state.drill.value === drillValue;
+        state.drill.dimension = state.omMixDimension;
+        state.drill.value = sameSelection ? "All" : drillValue;
+        if (els.drillDimension) {
+          els.drillDimension.value = state.drill.dimension;
+        }
+        updateDrillValueOptions();
+        render();
+      });
+    });
+  }
   els.whaleCurveClear?.addEventListener("click", () => {
     state.whaleCurveSelection = { point1: null, point2: null };
     state.whaleCurveActiveLine = "adjusted";
@@ -3086,6 +3257,7 @@ function render() {
       bottom: els.comparisonCurrentBottomList,
       scope: "comparison-base"
     });
+    renderOmMixChart(focusedRows);
     renderSkuRanking(comparisonRows, {
       top: els.comparisonCompareTopList,
       bottom: els.comparisonCompareBottomList,
@@ -3105,6 +3277,7 @@ function render() {
     scope: "single"
   });
   renderWhaleCurve(focusedRows);
+  renderOmMixChart(focusedRows);
   renderBubbleChart(focusedRows);
   renderBreakdownPanel(totals);
 }
@@ -3113,6 +3286,7 @@ updateFilterOptions();
 updateComparisonFilterOptions();
 bindFilterEvents();
 bindSegmentRealityEvents();
+bindOmMixEvents();
 bindComparisonFilterEvents();
 bindDrillEvents();
 bindReset();

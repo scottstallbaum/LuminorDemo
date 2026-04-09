@@ -160,6 +160,7 @@ textarea {
 
 #sku-ranking-panel,
 #whale-curve-panel,
+#om-mix-panel,
 #bubble-chart-panel,
 #scenario-panel {
   order: 60;
@@ -631,6 +632,120 @@ textarea {
   position: relative;
   height: 460px;
 }
+
+.om-mix-shell {
+  display: grid;
+  gap: .55rem;
+}
+
+.om-mix-chart {
+  position: relative;
+}
+
+.om-mix-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.om-mix-grid {
+  stroke: rgba(159,176,211,.14);
+  stroke-width: 1;
+}
+
+.om-mix-zero {
+  stroke: rgba(159,176,211,.36);
+  stroke-width: 1.2;
+}
+
+.om-mix-avg {
+  stroke: #8f82ff;
+  stroke-width: 2;
+  stroke-dasharray: 8 6;
+}
+
+.om-mix-bar {
+  stroke-width: 1.1;
+}
+
+.om-mix-bar-good {
+  fill: rgba(14,123,97,.66);
+  stroke: rgba(99,225,191,.7);
+}
+
+.om-mix-bar-bad {
+  fill: rgba(124,46,18,.68);
+  stroke: rgba(255,149,108,.68);
+}
+
+.om-mix-bar-click {
+  cursor: pointer;
+}
+
+.om-mix-bar-click:hover {
+  filter: brightness(1.12);
+}
+
+.om-mix-ytick {
+  fill: var(--muted);
+  font-size: 11px;
+}
+
+.om-mix-ytitle {
+  fill: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.om-mix-avg-label {
+  fill: #c9c3ff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.om-mix-text-main {
+  fill: #e8eefc;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.om-mix-text-sub {
+  fill: rgba(232,238,252,.86);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.om-mix-rev {
+  fill: rgba(232,238,252,.75);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.om-mix-xlabel {
+  fill: var(--muted);
+  font-size: 11px;
+}
+
+.om-mix-legend {
+  display: flex;
+  gap: 1.1rem;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: .8rem;
+}
+
+.om-mix-legend .swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  margin-right: .35rem;
+  vertical-align: -1px;
+}
+
+.om-mix-legend .swatch.good { background: rgba(14,123,97,.8); border: 1px solid rgba(99,225,191,.8); }
+.om-mix-legend .swatch.bad { background: rgba(124,46,18,.8); border: 1px solid rgba(255,149,108,.8); }
+.om-mix-legend .swatch.avg { background: #8f82ff; border: 1px solid #b8adff; }
 
 .whale-curve-report {
   border: 1px solid var(--line);

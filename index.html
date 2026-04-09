@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260406-whale2" />
+  <link rel="stylesheet" href="styles.css?v=20260409-ommix1" />
 </head>
 <body>
   <header class="topbar">
@@ -289,6 +289,20 @@
       </div>
     </section>
 
+    <section id="om-mix-panel" class="panel panel-wide">
+      <div class="panel-head panel-head-inline">
+        <div>
+          <h2>Operating Margin Mix by Segment</h2>
+          <p class="small" id="om-mix-subtitle"></p>
+        </div>
+        <label class="axis-toggle">
+          <span>View</span>
+          <select id="om-mix-dimension"></select>
+        </label>
+      </div>
+      <div id="om-mix-chart" class="om-mix-chart"></div>
+    </section>
+
     <section id="bubble-chart-panel" class="panel panel-wide">
       <div class="panel-head">
         <h2>SKU Portfolio Map</h2>
@@ -307,6 +321,6 @@
   <script src="data/demo-std-conversion-data.js?v=20260406-whale2"></script>
   <script src="data/demo-descriptor-data.js?v=20260406-whale2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=20260406-whale2"></script>
+  <script src="app.js?v=20260409-ommix1"></script>
 </body>
 </html>
