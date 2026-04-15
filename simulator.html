@@ -18,6 +18,7 @@
     <nav class="topbar-nav">
       <a href="index.html" class="ghost topbar-back">← Dashboard</a>
       <a href="plant-loading.html" class="ghost topbar-back">Plant Loading →</a>
+      <a href="new-product-costing.html" class="ghost topbar-back">New Product Costing →</a>
     </nav>
   </header>
 
@@ -135,13 +136,20 @@
 
         <div class="sim-conv-bar-wrap">
           <p class="sim-conv-bar-label">Conv $/bbl vs. portfolio avg</p>
-          <div class="sim-conv-bar-track">
-            <div id="sel-conv-bar-portfolio" class="sim-conv-bar-avg"></div>
-            <div id="sel-conv-bar-sku" class="sim-conv-bar-sku"></div>
-          </div>
-          <div class="sim-conv-bar-legend">
-            <span class="sim-conv-legend-dot sim-conv-legend-avg"></span><span>Avg</span>
-            <span class="sim-conv-legend-dot sim-conv-legend-sku" style="margin-left:.75rem"></span><span>This SKU</span>
+          <div id="sim-conv-values-display" class="sim-conv-values"></div>
+          <div class="sim-conv-bar-labels">
+            <div class="sim-conv-bar-row">
+              <label class="sim-conv-bar-row-label">Avg</label>
+              <div class="sim-conv-bar-track-single">
+                <div id="sel-conv-bar-portfolio" class="sim-conv-bar-avg"></div>
+              </div>
+            </div>
+            <div class="sim-conv-bar-row">
+              <label class="sim-conv-bar-row-label">This SKU</label>
+              <div class="sim-conv-bar-track-single">
+                <div id="sel-conv-bar-sku" class="sim-conv-bar-sku"></div>
+              </div>
+            </div>
           </div>
         </div>
 
