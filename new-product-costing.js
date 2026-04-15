@@ -166,37 +166,41 @@ function calculate() {
 
   const yes = (id) => state.answers[id] === "Yes";
 
-  if (yes("newWort")) byCol.brewSqrt.qAdj += 0.5 * (byCol.brewSqrt.base + byCol.brewSqrt.volAdj);
-  if (yes("brewLessKettle")) byCol.brewVol.qAdj += 0.25 * (byCol.brewVol.base + byCol.brewVol.volAdj);
-  if (yes("manualIngredient")) byCol.brewVol.qAdj += 0.2 * (byCol.brewVol.base + byCol.brewVol.volAdj);
+  // Brewing questions — flat $/bbl impacts sized for visible demo swings
+  if (yes("newWort"))          byCol.brewSqrt.qAdj  += 14.83;  // major: new wort stream complexity
+  if (yes("brewLessKettle"))   byCol.brewVol.qAdj   +=  6.41;  // minor: sub-kettle batch inefficiency
+  if (yes("manualIngredient")) byCol.brewVol.qAdj   +=  5.78;  // minor: manual addition labor
   if (yes("highGravity")) {
-    byCol.brewVol.qAdj += 0.2 * (byCol.brewVol.base + byCol.brewVol.volAdj);
-    byCol.brewSqrt.qAdj += 0.2 * (byCol.brewSqrt.base + byCol.brewSqrt.volAdj);
+    byCol.brewVol.qAdj  +=  7.62;  // major: high-gravity process cost
+    byCol.brewSqrt.qAdj +=  5.19;  // major: fixed overhead spread
   }
   if (yes("nonCompatFlush")) {
-    byCol.otherSqrt.qAdj += 0.1 * (byCol.otherSqrt.base + byCol.otherSqrt.volAdj);
-    byCol.brewMatVol.qAdj += 0.1 * (byCol.brewMatVol.base + byCol.brewMatVol.volAdj);
+    byCol.otherSqrt.qAdj  +=  6.34;  // major: flush changeover overhead
+    byCol.brewMatVol.qAdj +=  5.87;  // major: lost/wasted brew materials
   }
-  if (yes("longFerment")) byCol.otherVol.qAdj += 2;
-  if (yes("displaceProd")) byCol.freightVol.qAdj += 3;
-  if (yes("brewOt")) byCol.brewVol.qAdj += 0.15 * (byCol.brewVol.base + byCol.brewVol.volAdj);
+  if (yes("longFerment"))   byCol.otherVol.qAdj   +=  8.23;  // minor: extended tank tie-up
+  if (yes("displaceProd"))  byCol.freightVol.qAdj  += 11.76;  // major: rerouting displaced volume
+  if (yes("brewOt"))        byCol.brewVol.qAdj     +=  6.55;  // minor: brewing overtime premium
 
+  // Packaging questions
   if (yes("newBottle")) {
-    byCol.pkgVol.qAdj += 0.2 * (byCol.pkgVol.base + byCol.pkgVol.volAdj);
-    byCol.otherVol.qAdj += 1.5;
-    byCol.pkgMatVol.qAdj += 0.1 * (byCol.pkgMatVol.base + byCol.pkgMatVol.volAdj);
+    byCol.pkgVol.qAdj    +=  9.48;  // major: new line setup / slower speeds
+    byCol.pkgMatVol.qAdj +=  5.31;  // major: new packaging materials premium
+    byCol.otherVol.qAdj  +=  3.92;  // major: tooling / qualification costs
   }
-  if (yes("highUtilLine")) byCol.pkgVol.qAdj += 0.25 * (byCol.pkgVol.base + byCol.pkgVol.volAdj);
+  if (yes("highUtilLine")) byCol.pkgVol.qAdj += 12.17;  // major: high-utilization scheduling premium
 
-  if (yes("warehouseSpace")) byCol.otherVol.qAdj += 2;
-  if (yes("distOt")) byCol.distVol.qAdj += 0.25 * (byCol.distVol.base + byCol.distVol.volAdj);
+  // Distribution questions
+  if (yes("warehouseSpace")) byCol.otherVol.qAdj +=  5.64;  // minor: incremental warehouse cost
+  if (yes("distOt"))         byCol.distVol.qAdj  +=  7.88;  // minor: distribution overtime
 
   byCol.otherVol.qAdj += newVolume > 0 ? (num(state.capex) / 10 / newVolume) : 0;
 
+  // Other questions
   if (yes("seasonal")) {
-    byCol.brewVol.qAdj += 0.2 * (byCol.brewVol.base + byCol.brewVol.volAdj);
-    byCol.pkgVol.qAdj += 0.2;
-    byCol.distVol.qAdj += 0.2;
+    byCol.brewVol.qAdj  += 3.47;  // minor: seasonal ramp labor
+    byCol.pkgVol.qAdj   += 2.13;  // minor: seasonal packaging premium
+    byCol.distVol.qAdj  += 1.96;  // minor: seasonal distribution premium
   }
 
   const bufferRate = num(state.bufferPct) / 100;
