@@ -355,6 +355,7 @@ const els = {
   bubbleChart: document.getElementById("bubble-chart"),
   bubbleChartSubtitle: document.getElementById("bubble-chart-subtitle"),
   bubbleChartBack: document.getElementById("bubble-chart-back"),
+  bubbleChartCompare: document.getElementById("bubble-chart-compare"),
   omMixPanel: document.getElementById("om-mix-panel"),
   omMixDimension: document.getElementById("om-mix-dimension"),
   omMixSubtitle: document.getElementById("om-mix-subtitle"),
@@ -409,7 +410,9 @@ const state = {
   whaleCurveActiveLine: "adjusted",
   bubbleChartDrill: {
     mode: "family",
-    family: ""
+    family: "",
+    selectedFamilies: [],
+    comparisonMode: false
   },
   breakdown: {
     stepKey: null,
@@ -1582,6 +1585,8 @@ function bindReset() {
     state.breakdown.expandOther = false;
     state.bubbleChartDrill.mode = "family";
     state.bubbleChartDrill.family = "";
+    state.bubbleChartDrill.selectedFamilies = [];
+    state.bubbleChartDrill.comparisonMode = false;
     if (els.comparisonBtn) els.comparisonBtn.textContent = "Enter Comparison";
     if (els.comparisonSetup) els.comparisonSetup.classList.add("is-hidden");
     if (els.comparisonStatus) els.comparisonStatus.textContent = "Comparison mode is on. Choose a comparison case below.";
@@ -1597,6 +1602,17 @@ function bindBubbleChartEvents() {
   els.bubbleChartBack.addEventListener("click", () => {
     state.bubbleChartDrill.mode = "family";
     state.bubbleChartDrill.family = "";
+    state.bubbleChartDrill.selectedFamilies = [];
+    state.bubbleChartDrill.comparisonMode = false;
+    render();
+  });
+
+  if (!els.bubbleChartCompare) return;
+
+  els.bubbleChartCompare.addEventListener("click", () => {
+    if (state.bubbleChartDrill.selectedFamilies.length < 2) return;
+    state.bubbleChartDrill.mode = "comparison";
+    state.bubbleChartDrill.comparisonMode = true;
     render();
   });
 }
@@ -3437,7 +3453,8 @@ function renderBubbleChart(rows) {
   }
 
   let entities = families;
-  let subtitle = `${families.length} brand families — bubble size = volume · click a bubble to drill to SKUs`;
+  let subtitle = `${families.length} brand families — bubble size = volume · click to select, then Compare`;
+  const selectedFamilies = state.bubbleChartDrill?.selectedFamilies || [];
 
   if (mode === "sku" && selectedFamily) {
     const family = families.find((f) => f.brandFamily === selectedFamily);
@@ -3456,6 +3473,25 @@ function renderBubbleChart(rows) {
     }
   }
 
+  if (mode === "comparison" && selectedFamilies.length >= 2) {
+    const selectedSet = new Set(selectedFamilies);
+    const comparisonSkus = [];
+    selectedFamilies.forEach((familyName) => {
+      const family = families.find((f) => f.brandFamily === familyName);
+      if (family) {
+        const skus = Object.values(family.skuMap)
+          .map((sku) => ({
+            ...sku,
+            priceSegment: Object.entries(sku.segCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "Unknown"
+          }))
+          .filter((sku) => sku.revenue > 0);
+        comparisonSkus.push(...skus);
+      }
+    });
+    entities = comparisonSkus;
+    subtitle = `${selectedFamilies.join(", ")} — ${entities.length} combined SKUs · bubble size = volume · click Back to Brand Family View`;
+  }
+
   if (!entities.length) {
     if (bubbleChart) { bubbleChart.destroy(); bubbleChart = null; }
     if (els.bubbleChartBack) els.bubbleChartBack.classList.add("is-hidden");
@@ -3467,7 +3503,11 @@ function renderBubbleChart(rows) {
   }
 
   if (els.bubbleChartBack) {
-    els.bubbleChartBack.classList.toggle("is-hidden", !(mode === "sku" && selectedFamily));
+    els.bubbleChartBack.classList.toggle("is-hidden", !(mode === "sku" && selectedFamily) && !(mode === "comparison" && selectedFamilies.length >= 2));
+  }
+
+  if (els.bubbleChartCompare) {
+    els.bubbleChartCompare.classList.toggle("is-hidden", mode !== "family" || selectedFamilies.length < 2);
   }
 
   const sortedRevs = entities.map((f) => f.revenue).sort((a, b) => a - b);
@@ -3491,12 +3531,22 @@ function renderBubbleChart(rows) {
   });
 
   const segments = Object.keys(segmentMap).sort();
+  const selectedFamiliesSet = new Set(selectedFamilies);
 
   const datasets = segments.map((seg, i) => ({
     label: seg,
     backgroundColor: SEG_COLORS[i % SEG_COLORS.length] + "99",
     borderColor: SEG_COLORS[i % SEG_COLORS.length],
     borderWidth: 1.5,
+    pointBorderWidth: (ctx) => {
+      const point = ctx.raw || {};
+      return selectedFamiliesSet.has(point._family) ? 4 : 1.5;
+    },
+    pointBorderColor: (ctx) => {
+      const point = ctx.raw || {};
+      const baseColor = SEG_COLORS[i % SEG_COLORS.length];
+      return selectedFamiliesSet.has(point._family) ? "#ffd700" : baseColor;
+    },
     data: segmentMap[seg].map((f) => ({
       x: f.revenue,
       y: f.revenue ? (f.operatingIncome / f.revenue) * 100 : 0,
@@ -3540,14 +3590,22 @@ function renderBubbleChart(rows) {
       onClick: (_event, elements) => {
         if (!elements.length) return;
         if (state.bubbleChartDrill.mode === "sku") return;
+        if (state.bubbleChartDrill.mode === "comparison") return;
 
         const hit = elements[0];
         const point = datasets[hit.datasetIndex]?.data?.[hit.index];
         const family = point?._family;
         if (!family) return;
 
-        state.bubbleChartDrill.mode = "sku";
-        state.bubbleChartDrill.family = family;
+        // Toggle family selection in family mode
+        const selected = state.bubbleChartDrill.selectedFamilies || [];
+        const idx = selected.indexOf(family);
+        if (idx >= 0) {
+          selected.splice(idx, 1);
+        } else {
+          selected.push(family);
+        }
+        state.bubbleChartDrill.selectedFamilies = selected;
         render();
       },
       plugins: {
