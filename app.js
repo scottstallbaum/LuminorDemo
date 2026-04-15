@@ -3523,31 +3523,35 @@ function renderBubbleChart(rows) {
   const maxVol = Math.max(...entities.map((f) => f.volume), 1);
   const toRadius = (vol) => Math.max(5, Math.round(Math.sqrt(vol / maxVol) * 32));
 
-  const segmentMap = {};
+  const legendByFamily = mode === "comparison";
+  const groupMap = {};
   entities.forEach((f) => {
-    const seg = f.priceSegment || "Unknown";
-    if (!segmentMap[seg]) segmentMap[seg] = [];
-    segmentMap[seg].push(f);
+    const key = legendByFamily
+      ? (f.brandFamily || "Unknown")
+      : (f.priceSegment || "Unknown");
+    if (!groupMap[key]) groupMap[key] = [];
+    groupMap[key].push(f);
   });
 
-  const segments = Object.keys(segmentMap).sort();
+  const groups = Object.keys(groupMap).sort();
   const selectedFamiliesSet = new Set(selectedFamilies);
+  const highlightSelections = mode === "family";
 
-  const datasets = segments.map((seg, i) => ({
-    label: seg,
+  const datasets = groups.map((group, i) => ({
+    label: group,
     backgroundColor: SEG_COLORS[i % SEG_COLORS.length] + "99",
     borderColor: SEG_COLORS[i % SEG_COLORS.length],
     borderWidth: 1.5,
     pointBorderWidth: (ctx) => {
       const point = ctx.raw || {};
-      return selectedFamiliesSet.has(point._family) ? 4 : 1.5;
+      return highlightSelections && selectedFamiliesSet.has(point._family) ? 4 : 1.5;
     },
     pointBorderColor: (ctx) => {
       const point = ctx.raw || {};
       const baseColor = SEG_COLORS[i % SEG_COLORS.length];
-      return selectedFamiliesSet.has(point._family) ? "#ffd700" : baseColor;
+      return highlightSelections && selectedFamiliesSet.has(point._family) ? "#ffd700" : baseColor;
     },
-    data: segmentMap[seg].map((f) => ({
+    data: groupMap[group].map((f) => ({
       x: f.revenue,
       y: f.revenue ? (f.operatingIncome / f.revenue) * 100 : 0,
       r: toRadius(f.volume),
