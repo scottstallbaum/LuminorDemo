@@ -16,10 +16,9 @@
       <h1>Luminor Insight Demo</h1>
     </div>
     <nav class="topbar-nav">
-      <a href="delivery-time-graphs.html" class="ghost topbar-back">Delivery Time Graph Pack →</a>
-      <a href="new-product-costing.html" class="ghost topbar-back">New Product Costing →</a>
-      <a href="simulator.html" class="ghost topbar-back">Portfolio Management Simulator →</a>
+      <a href="simulator.html" class="ghost topbar-back">Portfolio Management →</a>
       <a href="plant-loading.html" class="ghost topbar-back">Plant Loading →</a>
+      <a href="new-product-costing.html" class="ghost topbar-back">New Product Costing →</a>
     </nav>
   </header>
 
@@ -304,9 +303,12 @@
     </section>
 
     <section id="bubble-chart-panel" class="panel panel-wide">
-      <div class="panel-head">
-        <h2>SKU Portfolio Map</h2>
-        <p class="small" id="bubble-chart-subtitle"></p>
+      <div class="panel-head panel-head-inline">
+        <div>
+          <h2>SKU Portfolio Map</h2>
+          <p class="small" id="bubble-chart-subtitle"></p>
+        </div>
+        <button id="bubble-chart-back" class="ghost is-hidden" type="button">Back to Brand Family View</button>
       </div>
       <div class="bubble-chart-shell">
         <canvas id="bubble-chart"></canvas>
@@ -315,12 +317,20 @@
 
   </main>
 
+  <noscript>
+    <div style="padding:12px 14px;background:#7a1f1f;color:#ffd9d9;font:600 13px/1.35 Arial,sans-serif;">
+      JavaScript is required for this dashboard. Enable JavaScript and reload.
+    </div>
+  </noscript>
+
   <div id="sku-tooltip" class="sku-tooltip is-hidden"></div>
 
   <script src="data/demo-cost-data.js?v=20260406-whale2"></script>
   <script src="data/demo-std-conversion-data.js?v=20260406-whale2"></script>
   <script src="data/demo-descriptor-data.js?v=20260406-whale2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=20260409-ommix1"></script>
+  <script src="scripts/chart-fallback.js?v=20260410-startup2"></script>
+  <script src="scripts/startup-guard.js?v=20260410-startup2"></script>
+  <script src="app.js?v=20260410-startup2"></script>
 </body>
 </html>

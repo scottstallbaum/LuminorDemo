@@ -354,6 +354,7 @@ const els = {
   whaleCurveClear: document.getElementById("whale-curve-clear"),
   bubbleChart: document.getElementById("bubble-chart"),
   bubbleChartSubtitle: document.getElementById("bubble-chart-subtitle"),
+  bubbleChartBack: document.getElementById("bubble-chart-back"),
   omMixPanel: document.getElementById("om-mix-panel"),
   omMixDimension: document.getElementById("om-mix-dimension"),
   omMixSubtitle: document.getElementById("om-mix-subtitle"),
@@ -406,12 +407,18 @@ const state = {
   },
   whaleCurveSelection: { point1: null, point2: null },
   whaleCurveActiveLine: "adjusted",
+  bubbleChartDrill: {
+    mode: "family",
+    family: ""
+  },
   breakdown: {
     stepKey: null,
     totals: null,
     expandOther: false
   }
 };
+
+window.__LUMINOR_BOOT_OK = false;
 
 if (staticDescriptorData.length) {
   state.descriptorLookup = buildDescriptorLookup(staticDescriptorData.map(normalizeDescriptorRow));
@@ -423,6 +430,47 @@ let breakdownChart;
 let whaleCurveChart;
 let bubbleChart;
 let segmentRealityChart;
+
+function reportRuntimeError(error, source = "runtime") {
+  const message = error && error.message ? error.message : String(error || "Unknown error");
+  let banner = document.getElementById("runtime-error-banner");
+  if (!banner) {
+    banner = document.createElement("div");
+    banner.id = "runtime-error-banner";
+    banner.style.cssText = "position:sticky;top:0;z-index:9999;padding:10px 14px;background:#7a1f1f;color:#ffd9d9;border-bottom:1px solid #b04b4b;font:600 13px/1.35 Inter, sans-serif;";
+    document.body.prepend(banner);
+  }
+  banner.textContent = `Dashboard error (${source}: ${message}).`;
+  console.error(source, error);
+}
+
+function isIgnorableRuntimeMessage(message) {
+  const normalized = String(message || "").trim().toLowerCase();
+  return normalized === "script error." || normalized === "script error";
+}
+
+window.addEventListener("error", (event) => {
+  const message = event?.error?.message || event?.message;
+  if (isIgnorableRuntimeMessage(message)) {
+    console.warn("Ignored non-actionable runtime error", {
+      message,
+      filename: event?.filename,
+      lineno: event?.lineno,
+      colno: event?.colno
+    });
+    return;
+  }
+  reportRuntimeError(event.error || message, "window.onerror");
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  const reasonMessage = event?.reason?.message || event?.reason;
+  if (isIgnorableRuntimeMessage(reasonMessage)) {
+    console.warn("Ignored non-actionable promise rejection", { reason: event?.reason });
+    return;
+  }
+  reportRuntimeError(event.reason, "unhandledrejection");
+});
 
 const BREAKDOWN_CLICKABLE_KEYS = ["conversion", "sga"];
 const PIE_COLORS = [
@@ -504,6 +552,13 @@ const SKU_RANKING_METRICS = {
     className: (value) => getMetricToneClass(value)
   }
 };
+
+const OM_MIX_DIMENSIONS = [
+  { value: "priceSegment", label: "Price Segment" },
+  { value: "plant", label: "Plant" },
+  { value: "packaging", label: "Package Type" },
+  { value: "brandFamily", label: "Product Family" }
+];
 
 function toMoney(value) {
   return new Intl.NumberFormat("en-US", {
@@ -1082,20 +1137,21 @@ function bindFilterEvents() {
   }
 }
 
+function bindOmMixEvents() {
+  if (!els.omMixDimension) return;
+
+  els.omMixDimension.innerHTML = OM_MIX_DIMENSIONS
+    .map((option) => `<option value="${option.value}">${option.label}</option>`)
+    .join("");
+  els.omMixDimension.value = state.omMixDimension;
+
+  els.omMixDimension.addEventListener("change", () => {
+    state.omMixDimension = els.omMixDimension.value;
+    render();
+  });
+}
+
 function bindSegmentRealityEvents() {
-  function bindOmMixEvents() {
-    if (!els.omMixDimension) return;
-
-    els.omMixDimension.innerHTML = OM_MIX_DIMENSIONS
-      .map((option) => `<option value="${option.value}">${option.label}</option>`)
-      .join("");
-    els.omMixDimension.value = state.omMixDimension;
-
-    els.omMixDimension.addEventListener("change", () => {
-      state.omMixDimension = els.omMixDimension.value;
-      render();
-    });
-  }
   if (els.segmentRealityDimension) {
     els.segmentRealityDimension.value = state.segmentReality.dimension;
     els.segmentRealityDimension.addEventListener("change", () => {
@@ -1135,6 +1191,332 @@ function bindComparisonFilterEvents() {
     if (!element) return;
     element.addEventListener("change", () => {
       state.comparisonFilters[key] = element.value;
+      render();
+    });
+  });
+}
+
+function buildOmMixGroups(rows) {
+  const dimension = state.omMixDimension;
+  let groups = aggregateByDimension(rows, dimension)
+    .filter((g) => (g.revenue || 0) > 0)
+    .map((g) => ({
+      ...g,
+      omPct: g.revenue ? (g.operatingIncome / g.revenue) * 100 : 0,
+      isOther: false,
+      memberLabels: [g.label]
+    }));
+
+  if (dimension === "brandFamily") {
+    groups.sort((a, b) => (b.revenue || 0) - (a.revenue || 0));
+    const top = groups.slice(0, 10);
+    const remainder = groups.slice(10);
+    if (remainder.length) {
+      const other = remainder.reduce((acc, g) => {
+        acc.revenue += g.revenue || 0;
+        acc.volume += g.volume || 0;
+        acc.operatingIncome += g.operatingIncome || 0;
+        acc.memberLabels.push(g.label);
+        return acc;
+      }, {
+        label: "Other",
+        revenue: 0,
+        volume: 0,
+        operatingIncome: 0,
+        isOther: true,
+        memberLabels: []
+      });
+      other.omPct = other.revenue ? (other.operatingIncome / other.revenue) * 100 : 0;
+      groups = [...top, other];
+    } else {
+      groups = top;
+    }
+  }
+
+  return groups.sort((a, b) => (b.omPct || 0) - (a.omPct || 0));
+}
+
+function renderOmMixChart(rows) {
+  if (!els.omMixPanel || !els.omMixChart) return;
+
+  const formatSpreadPct = (value) => `${(value || 0).toFixed(1)} pts`;
+
+  const buildOmMixTooltipHtml = (group) => {
+    const omPct = group?.omPct || 0;
+    const revenue = group?.revenue || 0;
+    const operatingIncome = group?.operatingIncome || 0;
+    const spreadDollar = group?.omSpreadDollar || 0;
+    const spreadPct = group?.omSpreadPct || 0;
+    return `
+      <div class="omtt-head">
+        <strong>${group?.label || "Unknown"}</strong>
+        <span>Spread = highest minus lowest SKU in segment</span>
+      </div>
+      <div class="omtt-body">
+        <div class="omtt-row"><span>SKU count</span><strong>${(group?.skuCount || 0).toLocaleString()}</strong></div>
+        <div class="omtt-row"><span>Revenue</span><strong>${toMoney(revenue)}</strong></div>
+        <div class="omtt-row"><span>OM $ total</span><strong>${toSignedMoney(operatingIncome)}</strong></div>
+        <div class="omtt-row"><span>OM % total</span><strong>${(omPct >= 0 ? "+" : "") + omPct.toFixed(1)}%</strong></div>
+        <div class="omtt-row"><span>OM $ spread</span><strong>${toMoney(spreadDollar)}</strong></div>
+        <div class="omtt-row"><span>OM % spread</span><strong>${formatSpreadPct(spreadPct)}</strong></div>
+      </div>
+    `;
+  };
+
+  const toTwoLineLabel = (label) => {
+    const words = String(label || "").trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return ["", ""];
+    if (words.length === 1) {
+      const single = words[0];
+      if (single.length <= 14) return [single, ""];
+      return [single.slice(0, 14), single.slice(14, 24)];
+    }
+    const first = [];
+    const second = [];
+    words.forEach((word) => {
+      const target = first.join(" ").length < 12 ? first : second;
+      target.push(word);
+    });
+    return [first.join(" ").slice(0, 16), second.join(" ").slice(0, 16)];
+  };
+
+  const toCompactLabel = (label) => {
+    const words = String(label || "").trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return "";
+    if (words.length === 1) return words[0].slice(0, 8).toUpperCase();
+    const parts = words.slice(0, 2).map((w) => w.slice(0, 4).toUpperCase());
+    return parts.join(" ");
+  };
+
+  const dimension = state.omMixDimension;
+  const rowsByGroup = rows.reduce((acc, row) => {
+    const groupKey = String(row[dimension] || "Unknown").trim() || "Unknown";
+    if (!acc[groupKey]) acc[groupKey] = [];
+    acc[groupKey].push(row);
+    return acc;
+  }, {});
+
+  const groups = buildOmMixGroups(rows).map((g) => {
+    const memberRows = (g.memberLabels || []).flatMap((label) => rowsByGroup[label] || []);
+    const skuMap = memberRows.reduce((acc, row) => {
+      const skuKey = String(row.plantOsku || row.sku || row.orderableSkuDescription || "Unknown");
+      if (!acc[skuKey]) acc[skuKey] = { revenue: 0, operatingIncome: 0 };
+      acc[skuKey].revenue += row.revenue || 0;
+      acc[skuKey].operatingIncome += row.operatingIncome || 0;
+      return acc;
+    }, {});
+    const skuStats = Object.values(skuMap).map((s) => ({
+      omDollar: s.operatingIncome || 0,
+      omPct: s.revenue ? ((s.operatingIncome || 0) / s.revenue) * 100 : 0
+    }));
+    const omDollarVals = skuStats.map((s) => s.omDollar);
+    const omPctVals = skuStats.map((s) => s.omPct);
+    const omSpreadDollar = omDollarVals.length ? (Math.max(...omDollarVals) - Math.min(...omDollarVals)) : 0;
+    const omSpreadPct = omPctVals.length ? (Math.max(...omPctVals) - Math.min(...omPctVals)) : 0;
+    return {
+      ...g,
+      skuCount: skuStats.length,
+      omSpreadDollar,
+      omSpreadPct
+    };
+  });
+  const totals = aggregate(rows);
+  const totalRevenue = groups.reduce((sum, g) => sum + (g.revenue || 0), 0);
+  const portfolioOmPct = totals.revenue ? ((totals.operatingIncome || 0) / totals.revenue) * 100 : 0;
+  const dimensionLabel = OM_MIX_DIMENSIONS.find((d) => d.value === state.omMixDimension)?.label || "Segment";
+
+  if (els.omMixSubtitle) {
+    els.omMixSubtitle.textContent = `${dimensionLabel} · bar width = revenue · y-axis = operating margin % · click a bar to drill`;
+  }
+
+  if (!groups.length || totalRevenue <= 0) {
+    els.omMixChart.innerHTML = '<div class="sku-ranking-empty">No data for current filters.</div>';
+    return;
+  }
+
+  const vals = groups.map((g) => g.omPct || 0).concat([portfolioOmPct, 0]);
+  const minVal = Math.min(...vals);
+  const maxVal = Math.max(...vals);
+  let yMin = Math.floor((minVal - 2) / 5) * 5;
+  let yMax = Math.ceil((maxVal + 2) / 5) * 5;
+  if (yMax - yMin < 15) {
+    yMax += 5;
+    yMin -= 5;
+  }
+
+  const width = 1060;
+  const height = 430;
+  const margin = { top: 16, right: 18, bottom: 110, left: 66 };
+  const plotW = width - margin.left - margin.right;
+  const plotH = height - margin.top - margin.bottom;
+
+  const y = (v) => margin.top + ((yMax - v) / (yMax - yMin)) * plotH;
+  const zeroY = y(0);
+  const avgY = y(portfolioOmPct);
+
+  const tickStep = 10;
+  const yTicks = [];
+  for (let tick = Math.ceil(yMin / tickStep) * tickStep; tick <= yMax; tick += tickStep) {
+    yTicks.push(tick);
+  }
+
+  let cumulative = 0;
+  const labelRecords = [];
+  const bars = groups.map((g, idx) => {
+    const share = (g.revenue || 0) / totalRevenue;
+    const barX = margin.left + (cumulative * plotW);
+    const barW = Math.max(8, share * plotW);
+    cumulative += share;
+
+    const value = g.omPct || 0;
+    const yTop = y(Math.max(value, 0));
+    const yBottom = y(Math.min(value, 0));
+    const barH = Math.max(2, Math.abs(yBottom - yTop));
+    const isGood = value >= portfolioOmPct;
+    const barClass = isGood ? "om-mix-bar-good" : "om-mix-bar-bad";
+    const isClickable = !(state.omMixDimension === "brandFamily" && g.isOther);
+    const drillVal = encodeURIComponent(g.label);
+    const barLabel = `${Math.round(value)}%`;
+    const revLabel = toMoney(g.revenue || 0).replace(".00", "");
+    const textX = barX + (barW / 2);
+    const shortName = String(g.label || "").length > 16 ? `${String(g.label).slice(0, 15)}...` : String(g.label);
+    const [line1] = toTwoLineLabel(g.label);
+    const useCompact = barW < 84;
+    const labelPrimary = (useCompact ? toCompactLabel(g.label) : (line1 || shortName)).slice(0, 18);
+    const isNarrow = barW < 92;
+    const barTitle = `${g.label}: ${barLabel} OM, ${revLabel} revenue`;
+    labelRecords.push({ x: textX, barW, label: labelPrimary });
+
+    return `
+      <g>
+        <rect class="om-mix-bar ${barClass} ${isClickable ? "om-mix-bar-click" : ""}" data-idx="${idx}" data-drill="${drillVal}" x="${barX.toFixed(2)}" y="${Math.min(yTop, yBottom).toFixed(2)}" width="${barW.toFixed(2)}" height="${barH.toFixed(2)}"></rect>
+      </g>
+    `;
+  }).join("");
+
+  const truncate = (text, maxChars) => {
+    if ((text || "").length <= maxChars) return text;
+    return `${String(text).slice(0, Math.max(2, maxChars - 1))}.`;
+  };
+
+  const rowRight = [margin.left - 20, margin.left - 20];
+  const rowY = [zeroY + 22, zeroY + 36];
+  const minGap = 10;
+  const xLabels = labelRecords.map((r) => {
+    const maxChars = Math.max(8, Math.min(14, Math.floor(r.barW / 6)));
+    const label = truncate(r.label, maxChars);
+    const w = Math.max(18, label.length * 5.1);
+
+    let row = rowRight[0] <= rowRight[1] ? 0 : 1;
+    let x = Math.max(r.x, rowRight[row] + minGap + (w / 2));
+    const maxX = width - margin.right - (w / 2);
+    x = Math.min(maxX, x);
+
+    if (x - (w / 2) < rowRight[row] + minGap) {
+      row = row === 0 ? 1 : 0;
+      x = Math.max(r.x, rowRight[row] + minGap + (w / 2));
+      x = Math.min(maxX, x);
+    }
+
+    rowRight[row] = x + (w / 2);
+    const yText = rowY[row];
+    const yLead = yText - 8;
+
+    return `
+      <g>
+        <line class="om-mix-label-leader" x1="${r.x.toFixed(2)}" y1="${(zeroY + 3).toFixed(2)}" x2="${x.toFixed(2)}" y2="${yLead.toFixed(2)}"></line>
+        <text class="om-mix-xlabel" x="${x.toFixed(2)}" y="${yText.toFixed(2)}" text-anchor="middle">${label}</text>
+      </g>
+    `;
+  }).join("");
+
+  const grid = yTicks.map((tick) => {
+    const yy = y(tick);
+    return `
+      <line class="om-mix-grid" x1="${margin.left}" y1="${yy.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${yy.toFixed(2)}"></line>
+      <text class="om-mix-ytick" x="${(margin.left - 6).toFixed(2)}" y="${(yy + 4).toFixed(2)}" text-anchor="end">${tick}%</text>
+    `;
+  }).join("");
+
+  els.omMixChart.innerHTML = `
+    <div class="om-mix-shell">
+      <svg class="om-mix-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Operating Margin mix chart">
+        ${grid}
+        <line class="om-mix-zero" x1="${margin.left}" y1="${zeroY.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${zeroY.toFixed(2)}"></line>
+        <line class="om-mix-avg" x1="${margin.left}" y1="${avgY.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${avgY.toFixed(2)}"></line>
+        <text class="om-mix-avg-label" x="${(width - margin.right - 2).toFixed(2)}" y="${(avgY - 8).toFixed(2)}" text-anchor="end">Company OM avg ${portfolioOmPct.toFixed(1)}%</text>
+        ${bars}
+        ${xLabels}
+        <text class="om-mix-ytitle" transform="translate(16, ${(margin.top + (plotH / 2)).toFixed(2)}) rotate(-90)" text-anchor="middle">Operating margin %</text>
+      </svg>
+      <div class="om-mix-tooltip is-hidden" id="om-mix-tooltip"></div>
+      <div class="om-mix-legend">
+        <span><i class="swatch good"></i>At/above company OM avg</span>
+        <span><i class="swatch bad"></i>Below company OM avg</span>
+        <span><i class="swatch avg"></i>Company OM avg</span>
+      </div>
+    </div>
+  `;
+
+  const omTooltip = els.omMixChart.querySelector("#om-mix-tooltip");
+  const omBars = els.omMixChart.querySelectorAll(".om-mix-bar");
+  const getOmMixDrillDimension = (current) => {
+    if (current === "brandFamily") return "plant";
+    return "brandFamily";
+  };
+
+  const positionOmTooltip = (event) => {
+    if (!omTooltip || omTooltip.classList.contains("is-hidden")) return;
+    const pad = 12;
+    const x = event.clientX + 14;
+    const y = event.clientY + 12;
+    const maxLeft = window.innerWidth - omTooltip.offsetWidth - pad;
+    const maxTop = window.innerHeight - omTooltip.offsetHeight - pad;
+    omTooltip.style.left = `${Math.max(pad, Math.min(x, maxLeft))}px`;
+    omTooltip.style.top = `${Math.max(pad, Math.min(y, maxTop))}px`;
+  };
+
+  omBars.forEach((node) => {
+    node.addEventListener("mouseenter", (event) => {
+      if (!omTooltip) return;
+      const idx = Number(node.getAttribute("data-idx") || -1);
+      const group = groups[idx];
+      if (!group) return;
+      omTooltip.innerHTML = buildOmMixTooltipHtml(group);
+      omTooltip.classList.remove("is-hidden");
+      positionOmTooltip(event);
+    });
+
+    node.addEventListener("mousemove", (event) => {
+      positionOmTooltip(event);
+    });
+
+    node.addEventListener("mouseleave", () => {
+      if (!omTooltip) return;
+      omTooltip.classList.add("is-hidden");
+    });
+  });
+
+  els.omMixChart.querySelectorAll(".om-mix-bar-click").forEach((node) => {
+    node.addEventListener("click", () => {
+      const drillValue = decodeURIComponent(node.getAttribute("data-drill") || "");
+      const clickedDimension = state.omMixDimension;
+      const sameSelection = state.drill.dimension === clickedDimension && state.drill.value === drillValue;
+
+      state.drill.dimension = clickedDimension;
+      state.drill.value = sameSelection ? "All" : drillValue;
+
+      if (!sameSelection) {
+        state.omMixDimension = getOmMixDrillDimension(clickedDimension);
+        if (els.omMixDimension) {
+          els.omMixDimension.value = state.omMixDimension;
+        }
+      }
+
+      if (els.drillDimension) {
+        els.drillDimension.value = state.drill.dimension;
+      }
+      updateDrillValueOptions();
       render();
     });
   });
@@ -1198,11 +1580,23 @@ function bindReset() {
     state.comparisonMode = false;
     state.breakdown.stepKey = null;
     state.breakdown.expandOther = false;
+    state.bubbleChartDrill.mode = "family";
+    state.bubbleChartDrill.family = "";
     if (els.comparisonBtn) els.comparisonBtn.textContent = "Enter Comparison";
     if (els.comparisonSetup) els.comparisonSetup.classList.add("is-hidden");
     if (els.comparisonStatus) els.comparisonStatus.textContent = "Comparison mode is on. Choose a comparison case below.";
 
     updateDrillValueOptions();
+    render();
+  });
+}
+
+function bindBubbleChartEvents() {
+  if (!els.bubbleChartBack) return;
+
+  els.bubbleChartBack.addEventListener("click", () => {
+    state.bubbleChartDrill.mode = "family";
+    state.bubbleChartDrill.family = "";
     render();
   });
 }
@@ -2139,6 +2533,7 @@ function getDimensionLabel(dimensionKey) {
 
 function buildSegmentRealityGroups(rows) {
   const dimensionKey = state.segmentReality.dimension;
+  const BRAND_FAMILY_GROUP_LIMIT = 12;
   const normalizeSegmentLabel = (value) => String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   const byGroup = rows.reduce((acc, row) => {
     const key = String(row[dimensionKey] || "Unknown").trim() || "Unknown";
@@ -2175,36 +2570,73 @@ function buildSegmentRealityGroups(rows) {
     return acc;
   }, {});
 
-  const rowsWithMetrics = Object.values(byGroup)
+  const toSegmentRealityMetrics = (g) => {
+    const conversionOverstatementTotal = g.actualConversionCoveredTotal - g.stdConversionCoveredTotal;
+    const sgaOverstatementTotal = g.actualSgaCoveredTotal - g.stdSgaCoveredTotal;
+    const omOverstatementTotal = conversionOverstatementTotal + sgaOverstatementTotal;
+    const clientReportedOperatingIncome = g.operatingIncome + omOverstatementTotal;
+    const alignedOmPct = g.operatingIncome / g.revenue;
+    const clientReportedOmPct = clientReportedOperatingIncome / g.revenue;
+    return {
+      ...g,
+      isOtherGroup: Boolean(g.isOtherGroup),
+      conversionOverstatementTotal,
+      sgaOverstatementTotal,
+      omOverstatementTotal,
+      clientReportedOperatingIncome,
+      alignedOmPct,
+      clientReportedOmPct,
+      omPctDelta: alignedOmPct - clientReportedOmPct,
+      actualConversionCpu: g.actualConversionCoveredTotal / g.coveredVolume,
+      stdConversionCpu: g.stdConversionCoveredTotal / g.coveredVolume,
+      conversionGapCpu: (g.actualConversionCoveredTotal - g.stdConversionCoveredTotal) / g.coveredVolume,
+      actualSgaCpu: g.actualSgaCoveredTotal / g.coveredVolume,
+      stdSgaCpu: g.stdSgaCoveredTotal / g.coveredVolume,
+      sgaGapCpu: (g.actualSgaCoveredTotal - g.stdSgaCoveredTotal) / g.coveredVolume,
+      complexityAdjOpPerBbl: g.coveredVolume ? g.operatingIncome / g.coveredVolume : 0,
+      standardOpPerBbl: g.coveredVolume ? clientReportedOperatingIncome / g.coveredVolume : 0,
+      coveragePct: g.volume ? g.coveredVolume / g.volume : 0
+    };
+  };
+
+  let rowsWithMetrics = Object.values(byGroup)
     .filter((g) => String(g.label || "").trim().toLowerCase() !== "unknown")
     .filter((g) => g.coveredVolume > 0 && g.revenue > 0)
-    .map((g) => {
-      const conversionOverstatementTotal = g.actualConversionCoveredTotal - g.stdConversionCoveredTotal;
-      const sgaOverstatementTotal = g.actualSgaCoveredTotal - g.stdSgaCoveredTotal;
-      const omOverstatementTotal = conversionOverstatementTotal + sgaOverstatementTotal;
-      const clientReportedOperatingIncome = g.operatingIncome + omOverstatementTotal;
-      const alignedOmPct = g.operatingIncome / g.revenue;
-      const clientReportedOmPct = clientReportedOperatingIncome / g.revenue;
-      return {
-        ...g,
-        conversionOverstatementTotal,
-        sgaOverstatementTotal,
-        omOverstatementTotal,
-        clientReportedOperatingIncome,
-        alignedOmPct,
-        clientReportedOmPct,
-        omPctDelta: alignedOmPct - clientReportedOmPct,
-        actualConversionCpu: g.actualConversionCoveredTotal / g.coveredVolume,
-        stdConversionCpu: g.stdConversionCoveredTotal / g.coveredVolume,
-        conversionGapCpu: (g.actualConversionCoveredTotal - g.stdConversionCoveredTotal) / g.coveredVolume,
-        actualSgaCpu: g.actualSgaCoveredTotal / g.coveredVolume,
-        stdSgaCpu: g.stdSgaCoveredTotal / g.coveredVolume,
-        sgaGapCpu: (g.actualSgaCoveredTotal - g.stdSgaCoveredTotal) / g.coveredVolume,
-        complexityAdjOpPerBbl: g.coveredVolume ? g.operatingIncome / g.coveredVolume : 0,
-        standardOpPerBbl: g.coveredVolume ? clientReportedOperatingIncome / g.coveredVolume : 0,
-        coveragePct: g.volume ? g.coveredVolume / g.volume : 0
-      };
-    });
+    .map(toSegmentRealityMetrics);
+
+  if (dimensionKey === "brandFamily" && rowsWithMetrics.length > BRAND_FAMILY_GROUP_LIMIT) {
+    const byRevenue = [...rowsWithMetrics].sort((a, b) => (b.revenue || 0) - (a.revenue || 0));
+    const top = byRevenue.slice(0, BRAND_FAMILY_GROUP_LIMIT);
+    const remainder = byRevenue.slice(BRAND_FAMILY_GROUP_LIMIT);
+
+    if (remainder.length) {
+      const otherBase = remainder.reduce((acc, g) => {
+        acc.volume += g.volume || 0;
+        acc.revenue += g.revenue || 0;
+        acc.operatingIncome += g.operatingIncome || 0;
+        acc.coveredVolume += g.coveredVolume || 0;
+        acc.actualConversionCoveredTotal += g.actualConversionCoveredTotal || 0;
+        acc.stdConversionCoveredTotal += g.stdConversionCoveredTotal || 0;
+        acc.actualSgaCoveredTotal += g.actualSgaCoveredTotal || 0;
+        acc.stdSgaCoveredTotal += g.stdSgaCoveredTotal || 0;
+        return acc;
+      }, {
+        key: "__other__",
+        label: "Other",
+        isOtherGroup: true,
+        volume: 0,
+        revenue: 0,
+        operatingIncome: 0,
+        coveredVolume: 0,
+        actualConversionCoveredTotal: 0,
+        stdConversionCoveredTotal: 0,
+        actualSgaCoveredTotal: 0,
+        stdSgaCoveredTotal: 0
+      });
+
+      rowsWithMetrics = [...top, toSegmentRealityMetrics(otherBase)];
+    }
+  }
 
   if (dimensionKey === "priceSegment") {
     const rankMap = {
@@ -2352,7 +2784,10 @@ function renderSegmentRealityCheck(rows) {
     const coveredVolume = coverageRows.reduce((sum, r) => sum + (r.volume || 0), 0);
     const totalVolume = rows.reduce((sum, r) => sum + (r.volume || 0), 0);
     const coveragePct = totalVolume ? coveredVolume / totalVolume : 0;
-    els.segmentRealitySubtitle.textContent = `${dimensionLabel} view · click any bar/column to drill dashboard · standard coverage ${toPct(coveragePct)} of filtered volume`;
+    const groupedNote = state.segmentReality.dimension === "brandFamily"
+      ? " · top 12 by revenue + Other"
+      : "";
+    els.segmentRealitySubtitle.textContent = `${dimensionLabel} view${groupedNote} · click any bar/column to drill dashboard · standard coverage ${toPct(coveragePct)} of filtered volume`;
   }
 
   if (!groupsWithAverage.length || !els.segmentRealityChart) {
@@ -2410,6 +2845,8 @@ function renderSegmentRealityCheck(rows) {
       onClick: (_, elements) => {
         if (!elements.length) return;
         const idx = elements[0].index;
+        const clickedGroup = groupsWithAverage[idx];
+        if (!clickedGroup || clickedGroup.isSystemAverage || clickedGroup.isOtherGroup) return;
         const groupLabel = labels[idx];
         state.segmentReality.selectedGroup = state.segmentReality.selectedGroup === groupLabel ? "" : groupLabel;
         state.drill.dimension = state.segmentReality.dimension;
@@ -2602,8 +3039,9 @@ function renderWhaleCurve(rows) {
       els.whaleCurveSubtitle.textContent = "No data for current filters.";
     } else {
       const profitablePct = skuCount > 0 ? Math.round((points.filter((p, i) => i > 0 && (p.y - (points[i - 1]?.y || 0)) > 0).length / skuCount) * 100) : 0;
+      const activeLineLabel = activeLine === "standard" ? "As-Reported OM" : "Adjusted OM";
       els.whaleCurveSubtitle.textContent =
-        `Peak adjusted OM ${toMoney(peakValue)} at ${peakPct}% of SKUs — ${100 - profitablePct}% of SKUs reduce total profit. Click a curve to select it.`;
+        `Peak adjusted OM ${toMoney(peakValue)} at ${peakPct}% of SKUs — ${100 - profitablePct}% of SKUs reduce total profit. Active line: ${activeLineLabel}. Click a curve to switch.`;
     }
   }
 
@@ -2632,31 +3070,31 @@ function renderWhaleCurve(rows) {
         {
           label: "Adjusted OM",
           data: adjChartData,
-          borderColor: "#45d0a2",
-          borderWidth: activeLine === "adjusted" ? 2.5 : 1.5,
+          borderColor: activeLine === "adjusted" ? "#45d0a2" : "rgba(69,208,162,0.3)",
+          borderWidth: activeLine === "adjusted" ? 3.5 : 1,
           pointRadius: 0,
           pointHoverRadius: 5,
           pointHoverBackgroundColor: "#ffffff",
           tension: 0.35,
           backgroundColor: "transparent",
-          segment: {
+          segment: activeLine === "adjusted" ? {
             borderColor: (ctx) => ctx.p1.parsed.x <= adjPeakX ? "#45d0a2" : "#ff8c7a"
-          }
+          } : {}
         },
         {
           label: "As-Reported OM",
           data: stdChartData,
-          borderColor: "#ffae57",
-          borderWidth: activeLine === "standard" ? 2.5 : 1.5,
+          borderColor: activeLine === "standard" ? "#ffae57" : "rgba(255,174,87,0.3)",
+          borderWidth: activeLine === "standard" ? 3.5 : 1,
           pointRadius: 0,
           pointHoverRadius: 5,
           pointHoverBackgroundColor: "#ffffff",
           tension: 0.35,
           backgroundColor: "transparent",
           borderDash: [5, 3],
-          segment: {
+          segment: activeLine === "standard" ? {
             borderColor: (ctx) => ctx.p1.parsed.x <= stdPeakX ? "#ffae57" : "#ff6d6d"
-          }
+          } : {}
         },
         {
           label: "Adjusted Peak",
@@ -2694,9 +3132,8 @@ function renderWhaleCurve(rows) {
       responsive: true,
       maintainAspectRatio: false,
       onClick: (event, elements, chart) => {
-        const canvasPosition = Chart.helpers.getRelativePosition(event, chart);
-        const xVal = chart.scales.x.getValueForPixel(canvasPosition.x);
-        const yVal = chart.scales.y.getValueForPixel(canvasPosition.y);
+        const xVal = chart.scales.x.getValueForPixel(event.x);
+        const yVal = chart.scales.y.getValueForPixel(event.y);
         const pct = Math.max(0, Math.min(100, xVal)) / 100;
 
         // Determine which curve the click is nearer to by comparing y-distance at the clicked x
@@ -2941,61 +3378,118 @@ function bindWhaleCurveEvents() {
 function renderBubbleChart(rows) {
   if (!els.bubbleChart) return;
 
-  // Aggregate by Brand Family, tracking dominant Price Segment for color
+  const SEG_COLORS = ["#45d0a2", "#4f9fff", "#ffae57", "#b28cff", "#ff8c7a", "#ffd966", "#7cd3ff", "#f77fb8"];
+  const mode = state.bubbleChartDrill?.mode || "family";
+  const selectedFamily = state.bubbleChartDrill?.family || "";
+
   const familyMap = {};
   rows.forEach((row) => {
-    const key = row.brandFamily || "Unknown";
-    if (!familyMap[key]) {
-      familyMap[key] = { brandFamily: key, revenue: 0, operatingIncome: 0, volume: 0, segCounts: {} };
+    const familyKey = String(row.brandFamily || "Unknown").trim() || "Unknown";
+    const skuKey = String(row.orderableSkuDescription || row.sku || "Unknown").trim() || "Unknown";
+    const seg = String(row.priceSegment || "Unknown").trim() || "Unknown";
+
+    if (!familyMap[familyKey]) {
+      familyMap[familyKey] = {
+        brandFamily: familyKey,
+        revenue: 0,
+        operatingIncome: 0,
+        volume: 0,
+        segCounts: {},
+        skuMap: {}
+      };
     }
-    familyMap[key].revenue += row.revenue || 0;
-    familyMap[key].operatingIncome += row.operatingIncome || 0;
-    familyMap[key].volume += row.volume || 0;
-    const seg = row.priceSegment || "Unknown";
-    familyMap[key].segCounts[seg] = (familyMap[key].segCounts[seg] || 0) + 1;
+
+    const family = familyMap[familyKey];
+    family.revenue += row.revenue || 0;
+    family.operatingIncome += row.operatingIncome || 0;
+    family.volume += row.volume || 0;
+    family.segCounts[seg] = (family.segCounts[seg] || 0) + 1;
+
+    if (!family.skuMap[skuKey]) {
+      family.skuMap[skuKey] = {
+        label: skuKey,
+        brandFamily: familyKey,
+        revenue: 0,
+        operatingIncome: 0,
+        volume: 0,
+        segCounts: {}
+      };
+    }
+
+    const sku = family.skuMap[skuKey];
+    sku.revenue += row.revenue || 0;
+    sku.operatingIncome += row.operatingIncome || 0;
+    sku.volume += row.volume || 0;
+    sku.segCounts[seg] = (sku.segCounts[seg] || 0) + 1;
   });
 
-  // Assign dominant price segment to each family
-  Object.values(familyMap).forEach((f) => {
-    f.priceSegment = Object.entries(f.segCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "Unknown";
-  });
-
-  const families = Object.values(familyMap).filter((f) => f.revenue > 0);
+  const families = Object.values(familyMap)
+    .map((f) => ({
+      ...f,
+      priceSegment: Object.entries(f.segCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "Unknown"
+    }))
+    .filter((f) => f.revenue > 0);
 
   if (!families.length) {
     if (bubbleChart) { bubbleChart.destroy(); bubbleChart = null; }
+    if (els.bubbleChartBack) els.bubbleChartBack.classList.add("is-hidden");
+    return;
+  }
+
+  let entities = families;
+  let subtitle = `${families.length} brand families — bubble size = volume · click a bubble to drill to SKUs`;
+
+  if (mode === "sku" && selectedFamily) {
+    const family = families.find((f) => f.brandFamily === selectedFamily);
+    if (family) {
+      entities = Object.values(family.skuMap)
+        .map((sku) => ({
+          ...sku,
+          priceSegment: Object.entries(sku.segCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "Unknown"
+        }))
+        .filter((sku) => sku.revenue > 0);
+      subtitle = `${selectedFamily} — ${entities.length} SKUs · bubble size = volume · click Back to Brand Family View`;
+    } else {
+      state.bubbleChartDrill.mode = "family";
+      state.bubbleChartDrill.family = "";
+      entities = families;
+    }
+  }
+
+  if (!entities.length) {
+    if (bubbleChart) { bubbleChart.destroy(); bubbleChart = null; }
+    if (els.bubbleChartBack) els.bubbleChartBack.classList.add("is-hidden");
     return;
   }
 
   if (els.bubbleChartSubtitle) {
-    els.bubbleChartSubtitle.textContent = `${families.length} brand families — bubble size = volume`;
+    els.bubbleChartSubtitle.textContent = subtitle;
   }
 
-  // Median revenue for vertical quadrant line
-  const sortedRevs = families.map((f) => f.revenue).sort((a, b) => a - b);
+  if (els.bubbleChartBack) {
+    els.bubbleChartBack.classList.toggle("is-hidden", !(mode === "sku" && selectedFamily));
+  }
+
+  const sortedRevs = entities.map((f) => f.revenue).sort((a, b) => a - b);
   const medianRevenue = sortedRevs[Math.floor(sortedRevs.length / 2)];
 
-  // Clamp Y axis to 5th–95th percentile of OI margins to suppress outliers
-  const margins = families.map((f) => f.revenue ? (f.operatingIncome / f.revenue) * 100 : 0).sort((a, b) => a - b);
+  const margins = entities.map((f) => f.revenue ? (f.operatingIncome / f.revenue) * 100 : 0).sort((a, b) => a - b);
   const p05 = margins[Math.floor(margins.length * 0.05)] ?? margins[0];
   const p95 = margins[Math.ceil(margins.length * 0.95 - 1)] ?? margins[margins.length - 1];
   const yPad = Math.max(5, (p95 - p05) * 0.1);
   const yMin = Math.floor(p05 - yPad);
   const yMax = Math.ceil(p95 + yPad);
 
-  // Scale bubble radius by sqrt(volume/maxVolume)
-  const maxVol = Math.max(...families.map((f) => f.volume), 1);
+  const maxVol = Math.max(...entities.map((f) => f.volume), 1);
   const toRadius = (vol) => Math.max(5, Math.round(Math.sqrt(vol / maxVol) * 32));
 
-  // Group by priceSegment, sorted alphabetically
   const segmentMap = {};
-  families.forEach((f) => {
+  entities.forEach((f) => {
     const seg = f.priceSegment || "Unknown";
     if (!segmentMap[seg]) segmentMap[seg] = [];
     segmentMap[seg].push(f);
   });
 
-  const SEG_COLORS = ["#45d0a2", "#4f9fff", "#ffae57", "#b28cff", "#ff8c7a", "#ffd966", "#7cd3ff", "#f77fb8"];
   const segments = Object.keys(segmentMap).sort();
 
   const datasets = segments.map((seg, i) => ({
@@ -3007,10 +3501,12 @@ function renderBubbleChart(rows) {
       x: f.revenue,
       y: f.revenue ? (f.operatingIncome / f.revenue) * 100 : 0,
       r: toRadius(f.volume),
-      _label: f.brandFamily,
+      _label: mode === "sku" ? f.label : f.brandFamily,
       _volume: f.volume,
       _rev: f.revenue,
-      _oi: f.operatingIncome
+      _oi: f.operatingIncome,
+      _family: mode === "sku" ? f.brandFamily : f.brandFamily,
+      _isSkuView: mode === "sku"
     }))
   }));
 
@@ -3041,6 +3537,19 @@ function renderBubbleChart(rows) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      onClick: (_event, elements) => {
+        if (!elements.length) return;
+        if (state.bubbleChartDrill.mode === "sku") return;
+
+        const hit = elements[0];
+        const point = datasets[hit.datasetIndex]?.data?.[hit.index];
+        const family = point?._family;
+        if (!family) return;
+
+        state.bubbleChartDrill.mode = "sku";
+        state.bubbleChartDrill.family = family;
+        render();
+      },
       plugins: {
         legend: {
           display: true,
@@ -3055,6 +3564,7 @@ function renderBubbleChart(rows) {
               const margin = d.y.toFixed(1);
               return [
                 d._label,
+                `Brand Family: ${d._family}`,
                 `Revenue: ${toMoney(d._rev)}`,
                 `OI Margin: ${(d.y >= 0 ? "+" : "") + margin}%`,
                 `Volume: ${Math.round(d._volume).toLocaleString()} bbl`
@@ -3241,6 +3751,14 @@ function renderInsights(rows, totals) {
 }
 
 function render() {
+  const safeRenderSection = (name, fn) => {
+    try {
+      fn();
+    } catch (error) {
+      reportRuntimeError(error, `render-${name}`);
+    }
+  };
+
   const baseFilterState = state.comparisonMode ? state.comparisonBaseFilters : state.filters;
   const baseRows = applyFilters(state.records, baseFilterState).map(computeRow);
   const focusedRows = getFocusedRows(baseRows);
@@ -3251,47 +3769,60 @@ function render() {
     const comparisonRows = applyFilters(state.records, state.comparisonFilters).map(computeRow);
     const comparisonTotals = aggregate(comparisonRows);
     els.summaryKpis?.classList.add("is-hidden");
-    renderComparisonMode(totals, comparisonTotals);
-    renderSkuRanking(focusedRows, {
+    safeRenderSection("comparisonMode", () => renderComparisonMode(totals, comparisonTotals));
+    safeRenderSection("comparisonBaseSkuRanking", () => renderSkuRanking(focusedRows, {
       top: els.comparisonCurrentTopList,
       bottom: els.comparisonCurrentBottomList,
       scope: "comparison-base"
-    });
-    renderOmMixChart(focusedRows);
-    renderSkuRanking(comparisonRows, {
+    }));
+    safeRenderSection("omMix", () => renderOmMixChart(focusedRows));
+    safeRenderSection("comparisonCaseSkuRanking", () => renderSkuRanking(comparisonRows, {
       top: els.comparisonCompareTopList,
       bottom: els.comparisonCompareBottomList,
       scope: "comparison-case"
-    });
+    }));
     els.insightStripPanel?.classList.add("is-hidden");
-    renderSegmentRealityCheck(focusedRows);
-    renderBreakdownPanel(totals);
+    safeRenderSection("segmentReality", () => renderSegmentRealityCheck(focusedRows));
+    safeRenderSection("breakdown", () => renderBreakdownPanel(totals));
     return;
   }
 
-  renderSingleMode(totals);
-  renderSummaryKpis(totals, focusedRows);
-  renderInsightStrip(focusedRows);
-  renderSegmentRealityCheck(focusedRows);
-  renderSkuRanking(focusedRows, {
+  safeRenderSection("singleMode", () => renderSingleMode(totals));
+  safeRenderSection("summaryKpis", () => renderSummaryKpis(totals, focusedRows));
+  safeRenderSection("insightStrip", () => renderInsightStrip(focusedRows));
+  safeRenderSection("segmentReality", () => renderSegmentRealityCheck(focusedRows));
+  safeRenderSection("skuRanking", () => renderSkuRanking(focusedRows, {
     scope: "single"
-  });
-  renderWhaleCurve(focusedRows);
-  renderOmMixChart(focusedRows);
-  renderBubbleChart(focusedRows);
-  renderBreakdownPanel(totals);
+  }));
+  safeRenderSection("whaleCurve", () => renderWhaleCurve(focusedRows));
+  safeRenderSection("omMix", () => renderOmMixChart(focusedRows));
+  safeRenderSection("bubbleChart", () => renderBubbleChart(focusedRows));
+  safeRenderSection("breakdown", () => renderBreakdownPanel(totals));
 }
 
-updateFilterOptions();
-updateComparisonFilterOptions();
-bindFilterEvents();
-bindSegmentRealityEvents();
-bindOmMixEvents();
-bindComparisonFilterEvents();
-bindDrillEvents();
-bindReset();
-bindComparisonButton();
-bindBreakdownEvents();
-bindSkuDetailDismiss();
-bindWhaleCurveEvents();
-render();
+let initFailed = false;
+
+function runInitStep(name, fn) {
+  try {
+    fn();
+  } catch (error) {
+    initFailed = true;
+    reportRuntimeError(error, `init-${name}`);
+  }
+}
+
+runInitStep("updateFilterOptions", updateFilterOptions);
+runInitStep("updateComparisonFilterOptions", updateComparisonFilterOptions);
+runInitStep("bindFilterEvents", bindFilterEvents);
+runInitStep("bindSegmentRealityEvents", bindSegmentRealityEvents);
+runInitStep("bindOmMixEvents", bindOmMixEvents);
+runInitStep("bindComparisonFilterEvents", bindComparisonFilterEvents);
+runInitStep("bindDrillEvents", bindDrillEvents);
+runInitStep("bindReset", bindReset);
+runInitStep("bindComparisonButton", bindComparisonButton);
+runInitStep("bindBreakdownEvents", bindBreakdownEvents);
+runInitStep("bindSkuDetailDismiss", bindSkuDetailDismiss);
+runInitStep("bindWhaleCurveEvents", bindWhaleCurveEvents);
+runInitStep("bindBubbleChartEvents", bindBubbleChartEvents);
+runInitStep("render", render);
+window.__LUMINOR_BOOT_OK = !initFailed;
