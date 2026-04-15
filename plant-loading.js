@@ -47,11 +47,10 @@ const COST_BEHAVIOR = {
   conversionScaleMaxPct: 0.08,
   marketingVariablePct: 0.60,
   sgaVariablePct: 0.35,
-  // Freight headwinds are discounted by this factor to reflect consolidation
-  // efficiencies: fuller trucks, better route utilization, spot rate leverage.
-  // Tailwinds (destination cheaper) are kept in full. At 0.45, a $10/bbl headwind
-  // becomes ~$4.50 — enough to sometimes offset savings, sometimes not.
-  freightHeadwindDiscount: 0.45
+  // Freight is always a headwind when consolidating — SKUs are assumed to be
+  // currently served from the closest brewery, so any move increases distance.
+  // Cases where destination freight CPU is lower in the data are floored at zero.
+  freightHeadwindDiscount: 0.45 // retained but unused
 };
 
 function getConversionScaleSavePct(absorbedVol, recipientBaseVol) {
@@ -338,10 +337,9 @@ function runAnalysis() {
   const scaleSavePct = getConversionScaleSavePct(volumeShifted, dstBaseVol);
   const scaleBenefit = dstConv * scaleSavePct * volumeShifted;
   const grossFreightDelta = (dstFreight - srcFreight) * volumeShifted;
-  // Headwinds are dampened by consolidation efficiency; tailwinds kept in full
-  const freightDelta = grossFreightDelta > 0
-    ? grossFreightDelta * COST_BEHAVIOR.freightHeadwindDiscount
-    : grossFreightDelta;
+  // SKUs are assumed to be at the closest plant, so moves always increase freight.
+  // Floor at zero — no freight savings from consolidation.
+  const freightDelta = Math.max(0, grossFreightDelta);
   const netOI = conversionSavings + scaleBenefit - freightDelta;
 
   renderResults({ srcRow, dstRow, volumeShifted, conversionSavings, scaleBenefit, scaleSavePct, freightDelta, netOI, sourceVol });
