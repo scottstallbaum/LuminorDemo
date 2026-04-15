@@ -21,6 +21,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  flex-wrap: wrap;
+  gap: .65rem 1rem;
   padding: .85rem 1.25rem;
   border-bottom: 1px solid var(--line);
 }
@@ -1900,6 +1902,9 @@ th { color: var(--muted); font-weight: 600; }
   display: flex;
   gap: .5rem;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .sim-step-header {
