@@ -355,6 +355,7 @@ const els = {
   bubbleChart: document.getElementById("bubble-chart"),
   bubbleChartSubtitle: document.getElementById("bubble-chart-subtitle"),
   bubbleChartBack: document.getElementById("bubble-chart-back"),
+  bubbleChartClear: document.getElementById("bubble-chart-clear"),
   bubbleChartCompare: document.getElementById("bubble-chart-compare"),
   omMixPanel: document.getElementById("om-mix-panel"),
   omMixDimension: document.getElementById("om-mix-dimension"),
@@ -1606,6 +1607,16 @@ function bindBubbleChartEvents() {
     state.bubbleChartDrill.comparisonMode = false;
     render();
   });
+
+  if (els.bubbleChartClear) {
+    els.bubbleChartClear.addEventListener("click", () => {
+      state.bubbleChartDrill.mode = "family";
+      state.bubbleChartDrill.family = "";
+      state.bubbleChartDrill.selectedFamilies = [];
+      state.bubbleChartDrill.comparisonMode = false;
+      render();
+    });
+  }
 
   if (!els.bubbleChartCompare) return;
 
@@ -3394,6 +3405,7 @@ function bindWhaleCurveEvents() {
 function renderBubbleChart(rows) {
   if (!els.bubbleChart) return;
 
+  const MAX_COMPARE_FAMILIES = 4;
   const SEG_COLORS = ["#45d0a2", "#4f9fff", "#ffae57", "#b28cff", "#ff8c7a", "#ffd966", "#7cd3ff", "#f77fb8"];
   const mode = state.bubbleChartDrill?.mode || "family";
   const selectedFamily = state.bubbleChartDrill?.family || "";
@@ -3449,11 +3461,13 @@ function renderBubbleChart(rows) {
   if (!families.length) {
     if (bubbleChart) { bubbleChart.destroy(); bubbleChart = null; }
     if (els.bubbleChartBack) els.bubbleChartBack.classList.add("is-hidden");
+    if (els.bubbleChartCompare) els.bubbleChartCompare.classList.add("is-hidden");
+    if (els.bubbleChartClear) els.bubbleChartClear.classList.add("is-hidden");
     return;
   }
 
   let entities = families;
-  let subtitle = `${families.length} brand families — bubble size = volume · click to select, then Compare`;
+  let subtitle = `${families.length} brand families — bubble size = volume · select up to ${MAX_COMPARE_FAMILIES}, then Compare`;
   const selectedFamilies = state.bubbleChartDrill?.selectedFamilies || [];
 
   if (mode === "sku" && selectedFamily) {
@@ -3495,6 +3509,8 @@ function renderBubbleChart(rows) {
   if (!entities.length) {
     if (bubbleChart) { bubbleChart.destroy(); bubbleChart = null; }
     if (els.bubbleChartBack) els.bubbleChartBack.classList.add("is-hidden");
+    if (els.bubbleChartCompare) els.bubbleChartCompare.classList.add("is-hidden");
+    if (els.bubbleChartClear) els.bubbleChartClear.classList.add("is-hidden");
     return;
   }
 
@@ -3508,6 +3524,10 @@ function renderBubbleChart(rows) {
 
   if (els.bubbleChartCompare) {
     els.bubbleChartCompare.classList.toggle("is-hidden", mode !== "family" || selectedFamilies.length < 2);
+  }
+
+  if (els.bubbleChartClear) {
+    els.bubbleChartClear.classList.toggle("is-hidden", mode !== "family" || selectedFamilies.length === 0);
   }
 
   const sortedRevs = entities.map((f) => f.revenue).sort((a, b) => a - b);
@@ -3607,6 +3627,7 @@ function renderBubbleChart(rows) {
         if (idx >= 0) {
           selected.splice(idx, 1);
         } else {
+          if (selected.length >= MAX_COMPARE_FAMILIES) return;
           selected.push(family);
         }
         state.bubbleChartDrill.selectedFamilies = selected;
