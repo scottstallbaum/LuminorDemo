@@ -70,7 +70,6 @@
         const blue = [0, 180, 255];
         const neutral = [44, 52, 68];
         const mutedRed = [125, 62, 78];
-        const red = [255, 58, 58];
         const deepRed = [168, 24, 36];
 
         function clamp01(v) {
@@ -100,6 +99,17 @@
 
         const posDenom = Math.max(0.0001, maxPositiveSlope);
         const negDenom = Math.max(0.0001, maxNegativeMagnitude);
+        const negThreshold = 0.34 * negDenom;
+        const cumulativeNeg = new Array(slopes.length).fill(0);
+        let negTotal = 0;
+        for (let i = 0; i < slopes.length; i += 1) {
+          const p0 = points[i];
+          const p1 = points[i + 1];
+          const dx = Math.max(0.0001, p1.x - p0.x);
+          const excessNeg = Math.max(0, Math.abs(Math.min(0, slopes[i])) - negThreshold);
+          negTotal += excessNeg * dx;
+          cumulativeNeg[i] = negTotal;
+        }
 
         ctx.save();
         ctx.beginPath();
@@ -119,15 +129,10 @@
             color = mixRgb(mutedBlue, blue, t);
             localAlpha = 0.34 + (0.50 * Math.pow(tRaw, 2.4));
           } else if (slope < 0) {
-            const tRaw = clamp01(Math.abs(slope) / negDenom);
-            const darkenStart = 0.28;
-            const ramp = tRaw <= darkenStart
-              ? 0
-              : Math.pow((tRaw - darkenStart) / (1 - darkenStart), 1.25);
-            const tailBoost = clamp01((tRaw - 0.72) / 0.28);
-            const t = clamp01(0.30 + (0.44 * ramp) + (0.26 * Math.pow(tailBoost, 0.7)));
+            const dropProgress = negTotal > 0 ? clamp01(cumulativeNeg[i] / negTotal) : 0;
+            const t = 0.30 + (0.70 * Math.pow(dropProgress, 0.88));
             color = mixRgb(mutedRed, deepRed, t);
-            localAlpha = 0.34 + (0.48 * ramp) + (0.14 * Math.pow(tailBoost, 0.7));
+            localAlpha = 0.34 + (0.54 * Math.pow(dropProgress, 1.02));
           } else {
             localAlpha = 0.30;
           }
