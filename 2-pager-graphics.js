@@ -121,13 +121,14 @@
     const ratio = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
     const srcW = canvas.width;
     const srcH = canvas.height;
+    const exportBg = "#0d1528";
 
     const out = document.createElement("canvas");
     out.width = srcW;
     out.height = srcH;
     const ctx = out.getContext("2d");
 
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = exportBg;
     ctx.fillRect(0, 0, out.width, out.height);
     ctx.drawImage(canvas, 0, 0, out.width, out.height);
 
@@ -136,7 +137,7 @@
       scaled.width = Math.round(out.width / ratio);
       scaled.height = Math.round(out.height / ratio);
       const sctx = scaled.getContext("2d");
-      sctx.fillStyle = "#ffffff";
+      sctx.fillStyle = exportBg;
       sctx.fillRect(0, 0, scaled.width, scaled.height);
       sctx.drawImage(out, 0, 0, scaled.width, scaled.height);
       return scaled;
