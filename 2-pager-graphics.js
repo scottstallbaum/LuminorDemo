@@ -65,6 +65,25 @@
         const baselinePx = yScale.getPixelForValue(0);
         const points = model.points;
         const maxAbsSlope = 40;
+        const blue = [14, 165, 233];
+        const neutral = [148, 163, 184];
+        const red = [239, 68, 68];
+        const strongPositiveSlope = 16;
+        const neutralPositiveSlope = 0.8;
+        const neutralNegativeSlope = -3.6;
+        const strongNegativeSlope = -24;
+
+        function clamp01(v) {
+          return Math.max(0, Math.min(1, v));
+        }
+
+        function mixRgb(a, b, t) {
+          return [
+            Math.round(a[0] + ((b[0] - a[0]) * t)),
+            Math.round(a[1] + ((b[1] - a[1]) * t)),
+            Math.round(a[2] + ((b[2] - a[2]) * t))
+          ];
+        }
 
         ctx.save();
         ctx.beginPath();
@@ -79,14 +98,20 @@
           const intensity = Math.min(1, Math.abs(slope) / maxAbsSlope);
           const alpha = 0.10 + (0.48 * Math.pow(intensity, 0.62));
 
-          let fill;
-          if (Math.abs(slope) < 0.16) {
-            fill = `rgba(148, 163, 184, ${Math.max(0.08, alpha * 0.55)})`;
-          } else if (slope > 0) {
-            fill = `rgba(14, 165, 233, ${alpha})`;
-          } else {
-            fill = `rgba(239, 68, 68, ${alpha})`;
+          let color = neutral;
+          let localAlpha = Math.max(0.08, alpha * 0.56);
+
+          if (slope >= neutralPositiveSlope) {
+            const t = clamp01((slope - neutralPositiveSlope) / (strongPositiveSlope - neutralPositiveSlope));
+            color = mixRgb(neutral, blue, t);
+            localAlpha = 0.16 + (0.38 * Math.pow(t, 0.75));
+          } else if (slope <= neutralNegativeSlope) {
+            const t = clamp01((neutralNegativeSlope - slope) / (neutralNegativeSlope - strongNegativeSlope));
+            color = mixRgb(neutral, red, t);
+            localAlpha = 0.14 + (0.40 * Math.pow(t, 0.75));
           }
+
+          const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
           const x0 = xScale.getPixelForValue(p0.x);
           const x1 = xScale.getPixelForValue(p1.x);
