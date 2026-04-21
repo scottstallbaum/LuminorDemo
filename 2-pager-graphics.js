@@ -152,16 +152,16 @@
           const redTailBoost = slope < 0 ? Math.pow(redTailProgress, 1.15) : 0;
 
           if (slope < 0) {
-            const redBaseProgress = smoothstep(splitX + 2, 100, xMid);
-            const redBaseColor = mixRgb([128, 42, 56], red, 0.35 + (0.65 * redBaseProgress));
-            const redTint = Math.min(1, 0.50 + (0.30 * intensity) + (0.20 * redBaseProgress));
+            const redBaseProgress = smoothstep(68, 100, xMid);
+            const redBaseColor = mixRgb([128, 42, 56], red, 0.20 + (0.80 * redBaseProgress));
+            const redTint = Math.min(1, 0.42 + (0.24 * intensity) + (0.16 * redBaseProgress));
             const steepNegBoost = smoothstep(0.62, 0.98, -signedNorm);
             const rightEdgeBoost = smoothstep(92, 100, xMid);
             const tailDarkBoost = Math.max(steepNegBoost, rightEdgeBoost);
             const hardTailRamp = smoothstep(90, 100, xMid);
             color = mixRgb(neutral, redBaseColor, redTint);
-            color = mixRgb(color, redDeep, 0.34 + (0.38 * redTailBoost) + (0.12 * tailDarkBoost) + (0.34 * hardTailRamp));
-            localAlpha = Math.min(1, 0.62 + (0.16 * intensity) + (0.18 * redBaseProgress) + (0.14 * redTailBoost) + (0.12 * tailDarkBoost) + (0.20 * hardTailRamp));
+            color = mixRgb(color, redDeep, 0.22 + (0.26 * redTailBoost) + (0.10 * tailDarkBoost) + (0.52 * hardTailRamp));
+            localAlpha = Math.min(1, 0.56 + (0.14 * intensity) + (0.14 * redBaseProgress) + (0.10 * redTailBoost) + (0.10 * tailDarkBoost) + (0.24 * hardTailRamp));
           } else {
             const baseTint = Math.min(1, 0.40 + (0.38 * intensity) + (0.14 * steepBandBoost));
             color = mixRgb(neutral, hueColor, baseTint);
