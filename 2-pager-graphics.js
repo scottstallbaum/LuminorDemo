@@ -2,27 +2,39 @@
   function buildWhaleCurve() {
     const points = [];
     const itemCount = 130;
-    const zeroCrossAt = 0.30; // slope turns from positive to negative at 30%
-    const slopeDecay = 11.0;
-    const targetPeakY = 82;
-
-    const crossExp = Math.exp(-slopeDecay * zeroCrossAt);
-    const peakRaw = ((1 - crossExp) / slopeDecay) - (zeroCrossAt * crossExp);
-    const amplitude = targetPeakY / peakRaw;
+    const plateauStart = 0.20;
+    const plateauEnd = 0.80;
+    const topY = 176;
+    const endY = 100;
 
     for (let i = 0; i <= itemCount; i += 1) {
       const r = i / itemCount;
       const x = r * 100;
-      let y;
+      let y = 0;
 
-      // Smooth whale curve with continuously decreasing slope and peak at ~30%.
-      y = amplitude * (((1 - Math.exp(-slopeDecay * r)) / slopeDecay) - (r * crossExp));
+      if (r <= plateauStart) {
+        // Very steep early lift (left side of the whale).
+        const t = r / plateauStart;
+        const k = 6.7;
+        const norm = (1 - Math.exp(-k * t)) / (1 - Math.exp(-k));
+        y = topY * norm;
+      } else if (r <= plateauEnd) {
+        // Long flat-ish middle with a tiny dome and slight erosion.
+        const t = (r - plateauStart) / (plateauEnd - plateauStart);
+        y = topY + (Math.sin(Math.PI * t) * 3.2) - (t * 2.0);
+      } else {
+        // Late, accelerating drop to baseline.
+        const t = (r - plateauEnd) / (1 - plateauEnd);
+        const tailStartY = topY - 2.0;
+        y = endY + ((tailStartY - endY) * (1 - Math.pow(t, 2.8)));
+      }
 
       points.push({ x, y });
     }
 
-    // Ensure exact origin.
+    // Ensure exact anchors.
     points[0].y = 0;
+    points[points.length - 1].y = endY;
 
     let maxY = -Infinity;
     let maxIndex = 0;
