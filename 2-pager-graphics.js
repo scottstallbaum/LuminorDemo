@@ -2,8 +2,8 @@
   function buildWhaleCurve() {
     const points = [];
     const itemCount = 130;
-    const plateauStart = 0.20;
-    const plateauEnd = 0.80;
+    const plateauStart = 0.30;
+    const plateauEnd = 0.82;
     const topY = 176;
     const endY = 100;
 
@@ -19,13 +19,13 @@
         const norm = (1 - Math.exp(-k * t)) / (1 - Math.exp(-k));
         y = topY * norm;
       } else if (r <= plateauEnd) {
-        // Long flat-ish middle with a tiny dome and slight erosion.
+        // Long flat-ish middle that starts declining right after 30%.
         const t = (r - plateauStart) / (plateauEnd - plateauStart);
-        y = topY + (Math.sin(Math.PI * t) * 3.2) - (t * 2.0);
+        y = topY - (3.6 * t) - (2.6 * Math.pow(t, 1.8));
       } else {
         // Late, accelerating drop to baseline.
         const t = (r - plateauEnd) / (1 - plateauEnd);
-        const tailStartY = topY - 2.0;
+        const tailStartY = topY - 6.2;
         y = endY + ((tailStartY - endY) * (1 - Math.pow(t, 2.8)));
       }
 
@@ -54,49 +54,8 @@
 
     const model = buildWhaleCurve();
 
-    const calloutPlugin = {
-      id: "whaleCallout",
-      afterDatasetsDraw(chart) {
-        const ctx = chart.ctx;
-        const xScale = chart.scales.x;
-        const yScale = chart.scales.y;
-
-        const peakPoint = model.points[model.peakIndex];
-        const px = xScale.getPixelForValue(peakPoint.x);
-        const py = yScale.getPixelForValue(peakPoint.y);
-
-        const textX = Math.min(chart.chartArea.right - 285, px + 24);
-        const textY = Math.max(chart.chartArea.top + 16, py - 30);
-
-        ctx.save();
-
-        // Peak dot
-        ctx.beginPath();
-        ctx.arc(px, py, 3.2, 0, Math.PI * 2);
-        ctx.fillStyle = "#0EA5E9";
-        ctx.fill();
-
-        // Leader line
-        ctx.beginPath();
-        ctx.moveTo(px + 5, py - 1);
-        ctx.lineTo(textX - 8, textY - 2);
-        ctx.strokeStyle = "#9ca3af";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        // Plain text callout (no box)
-        ctx.fillStyle = "#0f172a";
-        ctx.font = "600 11px Inter, sans-serif";
-        ctx.textBaseline = "alphabetic";
-        ctx.fillText("A small portion of the portfolio drives most profit", textX, textY);
-
-        ctx.restore();
-      }
-    };
-
     return new Chart(canvas, {
       type: "line",
-      plugins: [calloutPlugin],
       data: {
         datasets: [
           {
