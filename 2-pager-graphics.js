@@ -26,7 +26,8 @@
         // Late, accelerating drop to baseline.
         const t = (r - plateauEnd) / (1 - plateauEnd);
         const tailStartY = topY - 6.2;
-        y = endY + ((tailStartY - endY) * (1 - Math.pow(t, 2.8)));
+        const dropShape = (0.58 * t) + (0.42 * Math.pow(t, 2.8));
+        y = tailStartY - ((tailStartY - endY) * dropShape);
       }
 
       points.push({ x, y });
