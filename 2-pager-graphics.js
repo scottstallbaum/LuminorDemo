@@ -103,6 +103,8 @@
           return t * t * (3 - (2 * t));
         }
 
+        const splitX = model.points[model.peakIndex].x;
+
         ctx.save();
         ctx.beginPath();
         ctx.rect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, chartArea.bottom - chartArea.top);
@@ -119,15 +121,23 @@
             ? clamp01(slope / posDenom)
             : -clamp01(Math.abs(slope) / negDenom);
 
+          const xMid = (p0.x + p1.x) * 0.5;
+          const sideBlend = smoothstep(splitX - 8, splitX + 8, xMid);
+          const sideColor = mixRgb(blue, red, sideBlend);
+
           // Smooth hue crossover removes the hard seam at the sign-change point.
           const hueT = (signedNorm + 1) * 0.5; // -1..1 -> 0..1
           const signedColor = mixRgb(red, blue, hueT);
+          const hueColor = mixRgb(sideColor, signedColor, 0.55);
 
           // Keep middle relatively flat; darken quickly only at steeper tails.
           const mag = Math.abs(signedNorm);
           const intensity = smoothstep(0.18, 0.92, mag);
-          color = mixRgb(neutral, signedColor, 0.26 + (0.74 * intensity));
-          localAlpha = 0.56 + (0.36 * intensity);
+          const steepBoost = smoothstep(0.62, 0.98, mag);
+          const edgeDistance = Math.abs((xMid - 50) / 50);
+          const edgeBoost = Math.pow(edgeDistance, 1.35) * steepBoost;
+          color = mixRgb(neutral, hueColor, Math.min(1, 0.50 + (0.42 * intensity) + (0.08 * steepBoost)));
+          localAlpha = Math.min(0.98, 0.58 + (0.28 * intensity) + (0.12 * edgeBoost));
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
