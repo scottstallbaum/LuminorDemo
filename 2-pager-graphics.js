@@ -1,70 +1,53 @@
 (function () {
   function buildWhaleCurve() {
-    const points = [{ x: 0, y: 0 }];
+    const points = [];
     const itemCount = 130;
+    const plateauStart = 0.30;
+    const plateauEnd = 0.85;
+    const peakY = 82;
+    const plateauY = 68;
+    const endY = 28; // end materially below peak (not 0)
 
-    function contributionAt(rankRatio) {
-      if (rankRatio < 0.08) {
-        return 14.0 - (rankRatio * 100); // very steep profitable head
-      }
-      if (rankRatio < 0.30) {
-        return 6.0 - ((rankRatio - 0.08) * 22); // flatten toward the peak zone
-      }
-      if (rankRatio < 0.50) {
-        return 1.16 - ((rankRatio - 0.30) * 14); // cross through zero around 38%
-      }
-      // Tail: gradual, slightly irregular decline so it feels less synthetic.
-      return -1.64 - ((rankRatio - 0.50) * 6) +
-        (Math.sin(rankRatio * 30) * 0.18) +
-        (Math.cos(rankRatio * 19) * 0.10);
-    }
+    for (let i = 0; i <= itemCount; i += 1) {
+      const r = i / itemCount;
+      const x = r * 100;
+      let y;
 
-    let cumulative = 0;
-    let peakY = 0;
-    let peakIndex = 0;
+      if (r <= plateauStart) {
+        // Steep early rise that tops out near 30%.
+        const t = r / plateauStart;
+        const normalized = (1 - Math.exp(-7.8 * t)) / (1 - Math.exp(-7.8));
+        y = peakY * normalized;
+      } else if (r <= plateauEnd) {
+        // Long flat-ish middle from ~30% to ~85% with only mild erosion.
+        const t = (r - plateauStart) / (plateauEnd - plateauStart);
+        y = peakY - ((peakY - plateauY) * Math.pow(t, 0.85));
+      } else {
+        // Sharper decline in the final stretch.
+        const t = (r - plateauEnd) / (1 - plateauEnd);
+        y = plateauY - ((plateauY - endY) * Math.pow(t, 0.72));
+      }
 
-    for (let i = 0; i < itemCount; i += 1) {
-      const rankRatio = i / (itemCount - 1);
-      cumulative += contributionAt(rankRatio);
-      const x = ((i + 1) / itemCount) * 100;
-      const y = cumulative;
+      // Subtle irregularity so the line feels more like real data.
+      y += Math.sin((r * 17) + 0.3) * 0.4;
+
       points.push({ x, y });
-      if (y > peakY) {
-        peakY = y;
-        peakIndex = points.length - 1;
-      }
     }
 
-    // Keep the whale-curve ending materially below peak (not returning to 0).
-    const endY = points[points.length - 1].y;
-    const targetEnd = peakY * 0.36;
-    if (endY <= targetEnd) {
-      let newPeakY = -Infinity;
-      let newPeakIndex = 0;
-      for (let i = 0; i < points.length; i += 1) {
-        if (points[i].y > newPeakY) {
-          newPeakY = points[i].y;
-          newPeakIndex = i;
-        }
-      }
-      return { points, peakIndex: newPeakIndex, peakY: newPeakY };
-    }
+    // Ensure exact origin and a clean non-zero finish.
+    points[0].y = 0;
+    points[points.length - 1].y = endY;
 
-    const drift = (endY - targetEnd) / (points.length - 1);
-    for (let i = 1; i < points.length; i += 1) {
-      points[i].y -= drift * i;
-    }
-
-    let adjPeakY = -Infinity;
-    let adjPeakIndex = 0;
+    let maxY = -Infinity;
+    let maxIndex = 0;
     for (let i = 0; i < points.length; i += 1) {
-      if (points[i].y > adjPeakY) {
-        adjPeakY = points[i].y;
-        adjPeakIndex = i;
+      if (points[i].y > maxY) {
+        maxY = points[i].y;
+        maxIndex = i;
       }
     }
 
-    return { points, peakIndex: adjPeakIndex, peakY: adjPeakY };
+    return { points, peakIndex: maxIndex, peakY: maxY };
   }
 
   function makeWhaleChart() {
