@@ -66,6 +66,7 @@
 
         const baselinePx = yScale.getPixelForValue(0);
         const points = model.points;
+        const mutedBlue = [58, 98, 132];
         const blue = [0, 180, 255];
         const neutral = [44, 52, 68];
         const mutedRed = [125, 62, 78];
@@ -113,9 +114,9 @@
 
           if (slope > 0) {
             const tRaw = clamp01(slope / posDenom);
-            const t = 0.22 + (0.78 * Math.pow(tRaw, 0.42));
-            color = mixRgb(neutral, blue, t);
-            localAlpha = 0.30 + (0.56 * Math.pow(t, 0.66));
+            const t = 0.34 + (0.66 * Math.pow(tRaw, 2.6));
+            color = mixRgb(mutedBlue, blue, t);
+            localAlpha = 0.34 + (0.50 * Math.pow(tRaw, 2.4));
           } else if (slope < 0) {
             const tRaw = clamp01(Math.abs(slope) / negDenom);
             const t = 0.34 + (0.66 * Math.pow(tRaw, 2.6));
