@@ -119,9 +119,13 @@
             localAlpha = 0.34 + (0.50 * Math.pow(tRaw, 2.4));
           } else if (slope < 0) {
             const tRaw = clamp01(Math.abs(slope) / negDenom);
-            const t = 0.34 + (0.66 * Math.pow(tRaw, 2.6));
+            const darkenStart = 0.28;
+            const ramp = tRaw <= darkenStart
+              ? 0
+              : Math.pow((tRaw - darkenStart) / (1 - darkenStart), 1.25);
+            const t = 0.34 + (0.66 * ramp);
             color = mixRgb(mutedRed, red, t);
-            localAlpha = 0.34 + (0.50 * Math.pow(tRaw, 2.4));
+            localAlpha = 0.34 + (0.56 * ramp);
           } else {
             localAlpha = 0.30;
           }
