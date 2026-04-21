@@ -66,11 +66,9 @@
 
         const baselinePx = yScale.getPixelForValue(0);
         const points = model.points;
-        const mutedBlue = [58, 98, 132];
         const blue = [0, 180, 255];
-        const neutral = [44, 52, 68];
-        const mutedRed = [125, 62, 78];
-        const deepRed = [168, 24, 36];
+        const neutral = [34, 42, 58];
+        const red = [168, 24, 36];
 
         function clamp01(v) {
           return Math.max(0, Math.min(1, v));
@@ -99,27 +97,10 @@
 
         const posDenom = Math.max(0.0001, maxPositiveSlope);
         const negDenom = Math.max(0.0001, maxNegativeMagnitude);
-        const posThreshold = 0.34 * posDenom;
-        const negThreshold = 0.34 * negDenom;
-        const cumulativePos = new Array(slopes.length).fill(0);
-        const cumulativeNeg = new Array(slopes.length).fill(0);
-        let posTotal = 0;
-        for (let i = slopes.length - 1; i >= 0; i -= 1) {
-          const p0 = points[i];
-          const p1 = points[i + 1];
-          const dx = Math.max(0.0001, p1.x - p0.x);
-          const excessPos = Math.max(0, Math.max(0, slopes[i]) - posThreshold);
-          posTotal += excessPos * dx;
-          cumulativePos[i] = posTotal;
-        }
-        let negTotal = 0;
-        for (let i = 0; i < slopes.length; i += 1) {
-          const p0 = points[i];
-          const p1 = points[i + 1];
-          const dx = Math.max(0.0001, p1.x - p0.x);
-          const excessNeg = Math.max(0, Math.abs(Math.min(0, slopes[i])) - negThreshold);
-          negTotal += excessNeg * dx;
-          cumulativeNeg[i] = negTotal;
+
+        function smoothstep(edge0, edge1, x) {
+          const t = clamp01((x - edge0) / Math.max(0.0001, edge1 - edge0));
+          return t * t * (3 - (2 * t));
         }
 
         ctx.save();
@@ -134,19 +115,19 @@
           let color = neutral;
           let localAlpha = 0.10;
 
-          if (slope > 0) {
-            const riseProgress = posTotal > 0 ? clamp01(cumulativePos[i] / posTotal) : 0;
-            const t = 0.30 + (0.70 * Math.pow(riseProgress, 0.88));
-            color = mixRgb(mutedBlue, blue, t);
-            localAlpha = 0.34 + (0.54 * Math.pow(riseProgress, 1.02));
-          } else if (slope < 0) {
-            const dropProgress = negTotal > 0 ? clamp01(cumulativeNeg[i] / negTotal) : 0;
-            const t = 0.30 + (0.70 * Math.pow(dropProgress, 0.88));
-            color = mixRgb(mutedRed, deepRed, t);
-            localAlpha = 0.34 + (0.54 * Math.pow(dropProgress, 1.02));
-          } else {
-            localAlpha = 0.30;
-          }
+          const signedNorm = slope >= 0
+            ? clamp01(slope / posDenom)
+            : -clamp01(Math.abs(slope) / negDenom);
+
+          // Smooth hue crossover removes the hard seam at the sign-change point.
+          const hueT = (signedNorm + 1) * 0.5; // -1..1 -> 0..1
+          const signedColor = mixRgb(red, blue, hueT);
+
+          // Keep middle relatively flat; darken quickly only at steeper tails.
+          const mag = Math.abs(signedNorm);
+          const intensity = smoothstep(0.18, 0.92, mag);
+          color = mixRgb(neutral, signedColor, 0.26 + (0.74 * intensity));
+          localAlpha = 0.56 + (0.36 * intensity);
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
