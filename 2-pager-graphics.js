@@ -135,9 +135,9 @@
           const intensity = smoothstep(0.18, 0.92, mag);
           const steepBoost = smoothstep(0.62, 0.98, mag);
           const edgeDistance = Math.abs((xMid - 50) / 50);
-          const edgeBoost = Math.pow(edgeDistance, 1.35) * steepBoost;
-          color = mixRgb(neutral, hueColor, Math.min(1, 0.50 + (0.42 * intensity) + (0.08 * steepBoost)));
-          localAlpha = Math.min(0.98, 0.58 + (0.28 * intensity) + (0.12 * edgeBoost));
+          const edgeBoost = Math.pow(edgeDistance, 1.25) * steepBoost;
+          color = mixRgb(neutral, hueColor, Math.min(1, 0.50 + (0.40 * intensity) + (0.14 * steepBoost)));
+          localAlpha = Math.min(1, 0.58 + (0.26 * intensity) + (0.18 * edgeBoost));
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
