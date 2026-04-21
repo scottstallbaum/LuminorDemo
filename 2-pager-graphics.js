@@ -158,9 +158,10 @@
             const steepNegBoost = smoothstep(0.62, 0.98, -signedNorm);
             const rightEdgeBoost = smoothstep(92, 100, xMid);
             const tailDarkBoost = Math.max(steepNegBoost, rightEdgeBoost);
+            const hardTailRamp = smoothstep(90, 100, xMid);
             color = mixRgb(neutral, redBaseColor, redTint);
-            color = mixRgb(color, redDeep, 0.34 + (0.50 * redTailBoost) + (0.16 * tailDarkBoost));
-            localAlpha = Math.min(1, 0.62 + (0.16 * intensity) + (0.18 * redBaseProgress) + (0.16 * redTailBoost) + (0.14 * tailDarkBoost));
+            color = mixRgb(color, redDeep, 0.34 + (0.38 * redTailBoost) + (0.12 * tailDarkBoost) + (0.34 * hardTailRamp));
+            localAlpha = Math.min(1, 0.62 + (0.16 * intensity) + (0.18 * redBaseProgress) + (0.14 * redTailBoost) + (0.12 * tailDarkBoost) + (0.20 * hardTailRamp));
           } else {
             const baseTint = Math.min(1, 0.40 + (0.38 * intensity) + (0.14 * steepBandBoost));
             color = mixRgb(neutral, hueColor, baseTint);
