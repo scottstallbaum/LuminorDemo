@@ -1,33 +1,37 @@
 (function () {
   function buildWhaleCurve() {
-    const points = [];
-    const itemCount = 120;
-    const contrib = [];
+    const points = [{ x: 0, y: 0 }];
+    const itemCount = 130;
 
-    for (let i = 0; i < itemCount; i += 1) {
-      let c;
-      if (i < 14) {
-        c = 10.8 - (i * 0.42); // steeply profitable head
-      } else if (i < 72) {
-        c = 1.35 - ((i - 14) * 0.022); // flattening middle
-      } else {
-        c = -0.55 - ((i - 72) * 0.135); // unprofitable tail
+    function contributionAt(rankRatio) {
+      if (rankRatio < 0.08) {
+        return 14.0 - (rankRatio * 100); // very steep profitable head
       }
-      contrib.push(c);
+      if (rankRatio < 0.30) {
+        return 6.0 - ((rankRatio - 0.08) * 22); // flatten toward the peak zone
+      }
+      if (rankRatio < 0.50) {
+        return 1.16 - ((rankRatio - 0.30) * 14); // cross through zero around 38%
+      }
+      // Tail: gradual, slightly irregular decline so it feels less synthetic.
+      return -1.64 - ((rankRatio - 0.50) * 6) +
+        (Math.sin(rankRatio * 30) * 0.18) +
+        (Math.cos(rankRatio * 19) * 0.10);
     }
 
     let cumulative = 0;
-    let peakY = -Infinity;
+    let peakY = 0;
     let peakIndex = 0;
 
-    for (let i = 0; i < contrib.length; i += 1) {
-      cumulative += contrib[i];
-      const x = (i / (contrib.length - 1)) * 100;
+    for (let i = 0; i < itemCount; i += 1) {
+      const rankRatio = i / (itemCount - 1);
+      cumulative += contributionAt(rankRatio);
+      const x = ((i + 1) / itemCount) * 100;
       const y = cumulative;
       points.push({ x, y });
       if (y > peakY) {
         peakY = y;
-        peakIndex = i;
+        peakIndex = points.length - 1;
       }
     }
 
@@ -51,38 +55,30 @@
         const px = xScale.getPixelForValue(peakPoint.x);
         const py = yScale.getPixelForValue(peakPoint.y);
 
-        const boxX = Math.min(chart.chartArea.right - 290, px + 26);
-        const boxY = Math.max(chart.chartArea.top + 12, py - 64);
-        const boxW = 268;
-        const boxH = 46;
+        const textX = Math.min(chart.chartArea.right - 285, px + 24);
+        const textY = Math.max(chart.chartArea.top + 16, py - 30);
 
         ctx.save();
 
-        // Pointer line
+        // Peak dot
         ctx.beginPath();
-        ctx.moveTo(px + 4, py - 2);
-        ctx.lineTo(boxX, boxY + 22);
-        ctx.strokeStyle = "#0f172a";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        // Callout box
-        ctx.fillStyle = "#ffffff";
-        ctx.strokeStyle = "#cbd5e1";
-        ctx.lineWidth = 1;
-        ctx.shadowColor = "rgba(15, 23, 42, 0.08)";
-        ctx.shadowBlur = 10;
-        ctx.shadowOffsetY = 4;
-        ctx.beginPath();
-        ctx.roundRect(boxX, boxY, boxW, boxH, 8);
+        ctx.arc(px, py, 3.2, 0, Math.PI * 2);
+        ctx.fillStyle = "#0EA5E9";
         ctx.fill();
-        ctx.shadowColor = "transparent";
+
+        // Leader line
+        ctx.beginPath();
+        ctx.moveTo(px + 5, py - 1);
+        ctx.lineTo(textX - 8, textY - 2);
+        ctx.strokeStyle = "#9ca3af";
+        ctx.lineWidth = 1;
         ctx.stroke();
 
+        // Plain text callout (no box)
         ctx.fillStyle = "#0f172a";
-        ctx.font = "600 12px Inter, sans-serif";
-        ctx.textBaseline = "middle";
-        ctx.fillText("A small portion of the portfolio drives most profit", boxX + 10, boxY + 24);
+        ctx.font = "600 11px Inter, sans-serif";
+        ctx.textBaseline = "alphabetic";
+        ctx.fillText("A small portion of the portfolio drives most profit", textX, textY);
 
         ctx.restore();
       }
@@ -98,7 +94,7 @@
             parsing: false,
             borderWidth: 3,
             pointRadius: 0,
-            tension: 0.32,
+            tension: 0.18,
             segment: {
               borderColor: (ctx) => (ctx.p0DataIndex < model.peakIndex ? "#0EA5E9" : "#EF4444")
             }
@@ -109,7 +105,7 @@
         responsive: true,
         maintainAspectRatio: false,
         layout: {
-          padding: { top: 10, right: 12, bottom: 8, left: 8 }
+          padding: { top: 8, right: 10, bottom: 4, left: 6 }
         },
         plugins: {
           legend: { display: false },
@@ -118,11 +114,11 @@
         scales: {
           x: {
             type: "linear",
-            display: false,
+            display: true,
             min: 0,
             max: 100,
             grid: { display: false },
-            border: { display: false },
+            border: { display: true, color: "#E5E7EB", width: 1 },
             ticks: { display: false }
           },
           y: {
