@@ -116,10 +116,13 @@
         ctx.rect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, chartArea.bottom - chartArea.top);
         ctx.clip();
 
+        const splitX = model.points[model.peakIndex].x;
+
         for (let i = 0; i < points.length - 1; i += 1) {
           const p0 = points[i];
           const p1 = points[i + 1];
           const slope = slopes[i];
+          const xMid = (p0.x + p1.x) * 0.5;
           let color = neutral;
           let localAlpha = 0.10;
 
@@ -127,9 +130,14 @@
             ? clamp01(slope / posDenom)
             : -clamp01(Math.abs(slope) / negDenom);
 
+          // Keep side tint obvious through the middle: blue on left, red on right.
+          const sideBlend = smoothstep(splitX - 7, splitX + 7, xMid);
+          const sideColor = mixRgb(blue, red, sideBlend);
+
           // Smooth hue crossover removes the hard seam at the sign-change point.
           const hueT = (signedNorm + 1) * 0.5; // -1..1 -> 0..1
           const signedColor = mixRgb(red, blue, hueT);
+          const hueColor = mixRgb(sideColor, signedColor, 0.45);
 
           // Keep middle lighter; make full steep rise/drop regions noticeably darker.
           const mag = Math.abs(signedNorm);
@@ -137,8 +145,8 @@
           const posSteep = slope > 0 ? smoothstep(0.34, 0.72, signedNorm) : 0;
           const negSteep = slope < 0 ? smoothstep(0.34, 0.72, -signedNorm) : 0;
           const steepBandBoost = Math.max(posSteep, negSteep);
-          color = mixRgb(neutral, signedColor, Math.min(1, 0.24 + (0.62 * intensity) + (0.16 * steepBandBoost)));
-          localAlpha = Math.min(1, 0.50 + (0.32 * intensity) + (0.16 * steepBandBoost));
+          color = mixRgb(neutral, hueColor, Math.min(1, 0.40 + (0.38 * intensity) + (0.20 * steepBandBoost)));
+          localAlpha = Math.min(1, 0.54 + (0.22 * intensity) + (0.16 * steepBandBoost));
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
