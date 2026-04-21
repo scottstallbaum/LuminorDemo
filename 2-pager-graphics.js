@@ -82,21 +82,29 @@
           ];
         }
 
+        function percentile(sortedValues, p) {
+          if (!sortedValues.length) return 0.0001;
+          const idx = Math.max(0, Math.min(sortedValues.length - 1, Math.floor((sortedValues.length - 1) * p)));
+          return Math.max(0.0001, sortedValues[idx]);
+        }
+
         const slopes = [];
-        let maxPositiveSlope = 0;
-        let maxNegativeMagnitude = 0;
+        const positiveSlopes = [];
+        const negativeMagnitudes = [];
         for (let i = 0; i < points.length - 1; i += 1) {
           const p0 = points[i];
           const p1 = points[i + 1];
           const dx = Math.max(0.0001, p1.x - p0.x);
           const slope = (p1.y - p0.y) / dx;
           slopes.push(slope);
-          if (slope > maxPositiveSlope) maxPositiveSlope = slope;
-          if (slope < 0) maxNegativeMagnitude = Math.max(maxNegativeMagnitude, Math.abs(slope));
+          if (slope > 0) positiveSlopes.push(slope);
+          if (slope < 0) negativeMagnitudes.push(Math.abs(slope));
         }
 
-        const posDenom = Math.max(0.0001, maxPositiveSlope);
-        const negDenom = Math.max(0.0001, maxNegativeMagnitude);
+        positiveSlopes.sort((a, b) => a - b);
+        negativeMagnitudes.sort((a, b) => a - b);
+        const posDenom = percentile(positiveSlopes, 0.82);
+        const negDenom = percentile(negativeMagnitudes, 0.82);
 
         function smoothstep(edge0, edge1, x) {
           const t = clamp01((x - edge0) / Math.max(0.0001, edge1 - edge0));
