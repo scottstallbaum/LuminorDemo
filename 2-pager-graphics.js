@@ -151,12 +151,18 @@
           const redTailProgress = slope < 0 ? smoothstep(76, 100, xMid) : 0;
           const redTailBoost = slope < 0 ? Math.pow(redTailProgress, 1.15) : 0;
 
-          const baseTint = Math.min(1, 0.40 + (0.38 * intensity) + (0.14 * steepBandBoost) + (0.08 * redTailBoost));
-          color = mixRgb(neutral, hueColor, baseTint);
           if (slope < 0) {
-            color = mixRgb(color, redDeep, 0.18 + (0.62 * redTailBoost));
+            const redBaseProgress = smoothstep(splitX + 2, 100, xMid);
+            const redBaseColor = mixRgb([128, 42, 56], red, 0.35 + (0.65 * redBaseProgress));
+            const redTint = Math.min(1, 0.50 + (0.30 * intensity) + (0.20 * redBaseProgress));
+            color = mixRgb(neutral, redBaseColor, redTint);
+            color = mixRgb(color, redDeep, 0.28 + (0.58 * redTailBoost));
+            localAlpha = Math.min(1, 0.60 + (0.18 * intensity) + (0.22 * redBaseProgress) + (0.16 * redTailBoost));
+          } else {
+            const baseTint = Math.min(1, 0.40 + (0.38 * intensity) + (0.14 * steepBandBoost));
+            color = mixRgb(neutral, hueColor, baseTint);
+            localAlpha = Math.min(1, 0.54 + (0.22 * intensity) + (0.12 * steepBandBoost));
           }
-          localAlpha = Math.min(1, 0.54 + (0.22 * intensity) + (0.12 * steepBandBoost) + (0.18 * redTailBoost));
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
