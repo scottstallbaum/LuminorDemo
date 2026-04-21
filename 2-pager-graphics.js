@@ -69,6 +69,7 @@
         const blue = [0, 180, 255];
         const neutral = [34, 42, 58];
         const red = [168, 24, 36];
+        const redDeep = [110, 8, 20];
 
         function clamp01(v) {
           return Math.max(0, Math.min(1, v));
@@ -146,16 +147,16 @@
           const negSteep = slope < 0 ? smoothstep(0.34, 0.72, -signedNorm) : 0;
           const steepBandBoost = Math.max(posSteep, negSteep);
 
-          // Smooth dark-red gradient through the full right-tail zone.
-          const redTailProgress = slope < 0 ? smoothstep(splitX + 8, 100, xMid) : 0;
-          const redTailBoost = slope < 0 ? Math.pow(redTailProgress, 0.9) : 0;
+          // Stronger, earlier dark-red gradient through the full right-tail drop zone.
+          const redTailProgress = slope < 0 ? smoothstep(76, 100, xMid) : 0;
+          const redTailBoost = slope < 0 ? Math.pow(redTailProgress, 1.15) : 0;
 
-          color = mixRgb(
-            neutral,
-            hueColor,
-            Math.min(1, 0.40 + (0.38 * intensity) + (0.14 * steepBandBoost) + (0.12 * redTailBoost))
-          );
-          localAlpha = Math.min(1, 0.54 + (0.22 * intensity) + (0.12 * steepBandBoost) + (0.12 * redTailBoost));
+          const baseTint = Math.min(1, 0.40 + (0.38 * intensity) + (0.14 * steepBandBoost) + (0.08 * redTailBoost));
+          color = mixRgb(neutral, hueColor, baseTint);
+          if (slope < 0) {
+            color = mixRgb(color, redDeep, 0.18 + (0.62 * redTailBoost));
+          }
+          localAlpha = Math.min(1, 0.54 + (0.22 * intensity) + (0.12 * steepBandBoost) + (0.18 * redTailBoost));
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
