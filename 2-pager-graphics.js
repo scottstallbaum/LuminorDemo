@@ -71,6 +71,7 @@
         const neutral = [44, 52, 68];
         const mutedRed = [125, 62, 78];
         const red = [255, 58, 58];
+        const deepRed = [168, 24, 36];
 
         function clamp01(v) {
           return Math.max(0, Math.min(1, v));
@@ -123,9 +124,10 @@
             const ramp = tRaw <= darkenStart
               ? 0
               : Math.pow((tRaw - darkenStart) / (1 - darkenStart), 1.25);
-            const t = 0.34 + (0.66 * ramp);
-            color = mixRgb(mutedRed, red, t);
-            localAlpha = 0.34 + (0.56 * ramp);
+            const tailBoost = clamp01((tRaw - 0.72) / 0.28);
+            const t = clamp01(0.30 + (0.44 * ramp) + (0.26 * Math.pow(tailBoost, 0.7)));
+            color = mixRgb(mutedRed, deepRed, t);
+            localAlpha = 0.34 + (0.48 * ramp) + (0.14 * Math.pow(tailBoost, 0.7));
           } else {
             localAlpha = 0.30;
           }
