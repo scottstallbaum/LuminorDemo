@@ -68,6 +68,7 @@
         const points = model.points;
         const blue = [0, 180, 255];
         const neutral = [44, 52, 68];
+        const mutedRed = [125, 62, 78];
         const red = [255, 58, 58];
 
         function clamp01(v) {
@@ -117,17 +118,12 @@
             localAlpha = 0.30 + (0.56 * Math.pow(t, 0.66));
           } else if (slope < 0) {
             const tRaw = clamp01(Math.abs(slope) / negDenom);
-            const t = 0.22 + (0.78 * Math.pow(tRaw, 0.42));
-            color = mixRgb(neutral, red, t);
-            localAlpha = 0.30 + (0.56 * Math.pow(t, 0.66));
+            const t = 0.34 + (0.66 * Math.pow(tRaw, 2.6));
+            color = mixRgb(mutedRed, red, t);
+            localAlpha = 0.34 + (0.50 * Math.pow(tRaw, 2.4));
           } else {
             localAlpha = 0.30;
           }
-
-          // Darken the center zone to improve red-vs-blue readability across the long plateau.
-          const xMid = (p0.x + p1.x) * 0.5;
-          const centerWeight = 1 - Math.pow(Math.abs((xMid - 50) / 50), 1.15);
-          localAlpha = Math.min(0.90, localAlpha + (0.24 * centerWeight));
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
