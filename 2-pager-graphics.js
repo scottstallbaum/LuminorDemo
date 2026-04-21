@@ -3,7 +3,7 @@
     const points = [];
     const itemCount = 130;
     const zeroCrossAt = 0.30; // slope turns from positive to negative at 30%
-    const slopeDecay = 7.7;
+    const slopeDecay = 11.0;
     const targetPeakY = 82;
 
     const crossExp = Math.exp(-slopeDecay * zeroCrossAt);
@@ -92,7 +92,7 @@
             parsing: false,
             borderWidth: 3,
             pointRadius: 0,
-            tension: 0.18,
+            tension: 0,
             segment: {
               borderColor: (ctx) => (ctx.p0DataIndex < model.peakIndex ? "#0EA5E9" : "#EF4444")
             }
