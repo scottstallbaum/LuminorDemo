@@ -23,16 +23,10 @@
         const t = (r - plateauStart) / (plateauEnd - plateauStart);
         y = topY - (3.6 * t) - (2.6 * Math.pow(t, 1.8));
       } else {
-        // Late, accelerating drop to baseline with slope continuity at the join.
+        // Late, accelerating drop to baseline.
         const t = (r - plateauEnd) / (1 - plateauEnd);
         const tailStartY = topY - 6.2;
-        const midEndSlope = (-3.6 - (2.6 * 1.8)) / (plateauEnd - plateauStart);
-        const slopeMatch = Math.max(
-          0.01,
-          Math.min(0.20, (Math.abs(midEndSlope) * (1 - plateauEnd)) / (tailStartY - endY))
-        );
-        const dropShape = (slopeMatch * t) + ((1 - slopeMatch) * Math.pow(t, 2.8));
-        y = tailStartY - ((tailStartY - endY) * dropShape);
+        y = endY + ((tailStartY - endY) * (1 - Math.pow(t, 2.8)));
       }
 
       points.push({ x, y });
