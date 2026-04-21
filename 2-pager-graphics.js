@@ -64,9 +64,9 @@
 
         const baselinePx = yScale.getPixelForValue(0);
         const points = model.points;
-        const blue = [14, 165, 233];
-        const neutral = [148, 163, 184];
-        const red = [239, 68, 68];
+        const blue = [6, 152, 224];
+        const neutral = [74, 85, 104];
+        const red = [232, 55, 55];
 
         function clamp01(v) {
           return Math.max(0, Math.min(1, v));
@@ -111,11 +111,13 @@
           if (slope > 0) {
             const t = clamp01(slope / posDenom);
             color = mixRgb(neutral, blue, t);
-            localAlpha = 0.12 + (0.42 * Math.pow(t, 0.8));
+            localAlpha = 0.24 + (0.52 * Math.pow(t, 0.78));
           } else if (slope < 0) {
             const t = clamp01(Math.abs(slope) / negDenom);
             color = mixRgb(neutral, red, t);
-            localAlpha = 0.12 + (0.42 * Math.pow(t, 0.8));
+            localAlpha = 0.24 + (0.52 * Math.pow(t, 0.78));
+          } else {
+            localAlpha = 0.24;
           }
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
