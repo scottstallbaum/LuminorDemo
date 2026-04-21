@@ -59,13 +59,16 @@
       if (!chartArea) return "rgba(56, 189, 248, 0.25)";
 
       const split = Math.max(0.02, Math.min(0.98, model.points[model.peakIndex].x / 100));
-      const splitLeft = Math.max(0, split - 0.001);
+      const blendHalfWidth = 0.09;
+      const leftEdge = Math.max(0, split - blendHalfWidth);
+      const rightEdge = Math.min(1, split + blendHalfWidth);
 
       const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-      gradient.addColorStop(0.00, "rgba(14, 165, 233, 0.46)");
-      gradient.addColorStop(splitLeft, "rgba(14, 165, 233, 0.36)");
-      gradient.addColorStop(split, "rgba(239, 68, 68, 0.36)");
-      gradient.addColorStop(1.00, "rgba(239, 68, 68, 0.50)");
+      gradient.addColorStop(0.00, "rgba(14, 165, 233, 0.52)");
+      gradient.addColorStop(leftEdge, "rgba(14, 165, 233, 0.38)");
+      gradient.addColorStop(split, "rgba(120, 93, 190, 0.30)");
+      gradient.addColorStop(rightEdge, "rgba(239, 68, 68, 0.38)");
+      gradient.addColorStop(1.00, "rgba(239, 68, 68, 0.54)");
       return gradient;
     }
 
