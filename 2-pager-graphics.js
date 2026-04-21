@@ -99,8 +99,19 @@
 
         const posDenom = Math.max(0.0001, maxPositiveSlope);
         const negDenom = Math.max(0.0001, maxNegativeMagnitude);
+        const posThreshold = 0.34 * posDenom;
         const negThreshold = 0.34 * negDenom;
+        const cumulativePos = new Array(slopes.length).fill(0);
         const cumulativeNeg = new Array(slopes.length).fill(0);
+        let posTotal = 0;
+        for (let i = slopes.length - 1; i >= 0; i -= 1) {
+          const p0 = points[i];
+          const p1 = points[i + 1];
+          const dx = Math.max(0.0001, p1.x - p0.x);
+          const excessPos = Math.max(0, Math.max(0, slopes[i]) - posThreshold);
+          posTotal += excessPos * dx;
+          cumulativePos[i] = posTotal;
+        }
         let negTotal = 0;
         for (let i = 0; i < slopes.length; i += 1) {
           const p0 = points[i];
@@ -124,10 +135,10 @@
           let localAlpha = 0.10;
 
           if (slope > 0) {
-            const tRaw = clamp01(slope / posDenom);
-            const t = 0.34 + (0.66 * Math.pow(tRaw, 2.6));
+            const riseProgress = posTotal > 0 ? clamp01(cumulativePos[i] / posTotal) : 0;
+            const t = 0.30 + (0.70 * Math.pow(riseProgress, 0.88));
             color = mixRgb(mutedBlue, blue, t);
-            localAlpha = 0.34 + (0.50 * Math.pow(tRaw, 2.4));
+            localAlpha = 0.34 + (0.54 * Math.pow(riseProgress, 1.02));
           } else if (slope < 0) {
             const dropProgress = negTotal > 0 ? clamp01(cumulativeNeg[i] / negTotal) : 0;
             const t = 0.30 + (0.70 * Math.pow(dropProgress, 0.88));
