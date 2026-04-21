@@ -2,34 +2,20 @@
   function buildWhaleCurve() {
     const points = [];
     const itemCount = 130;
-    const plateauStart = 0.30;
-    const plateauEnd = 0.85;
-    const peakY = 82;
-    const plateauY = 68;
+    const riseCeiling = 90;
+    const riseRate = 18;
+    const tailPower = 8;
     const endY = 28; // end materially below peak (not 0)
+    const tailWeight = riseCeiling - endY;
 
     for (let i = 0; i <= itemCount; i += 1) {
       const r = i / itemCount;
       const x = r * 100;
       let y;
 
-      if (r <= plateauStart) {
-        // Steep early rise that tops out near 30%.
-        const t = r / plateauStart;
-        const normalized = (1 - Math.exp(-7.8 * t)) / (1 - Math.exp(-7.8));
-        y = peakY * normalized;
-      } else if (r <= plateauEnd) {
-        // Long flat-ish middle from ~30% to ~85% with only mild erosion.
-        const t = (r - plateauStart) / (plateauEnd - plateauStart);
-        y = peakY - ((peakY - plateauY) * Math.pow(t, 0.85));
-      } else {
-        // Sharper decline in the final stretch.
-        const t = (r - plateauEnd) / (1 - plateauEnd);
-        y = plateauY - ((plateauY - endY) * Math.pow(t, 0.72));
-      }
-
-      // Subtle irregularity so the line feels more like real data.
-      y += Math.sin((r * 17) + 0.3) * 0.4;
+      // Canonical whale curve shape with continuously decreasing slope:
+      // fast early accumulation, broad middle flattening, then late erosion.
+      y = (riseCeiling * (1 - Math.exp(-riseRate * r))) - (tailWeight * Math.pow(r, tailPower));
 
       points.push({ x, y });
     }
