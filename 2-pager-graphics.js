@@ -35,7 +35,36 @@
       }
     }
 
-    return { points, peakIndex, peakY };
+    // Keep the whale-curve ending materially below peak (not returning to 0).
+    const endY = points[points.length - 1].y;
+    const targetEnd = peakY * 0.36;
+    if (endY <= targetEnd) {
+      let newPeakY = -Infinity;
+      let newPeakIndex = 0;
+      for (let i = 0; i < points.length; i += 1) {
+        if (points[i].y > newPeakY) {
+          newPeakY = points[i].y;
+          newPeakIndex = i;
+        }
+      }
+      return { points, peakIndex: newPeakIndex, peakY: newPeakY };
+    }
+
+    const drift = (endY - targetEnd) / (points.length - 1);
+    for (let i = 1; i < points.length; i += 1) {
+      points[i].y -= drift * i;
+    }
+
+    let adjPeakY = -Infinity;
+    let adjPeakIndex = 0;
+    for (let i = 0; i < points.length; i += 1) {
+      if (points[i].y > adjPeakY) {
+        adjPeakY = points[i].y;
+        adjPeakIndex = i;
+      }
+    }
+
+    return { points, peakIndex: adjPeakIndex, peakY: adjPeakY };
   }
 
   function makeWhaleChart() {
