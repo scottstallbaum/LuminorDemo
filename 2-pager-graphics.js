@@ -145,8 +145,17 @@
           const posSteep = slope > 0 ? smoothstep(0.34, 0.72, signedNorm) : 0;
           const negSteep = slope < 0 ? smoothstep(0.34, 0.72, -signedNorm) : 0;
           const steepBandBoost = Math.max(posSteep, negSteep);
-          color = mixRgb(neutral, hueColor, Math.min(1, 0.40 + (0.38 * intensity) + (0.20 * steepBandBoost)));
-          localAlpha = Math.min(1, 0.54 + (0.22 * intensity) + (0.16 * steepBandBoost));
+
+          // Smooth dark-red gradient through the full right-tail zone.
+          const redTailProgress = slope < 0 ? smoothstep(splitX + 8, 100, xMid) : 0;
+          const redTailBoost = slope < 0 ? Math.pow(redTailProgress, 0.9) : 0;
+
+          color = mixRgb(
+            neutral,
+            hueColor,
+            Math.min(1, 0.40 + (0.38 * intensity) + (0.14 * steepBandBoost) + (0.12 * redTailBoost))
+          );
+          localAlpha = Math.min(1, 0.54 + (0.22 * intensity) + (0.12 * steepBandBoost) + (0.12 * redTailBoost));
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
