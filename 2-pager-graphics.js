@@ -155,9 +155,12 @@
             const redBaseProgress = smoothstep(splitX + 2, 100, xMid);
             const redBaseColor = mixRgb([128, 42, 56], red, 0.35 + (0.65 * redBaseProgress));
             const redTint = Math.min(1, 0.50 + (0.30 * intensity) + (0.20 * redBaseProgress));
+            const steepNegBoost = smoothstep(0.62, 0.98, -signedNorm);
+            const rightEdgeBoost = smoothstep(92, 100, xMid);
+            const tailDarkBoost = Math.max(steepNegBoost, rightEdgeBoost);
             color = mixRgb(neutral, redBaseColor, redTint);
-            color = mixRgb(color, redDeep, 0.28 + (0.58 * redTailBoost));
-            localAlpha = Math.min(1, 0.60 + (0.18 * intensity) + (0.22 * redBaseProgress) + (0.16 * redTailBoost));
+            color = mixRgb(color, redDeep, 0.34 + (0.50 * redTailBoost) + (0.16 * tailDarkBoost));
+            localAlpha = Math.min(1, 0.62 + (0.16 * intensity) + (0.18 * redBaseProgress) + (0.16 * redTailBoost) + (0.14 * tailDarkBoost));
           } else {
             const baseTint = Math.min(1, 0.40 + (0.38 * intensity) + (0.14 * steepBandBoost));
             color = mixRgb(neutral, hueColor, baseTint);
