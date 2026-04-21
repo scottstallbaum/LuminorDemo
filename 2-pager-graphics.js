@@ -26,8 +26,8 @@
         // Late, accelerating drop to baseline.
         const t = (r - plateauEnd) / (1 - plateauEnd);
         const tailStartY = topY - 6.2;
-        const starterSlope = 0.045;
-        const dropShape = (starterSlope * t) + ((1 - starterSlope) * Math.pow(t, 2.8));
+        // Tiny local kick removes the immediate flat shelf without changing the rest of the tail.
+        const dropShape = Math.pow(t, 2.8) + (0.03 * t * Math.exp(-10 * t));
         y = tailStartY - ((tailStartY - endY) * dropShape);
       }
 
