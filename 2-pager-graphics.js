@@ -66,9 +66,9 @@
 
         const baselinePx = yScale.getPixelForValue(0);
         const points = model.points;
-        const blue = [0, 180, 255];
+        const blue = [12, 109, 190];
         const neutral = [34, 42, 58];
-        const red = [168, 24, 36];
+        const red = [150, 20, 34];
 
         function clamp01(v) {
           return Math.max(0, Math.min(1, v));
@@ -132,17 +132,9 @@
 
           // Keep middle relatively flat; darken quickly only at steeper tails.
           const mag = Math.abs(signedNorm);
-          const intensity = Math.pow(smoothstep(0.10, 0.95, mag), 0.72);
-          const headZone = 1 - smoothstep(0, 18, xMid);
-          const tailZone = smoothstep(82, 100, xMid);
-          color = mixRgb(neutral, hueColor, Math.min(1, 0.38 + (0.62 * intensity)));
-          localAlpha = Math.min(
-            1,
-            0.50 +
-            (0.48 * intensity) +
-            (slope > 0 ? 0.26 * headZone : 0) +
-            (slope < 0 ? 0.26 * tailZone : 0)
-          );
+          const intensity = Math.pow(smoothstep(0.12, 0.95, mag), 1.15);
+          color = mixRgb(neutral, hueColor, Math.min(1, 0.30 + (0.58 * intensity)));
+          localAlpha = Math.min(1, 0.42 + (0.52 * intensity));
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
