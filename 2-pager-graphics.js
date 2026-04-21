@@ -88,13 +88,28 @@
             max: 100,
             grid: { display: false },
             border: { display: true, color: "#9CA3AF", width: 1 },
-            ticks: { display: false }
+            ticks: {
+              display: true,
+              color: "#9fb0d3",
+              stepSize: 20,
+              callback: (value) => `${value}%`
+            }
           },
           y: {
             display: true,
-            grid: { display: false },
+            min: 0,
+            max: 180,
+            grid: {
+              color: (ctx) => (ctx.tick.value === 100 ? "rgba(159,176,211,.35)" : "rgba(159,176,211,.16)"),
+              lineWidth: (ctx) => (ctx.tick.value === 100 ? 1.1 : 0.8)
+            },
             border: { display: true, color: "#9CA3AF", width: 1 },
-            ticks: { display: false }
+            ticks: {
+              display: true,
+              color: "#9fb0d3",
+              stepSize: 20,
+              callback: (value) => (value === 0 || value === 100 || value === 180 ? `${value}%` : "")
+            }
           }
         },
         animation: false
