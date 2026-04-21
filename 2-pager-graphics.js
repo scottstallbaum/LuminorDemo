@@ -64,14 +64,9 @@
 
         const baselinePx = yScale.getPixelForValue(0);
         const points = model.points;
-        const maxAbsSlope = 40;
         const blue = [14, 165, 233];
         const neutral = [148, 163, 184];
         const red = [239, 68, 68];
-        const strongPositiveSlope = 16;
-        const neutralPositiveSlope = 0.8;
-        const neutralNegativeSlope = -3.6;
-        const strongNegativeSlope = -24;
 
         function clamp01(v) {
           return Math.max(0, Math.min(1, v));
@@ -85,6 +80,22 @@
           ];
         }
 
+        const slopes = [];
+        let maxPositiveSlope = 0;
+        let maxNegativeMagnitude = 0;
+        for (let i = 0; i < points.length - 1; i += 1) {
+          const p0 = points[i];
+          const p1 = points[i + 1];
+          const dx = Math.max(0.0001, p1.x - p0.x);
+          const slope = (p1.y - p0.y) / dx;
+          slopes.push(slope);
+          if (slope > maxPositiveSlope) maxPositiveSlope = slope;
+          if (slope < 0) maxNegativeMagnitude = Math.max(maxNegativeMagnitude, Math.abs(slope));
+        }
+
+        const posDenom = Math.max(0.0001, maxPositiveSlope);
+        const negDenom = Math.max(0.0001, maxNegativeMagnitude);
+
         ctx.save();
         ctx.beginPath();
         ctx.rect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, chartArea.bottom - chartArea.top);
@@ -93,22 +104,18 @@
         for (let i = 0; i < points.length - 1; i += 1) {
           const p0 = points[i];
           const p1 = points[i + 1];
-          const dx = Math.max(0.0001, p1.x - p0.x);
-          const slope = (p1.y - p0.y) / dx;
-          const intensity = Math.min(1, Math.abs(slope) / maxAbsSlope);
-          const alpha = 0.10 + (0.48 * Math.pow(intensity, 0.62));
-
+          const slope = slopes[i];
           let color = neutral;
-          let localAlpha = Math.max(0.08, alpha * 0.56);
+          let localAlpha = 0.10;
 
-          if (slope >= neutralPositiveSlope) {
-            const t = clamp01((slope - neutralPositiveSlope) / (strongPositiveSlope - neutralPositiveSlope));
+          if (slope > 0) {
+            const t = clamp01(slope / posDenom);
             color = mixRgb(neutral, blue, t);
-            localAlpha = 0.16 + (0.38 * Math.pow(t, 0.75));
-          } else if (slope <= neutralNegativeSlope) {
-            const t = clamp01((neutralNegativeSlope - slope) / (neutralNegativeSlope - strongNegativeSlope));
+            localAlpha = 0.12 + (0.42 * Math.pow(t, 0.8));
+          } else if (slope < 0) {
+            const t = clamp01(Math.abs(slope) / negDenom);
             color = mixRgb(neutral, red, t);
-            localAlpha = 0.14 + (0.40 * Math.pow(t, 0.75));
+            localAlpha = 0.12 + (0.42 * Math.pow(t, 0.8));
           }
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
