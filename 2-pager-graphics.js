@@ -64,9 +64,9 @@
 
         const baselinePx = yScale.getPixelForValue(0);
         const points = model.points;
-        const blue = [0, 170, 255];
-        const neutral = [52, 62, 79];
-        const red = [255, 64, 64];
+        const blue = [0, 180, 255];
+        const neutral = [44, 52, 68];
+        const red = [255, 58, 58];
 
         function clamp01(v) {
           return Math.max(0, Math.min(1, v));
@@ -109,21 +109,23 @@
           let localAlpha = 0.10;
 
           if (slope > 0) {
-            const t = clamp01(slope / posDenom);
+            const tRaw = clamp01(slope / posDenom);
+            const t = 0.22 + (0.78 * Math.pow(tRaw, 0.42));
             color = mixRgb(neutral, blue, t);
-            localAlpha = 0.24 + (0.52 * Math.pow(t, 0.78));
+            localAlpha = 0.30 + (0.56 * Math.pow(t, 0.66));
           } else if (slope < 0) {
-            const t = clamp01(Math.abs(slope) / negDenom);
+            const tRaw = clamp01(Math.abs(slope) / negDenom);
+            const t = 0.22 + (0.78 * Math.pow(tRaw, 0.42));
             color = mixRgb(neutral, red, t);
-            localAlpha = 0.24 + (0.52 * Math.pow(t, 0.78));
+            localAlpha = 0.30 + (0.56 * Math.pow(t, 0.66));
           } else {
-            localAlpha = 0.24;
+            localAlpha = 0.30;
           }
 
           // Darken the center zone to improve red-vs-blue readability across the long plateau.
           const xMid = (p0.x + p1.x) * 0.5;
           const centerWeight = 1 - Math.pow(Math.abs((xMid - 50) / 50), 1.15);
-          localAlpha = Math.min(0.86, localAlpha + (0.20 * centerWeight));
+          localAlpha = Math.min(0.90, localAlpha + (0.24 * centerWeight));
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
