@@ -108,7 +108,7 @@
               display: true,
               color: "#9fb0d3",
               stepSize: 20,
-              callback: (value) => (value === 0 || value === 100 || value === 180 ? `${value}%` : "")
+              callback: (value) => (value === 0 || value === 100 ? `${value}%` : "")
             }
           }
         },
