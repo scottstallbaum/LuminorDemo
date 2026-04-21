@@ -54,26 +54,62 @@
 
     const model = buildWhaleCurve();
 
-    function makeUnderCurveGradient(chart) {
-      const { ctx, chartArea } = chart;
-      if (!chartArea) return "rgba(56, 189, 248, 0.25)";
+    const marginHeatFillPlugin = {
+      id: "marginHeatFill",
+      beforeDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        const xScale = scales.x;
+        const yScale = scales.y;
+        if (!chartArea || !xScale || !yScale) return;
 
-      const split = Math.max(0.02, Math.min(0.98, model.points[model.peakIndex].x / 100));
-      const blendHalfWidth = 0.09;
-      const leftEdge = Math.max(0, split - blendHalfWidth);
-      const rightEdge = Math.min(1, split + blendHalfWidth);
+        const baselinePx = yScale.getPixelForValue(0);
+        const points = model.points;
+        const maxAbsSlope = 40;
 
-      const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-      gradient.addColorStop(0.00, "rgba(14, 165, 233, 0.52)");
-      gradient.addColorStop(leftEdge, "rgba(14, 165, 233, 0.38)");
-      gradient.addColorStop(split, "rgba(120, 93, 190, 0.30)");
-      gradient.addColorStop(rightEdge, "rgba(239, 68, 68, 0.38)");
-      gradient.addColorStop(1.00, "rgba(239, 68, 68, 0.54)");
-      return gradient;
-    }
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, chartArea.bottom - chartArea.top);
+        ctx.clip();
+
+        for (let i = 0; i < points.length - 1; i += 1) {
+          const p0 = points[i];
+          const p1 = points[i + 1];
+          const dx = Math.max(0.0001, p1.x - p0.x);
+          const slope = (p1.y - p0.y) / dx;
+          const intensity = Math.min(1, Math.abs(slope) / maxAbsSlope);
+          const alpha = 0.10 + (0.48 * Math.pow(intensity, 0.62));
+
+          let fill;
+          if (Math.abs(slope) < 0.16) {
+            fill = `rgba(148, 163, 184, ${Math.max(0.08, alpha * 0.55)})`;
+          } else if (slope > 0) {
+            fill = `rgba(14, 165, 233, ${alpha})`;
+          } else {
+            fill = `rgba(239, 68, 68, ${alpha})`;
+          }
+
+          const x0 = xScale.getPixelForValue(p0.x);
+          const x1 = xScale.getPixelForValue(p1.x);
+          const y0 = yScale.getPixelForValue(p0.y);
+          const y1 = yScale.getPixelForValue(p1.y);
+
+          ctx.fillStyle = fill;
+          ctx.beginPath();
+          ctx.moveTo(x0, baselinePx);
+          ctx.lineTo(x0, y0);
+          ctx.lineTo(x1, y1);
+          ctx.lineTo(x1, baselinePx);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+    };
 
     return new Chart(canvas, {
       type: "line",
+      plugins: [marginHeatFillPlugin],
       data: {
         datasets: [
           {
@@ -82,8 +118,6 @@
             borderWidth: 3,
             pointRadius: 0,
             tension: 0,
-            fill: "origin",
-            backgroundColor: (ctx) => makeUnderCurveGradient(ctx.chart),
             segment: {
               borderColor: (ctx) => (ctx.p0DataIndex < model.peakIndex ? "#0EA5E9" : "#EF4444")
             }
