@@ -123,12 +123,14 @@
           const hueT = (signedNorm + 1) * 0.5; // -1..1 -> 0..1
           const signedColor = mixRgb(red, blue, hueT);
 
-          // Keep middle relatively flat; darken quickly only at steeper tails.
+          // Keep middle lighter; make full steep rise/drop regions noticeably darker.
           const mag = Math.abs(signedNorm);
-          const intensity = smoothstep(0.18, 0.92, mag);
-          const steepNudge = smoothstep(0.72, 1.0, mag);
-          color = mixRgb(neutral, signedColor, Math.min(1, 0.26 + (0.74 * intensity) + (0.06 * steepNudge)));
-          localAlpha = Math.min(1, 0.56 + (0.36 * intensity) + (0.08 * steepNudge));
+          const intensity = smoothstep(0.10, 0.78, mag);
+          const posSteep = slope > 0 ? smoothstep(0.34, 0.72, signedNorm) : 0;
+          const negSteep = slope < 0 ? smoothstep(0.34, 0.72, -signedNorm) : 0;
+          const steepBandBoost = Math.max(posSteep, negSteep);
+          color = mixRgb(neutral, signedColor, Math.min(1, 0.24 + (0.62 * intensity) + (0.16 * steepBandBoost)));
+          localAlpha = Math.min(1, 0.50 + (0.32 * intensity) + (0.16 * steepBandBoost));
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
