@@ -54,6 +54,18 @@
 
     const model = buildWhaleCurve();
 
+    function makeUnderCurveGradient(chart) {
+      const { ctx, chartArea } = chart;
+      if (!chartArea) return "rgba(56, 189, 248, 0.25)";
+
+      const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+      gradient.addColorStop(0.00, "rgba(14, 165, 233, 0.48)");
+      gradient.addColorStop(0.45, "rgba(148, 163, 184, 0.20)");
+      gradient.addColorStop(0.70, "rgba(244, 114, 182, 0.24)");
+      gradient.addColorStop(1.00, "rgba(239, 68, 68, 0.50)");
+      return gradient;
+    }
+
     return new Chart(canvas, {
       type: "line",
       data: {
@@ -64,6 +76,8 @@
             borderWidth: 3,
             pointRadius: 0,
             tension: 0,
+            fill: "origin",
+            backgroundColor: (ctx) => makeUnderCurveGradient(ctx.chart),
             segment: {
               borderColor: (ctx) => (ctx.p0DataIndex < model.peakIndex ? "#0EA5E9" : "#EF4444")
             }
