@@ -4,7 +4,7 @@
     const itemCount = 130;
     const riseCeiling = 90;
     const riseRate = 18;
-    const tailPower = 8;
+    const tailPower = 12;
     const endY = 28; // end materially below peak (not 0)
     const tailWeight = riseCeiling - endY;
 
