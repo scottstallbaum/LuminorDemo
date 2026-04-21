@@ -126,8 +126,9 @@
           // Keep middle relatively flat; darken quickly only at steeper tails.
           const mag = Math.abs(signedNorm);
           const intensity = smoothstep(0.18, 0.92, mag);
-          color = mixRgb(neutral, signedColor, 0.26 + (0.74 * intensity));
-          localAlpha = 0.56 + (0.36 * intensity);
+          const steepNudge = smoothstep(0.72, 1.0, mag);
+          color = mixRgb(neutral, signedColor, Math.min(1, 0.26 + (0.74 * intensity) + (0.06 * steepNudge)));
+          localAlpha = Math.min(1, 0.56 + (0.36 * intensity) + (0.08 * steepNudge));
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
