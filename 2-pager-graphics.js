@@ -64,9 +64,9 @@
 
         const baselinePx = yScale.getPixelForValue(0);
         const points = model.points;
-        const blue = [6, 152, 224];
-        const neutral = [74, 85, 104];
-        const red = [232, 55, 55];
+        const blue = [0, 170, 255];
+        const neutral = [52, 62, 79];
+        const red = [255, 64, 64];
 
         function clamp01(v) {
           return Math.max(0, Math.min(1, v));
@@ -119,6 +119,11 @@
           } else {
             localAlpha = 0.24;
           }
+
+          // Darken the center zone to improve red-vs-blue readability across the long plateau.
+          const xMid = (p0.x + p1.x) * 0.5;
+          const centerWeight = 1 - Math.pow(Math.abs((xMid - 50) / 50), 1.15);
+          localAlpha = Math.min(0.86, localAlpha + (0.20 * centerWeight));
 
           const fill = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${localAlpha})`;
 
