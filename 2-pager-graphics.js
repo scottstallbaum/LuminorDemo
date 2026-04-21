@@ -151,9 +151,9 @@
             ticks: { display: false }
           },
           y: {
-            display: false,
+            display: true,
             grid: { display: false },
-            border: { display: false },
+            border: { display: true, color: "#E5E7EB", width: 1 },
             ticks: { display: false }
           }
         },
