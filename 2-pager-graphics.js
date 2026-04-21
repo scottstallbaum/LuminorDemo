@@ -2,27 +2,27 @@
   function buildWhaleCurve() {
     const points = [];
     const itemCount = 130;
-    const riseCeiling = 90;
-    const riseRate = 18;
-    const tailPower = 12;
-    const endY = 28; // end materially below peak (not 0)
-    const tailWeight = riseCeiling - endY;
+    const zeroCrossAt = 0.30; // slope turns from positive to negative at 30%
+    const slopeDecay = 7.7;
+    const targetPeakY = 82;
+
+    const crossExp = Math.exp(-slopeDecay * zeroCrossAt);
+    const peakRaw = ((1 - crossExp) / slopeDecay) - (zeroCrossAt * crossExp);
+    const amplitude = targetPeakY / peakRaw;
 
     for (let i = 0; i <= itemCount; i += 1) {
       const r = i / itemCount;
       const x = r * 100;
       let y;
 
-      // Canonical whale curve shape with continuously decreasing slope:
-      // fast early accumulation, broad middle flattening, then late erosion.
-      y = (riseCeiling * (1 - Math.exp(-riseRate * r))) - (tailWeight * Math.pow(r, tailPower));
+      // Smooth whale curve with continuously decreasing slope and peak at ~30%.
+      y = amplitude * (((1 - Math.exp(-slopeDecay * r)) / slopeDecay) - (r * crossExp));
 
       points.push({ x, y });
     }
 
-    // Ensure exact origin and a clean non-zero finish.
+    // Ensure exact origin.
     points[0].y = 0;
-    points[points.length - 1].y = endY;
 
     let maxY = -Infinity;
     let maxIndex = 0;
@@ -116,13 +116,13 @@
             min: 0,
             max: 100,
             grid: { display: false },
-            border: { display: true, color: "#E5E7EB", width: 1 },
+            border: { display: true, color: "#9CA3AF", width: 1 },
             ticks: { display: false }
           },
           y: {
             display: true,
             grid: { display: false },
-            border: { display: true, color: "#E5E7EB", width: 1 },
+            border: { display: true, color: "#9CA3AF", width: 1 },
             ticks: { display: false }
           }
         },
