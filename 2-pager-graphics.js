@@ -398,8 +398,10 @@
     if (!canvas) return null;
 
     const labels = ["Revenue", "COGS", "Logistics", "SG&A", "Profit"];
-    const starts = [0, 40, 10, 0, 0];
-    const ends = [100, 100, 40, 10, 0.8];
+    const starts = [0, 40, 0, -5, 0];
+    const ends = [100, 100, 40, 0, 5];
+    const flowStarts = [0, 100, 40, 0, 0];
+    const flowEnds = [100, 40, 0, -5, 5];
 
     const connectorPlugin = {
       id: "waterfallConnectors",
@@ -419,13 +421,25 @@
         for (let i = 0; i < meta.data.length - 1; i += 1) {
           const bar = meta.data[i];
           const nextBar = meta.data[i + 1];
-          const y = yScale.getPixelForValue(ends[i]);
+          const currentEndY = yScale.getPixelForValue(flowEnds[i]);
+          const nextStartY = yScale.getPixelForValue(flowStarts[i + 1]);
           const x1 = bar.x + (bar.width / 2);
           const x2 = nextBar.x - (nextBar.width / 2);
-          ctx.beginPath();
-          ctx.moveTo(x1, y);
-          ctx.lineTo(x2, y);
-          ctx.stroke();
+
+          if (Math.abs(flowEnds[i] - flowStarts[i + 1]) < 0.001) {
+            ctx.beginPath();
+            ctx.moveTo(x1, currentEndY);
+            ctx.lineTo(x2, currentEndY);
+            ctx.stroke();
+          } else {
+            const xm = (x1 + x2) / 2;
+            ctx.beginPath();
+            ctx.moveTo(x1, currentEndY);
+            ctx.lineTo(xm, currentEndY);
+            ctx.lineTo(xm, nextStartY);
+            ctx.lineTo(x2, nextStartY);
+            ctx.stroke();
+          }
         }
 
         ctx.restore();
@@ -449,8 +463,8 @@
               "#6B7280", // SG&A
               "#E2E8F0"  // Profit
             ],
-            barPercentage: 0.58,
-            categoryPercentage: 0.72
+            barPercentage: 0.76,
+            categoryPercentage: 0.82
           }
         ]
       },
@@ -471,7 +485,7 @@
             ticks: { display: false }
           },
           y: {
-            min: 0,
+            min: -8,
             max: 105,
             grid: { display: false },
             border: { display: true, color: "#4B5563", width: 1 },
