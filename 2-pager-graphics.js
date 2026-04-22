@@ -660,6 +660,9 @@
         maintainAspectRatio: false,
         indexAxis: "y",
         animation: false,
+        layout: {
+          padding: { top: 12, right: 12, bottom: 12, left: 12 }
+        },
         plugins: {
           legend: { display: false },
           tooltip: { enabled: false }
@@ -675,8 +678,8 @@
           y: {
             display: false,
             stacked: true,
-            barPercentage: 0.4,
-            categoryPercentage: 0.6
+            barPercentage: 0.25,
+            categoryPercentage: 0.35
           }
         }
       },
