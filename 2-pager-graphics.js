@@ -600,11 +600,11 @@
       id: "revenueLine",
       afterDatasetsDraw(chart) {
         const { ctx, chartArea, scales } = chart;
-        if (!chartArea || !scales.x) return;
+        if (!chartArea || !scales.y) return;
 
-        const revenueY = scales.x.getPixelForValue(100);
+        const revenueY = scales.y.getPixelForValue(100);
 
-        // Draw thin horizontal line
+        // Draw thin horizontal line at revenue level
         ctx.save();
         ctx.strokeStyle = "#9CA3AF";
         ctx.lineWidth = 1.2;
@@ -613,12 +613,12 @@
         ctx.lineTo(chartArea.right, revenueY);
         ctx.stroke();
 
-        // Draw label "Revenue" at the start of the line
+        // Draw label "Revenue" above the line
         ctx.font = "600 12px Inter, sans-serif";
         ctx.fillStyle = "#9CA3AF";
-        ctx.textAlign = "right";
+        ctx.textAlign = "left";
         ctx.textBaseline = "bottom";
-        ctx.fillText("Revenue", chartArea.left - 6, revenueY - 4);
+        ctx.fillText("Revenue", chartArea.left + 4, revenueY - 6);
 
         ctx.restore();
       }
@@ -658,24 +658,23 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        indexAxis: "y",
         animation: false,
         layout: {
-          padding: { top: 12, right: 12, bottom: 12, left: 12 }
+          padding: { top: 16, right: 12, bottom: 12, left: 12 }
         },
         plugins: {
           legend: { display: false },
           tooltip: { enabled: false }
         },
         scales: {
-          x: {
+          y: {
             display: false,
             stacked: true,
             min: 0,
             max: 100,
             beginAtZero: true
           },
-          y: {
+          x: {
             display: false,
             stacked: true,
             barPercentage: 0.25,
