@@ -253,6 +253,176 @@
     });
   }
 
+  function createSeededRng(seed) {
+    let state = seed >>> 0;
+    return function next() {
+      state = (state * 1664525 + 1013904223) >>> 0;
+      return state / 4294967296;
+    };
+  }
+
+  function buildMarginRevenueScatterModel() {
+    const rng = createSeededRng(42021);
+
+    function randNormal(mean, stdDev) {
+      const u1 = Math.max(1e-7, rng());
+      const u2 = Math.max(1e-7, rng());
+      const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      return mean + (z * stdDev);
+    }
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    const cluster = [];
+    for (let i = 0; i < 52; i += 1) {
+      cluster.push({
+        x: clamp(randNormal(11.5, 6.8), -12, 30),
+        y: clamp(randNormal(56, 8.5), 34, 78)
+      });
+    }
+
+    const secondary = [];
+    for (let i = 0; i < 8; i += 1) {
+      secondary.push({
+        x: clamp(randNormal(8, 10), -18, 34),
+        y: clamp(randNormal(52, 14), 20, 85)
+      });
+    }
+
+    const outliers = [
+      { x: -24, y: 92 }, // high revenue, low margin
+      { x: 49, y: 19 },  // high margin, low volume
+      { x: -46, y: 56 }, // extreme negative margin
+      { x: 58, y: 72 }
+    ];
+
+    return {
+      cluster,
+      secondary,
+      outliers,
+      annotationTarget: outliers[0]
+    };
+  }
+
+  function makeMarginRevenueScatterChart() {
+    const canvas = document.getElementById("pg-margin-revenue-scatter");
+    if (!canvas) return null;
+
+    const model = buildMarginRevenueScatterModel();
+
+    const quadrantPlugin = {
+      id: "scatterQuadrants",
+      beforeDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        const xScale = scales.x;
+        const yScale = scales.y;
+        if (!chartArea || !xScale || !yScale) return;
+
+        const vx = xScale.getPixelForValue(0);
+        const hy = yScale.getPixelForValue(50);
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(75, 85, 99, 0.35)";
+        ctx.lineWidth = 1;
+
+        ctx.beginPath();
+        ctx.moveTo(vx, chartArea.top);
+        ctx.lineTo(vx, chartArea.bottom);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, hy);
+        ctx.lineTo(chartArea.right, hy);
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+
+    const annotationPlugin = {
+      id: "scatterAnnotation",
+      afterDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        const xScale = scales.x;
+        const yScale = scales.y;
+        if (!chartArea || !xScale || !yScale) return;
+
+        const target = model.annotationTarget;
+        const px = xScale.getPixelForValue(target.x);
+        const py = yScale.getPixelForValue(target.y);
+        const tx = Math.min(chartArea.right - 210, px + 26);
+        const ty = Math.max(chartArea.top + 20, py - 14);
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.9)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(px + 5, py - 2);
+        ctx.lineTo(tx - 8, ty - 4);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(226, 232, 240, 0.95)";
+        ctx.font = "600 11px Inter, sans-serif";
+        ctx.textBaseline = "alphabetic";
+        ctx.fillText("High revenue, low margin outlier", tx, ty);
+        ctx.restore();
+      }
+    };
+
+    return new Chart(canvas, {
+      type: "scatter",
+      plugins: [quadrantPlugin, annotationPlugin],
+      data: {
+        datasets: [
+          {
+            data: model.cluster.concat(model.secondary),
+            backgroundColor: "rgba(107, 114, 128, 0.52)",
+            pointRadius: 2.2,
+            pointHoverRadius: 2.2,
+            borderWidth: 0
+          },
+          {
+            data: model.outliers,
+            backgroundColor: "#0EA5E9",
+            pointRadius: 4.6,
+            pointHoverRadius: 4.6,
+            borderWidth: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: { top: 8, right: 10, bottom: 4, left: 6 }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false }
+        },
+        scales: {
+          x: {
+            type: "linear",
+            min: -50,
+            max: 60,
+            grid: { display: false },
+            border: { display: true, color: "#4B5563", width: 1 },
+            ticks: { display: false }
+          },
+          y: {
+            min: 0,
+            max: 100,
+            grid: { display: false },
+            border: { display: true, color: "#4B5563", width: 1 },
+            ticks: { display: false }
+          }
+        },
+        animation: false
+      }
+    });
+  }
+
   function buildExportCanvas(canvas) {
     const ratio = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
     const srcW = canvas.width;
@@ -291,10 +461,10 @@
     return true;
   }
 
-  function wireExports() {
-    const btn = document.getElementById("pg-copy-whale");
-    const status = document.getElementById("pg-copy-status");
-    const canvas = document.getElementById("pg-whale-curve");
+  function wireExport(buttonId, statusId, canvasId) {
+    const btn = document.getElementById(buttonId);
+    const status = document.getElementById(statusId);
+    const canvas = document.getElementById(canvasId);
     if (!btn || !status || !canvas) return;
 
     btn.addEventListener("click", async () => {
@@ -317,5 +487,7 @@
   }
 
   makeWhaleChart();
-  wireExports();
+  makeMarginRevenueScatterChart();
+  wireExport("pg-copy-whale", "pg-copy-status", "pg-whale-curve");
+  wireExport("pg-copy-scatter", "pg-copy-scatter-status", "pg-margin-revenue-scatter");
 })();

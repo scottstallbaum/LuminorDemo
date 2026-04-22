@@ -23,6 +23,10 @@
       justify-content: center;
     }
 
+    .pg-wrap + .pg-wrap {
+      margin-top: 14px;
+    }
+
     .pg-card {
       width: min(100%, 1040px);
       background: var(--panel);
@@ -57,7 +61,7 @@
       padding: .35rem;
     }
 
-    #pg-whale-curve {
+    .pg-chart-shell canvas {
       width: 100% !important;
       height: 100% !important;
       display: block;
@@ -113,9 +117,22 @@
         <p id="pg-copy-status" class="pg-note">Tip: use Copy Image, then paste directly into your slide.</p>
       </div>
     </section>
+
+    <section class="pg-wrap">
+      <div class="pg-card">
+        <div class="pg-card-head">
+          <h2>2. Margin vs Revenue Outlier View</h2>
+          <button id="pg-copy-scatter" class="pg-export" type="button">Copy Image</button>
+        </div>
+        <div class="pg-chart-shell">
+          <canvas id="pg-margin-revenue-scatter"></canvas>
+        </div>
+        <p id="pg-copy-scatter-status" class="pg-note">Tip: use Copy Image, then paste directly into your slide.</p>
+      </div>
+    </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="2-pager-graphics.js?v=20260421-2pager2"></script>
+  <script src="2-pager-graphics.js?v=20260422-2pager3"></script>
 </body>
 </html>
