@@ -625,7 +625,7 @@
           {
             label: "COGS",
             data: [60, 60],
-            backgroundColor: "#6B7280",
+            backgroundColor: "#4B5563",
             borderWidth: 0
           },
           {
@@ -635,15 +635,9 @@
             borderWidth: 0
           },
           {
-            label: "Other",
-            data: [5, 5],
-            backgroundColor: "#4B5563",
-            borderWidth: 0
-          },
-          {
             label: "Profit",
-            data: [5, 20],
-            backgroundColor: "#E5E7EB",
+            data: [10, 25],
+            backgroundColor: "#F3F4F6",
             borderWidth: 0
           }
         ]
@@ -670,8 +664,8 @@
           x: {
             display: false,
             stacked: true,
-            barPercentage: 0.25,
-            categoryPercentage: 0.35
+            barPercentage: 0.15,
+            categoryPercentage: 0.28
           }
         }
       },
