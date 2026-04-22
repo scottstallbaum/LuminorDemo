@@ -377,16 +377,16 @@
         datasets: [
           {
             data: model.cluster.concat(model.secondary),
-            backgroundColor: "rgba(107, 114, 128, 0.52)",
-            pointRadius: 2.2,
-            pointHoverRadius: 2.2,
+            backgroundColor: "rgba(107, 114, 128, 0.78)",
+            pointRadius: 2.9,
+            pointHoverRadius: 2.9,
             borderWidth: 0
           },
           {
             data: model.outliers,
             backgroundColor: "#0EA5E9",
-            pointRadius: 4.6,
-            pointHoverRadius: 4.6,
+            pointRadius: 5.3,
+            pointHoverRadius: 5.3,
             borderWidth: 0
           }
         ]
