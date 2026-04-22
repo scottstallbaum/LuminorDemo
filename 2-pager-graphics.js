@@ -398,8 +398,8 @@
     if (!canvas) return null;
 
     const labels = ["Revenue", "COGS", "Logistics", "SG&A", "Profit"];
-    const starts = [0, 40, 0, -5, 0];
-    const ends = [100, 100, 40, 0, 5];
+    const starts = [0, 100, 40, 0, 0];
+    const ends = [100, 40, 0, -5, 5];
     const flowStarts = [0, 100, 40, 0, 0];
     const flowEnds = [100, 40, 0, -5, 5];
 
