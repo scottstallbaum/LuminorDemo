@@ -604,22 +604,15 @@
 
         const revenueY = scales.y.getPixelForValue(100);
 
-        // Draw thin horizontal line at revenue level
+        // Draw subtle horizontal line at revenue level
         ctx.save();
-        ctx.strokeStyle = "#9CA3AF";
-        ctx.lineWidth = 1.2;
+        ctx.globalAlpha = 0.65;
+        ctx.strokeStyle = "#6B7280";
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(chartArea.left, revenueY);
         ctx.lineTo(chartArea.right, revenueY);
         ctx.stroke();
-
-        // Draw label "Revenue" above the line
-        ctx.font = "600 12px Inter, sans-serif";
-        ctx.fillStyle = "#9CA3AF";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "bottom";
-        ctx.fillText("Revenue", chartArea.left + 4, revenueY - 6);
-
         ctx.restore();
       }
     };
