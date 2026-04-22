@@ -625,20 +625,26 @@
           {
             label: "COGS",
             data: [60, 60],
-            backgroundColor: "#4B5563",
-            borderWidth: 0
+            backgroundColor: "#374151",
+            borderColor: "#111827",
+            borderWidth: 1,
+            borderSkipped: false
           },
           {
             label: "Logistics",
-            data: [30, 15],
+            data: [35, 15],
             backgroundColor: "#0EA5E9",
-            borderWidth: 0
+            borderColor: "#111827",
+            borderWidth: 1,
+            borderSkipped: false
           },
           {
             label: "Profit",
-            data: [10, 25],
-            backgroundColor: "#F3F4F6",
-            borderWidth: 0
+            data: [5, 25],
+            backgroundColor: "#FFFFFF",
+            borderColor: "#111827",
+            borderWidth: 1,
+            borderSkipped: false
           }
         ]
       },
@@ -664,8 +670,8 @@
           x: {
             display: false,
             stacked: true,
-            barPercentage: 0.15,
-            categoryPercentage: 0.28
+            barPercentage: 0.12,
+            categoryPercentage: 0.24
           }
         }
       },
