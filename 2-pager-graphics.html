@@ -110,32 +110,28 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      align-items: flex-start;
       margin-left: .6rem;
-    }
-
-    .pg-chart-4-right h3 {
-      margin: 0 0 .75rem 0;
-      font-size: .9rem;
-      color: var(--text);
-      font-weight: 600;
-      letter-spacing: .01em;
+      text-align: left;
     }
 
     .pg-chart-4-right ul {
-      margin: 0;
+      margin: 12px 0 0 0;
       padding: 0 0 0 1.2rem;
       list-style: none;
+      max-width: 32ch;
     }
 
     .pg-chart-4-right li {
-      margin-bottom: .5rem;
-      font-size: .8rem;
-      color: var(--text);
-      line-height: 1.4;
+      margin: 0;
+      font-size: 18pt;
+      font-weight: 400;
+      color: #E5E7EB;
+      line-height: 1.3;
     }
 
-    .pg-chart-4-right li:last-child {
-      margin-bottom: 0;
+    .pg-chart-4-right li + li {
+      margin-top: 8px;
     }
   </style>
 </head>
@@ -206,7 +202,6 @@
             </div>
           </div>
           <div class="pg-chart-4-right">
-            <h3>Service model changes:</h3>
             <ul>
               <li>Fewer shipments → lower total freight</li>
               <li>Fuller loads → lower cost per unit</li>
@@ -220,6 +215,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="2-pager-graphics.js?v=20260422-2pager13"></script>
+  <script src="2-pager-graphics.js?v=20260422-2pager14"></script>
 </body>
 </html>
