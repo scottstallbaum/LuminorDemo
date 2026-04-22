@@ -276,18 +276,18 @@
     }
 
     const cluster = [];
-    for (let i = 0; i < 52; i += 1) {
+    for (let i = 0; i < 66; i += 1) {
       cluster.push({
-        x: clamp(randNormal(11.5, 6.8), -12, 30),
-        y: clamp(randNormal(56, 8.5), 34, 78)
+        x: clamp(randNormal(12.5, 5.8), -10, 29),
+        y: clamp(randNormal(56, 7.2), 36, 77)
       });
     }
 
     const secondary = [];
-    for (let i = 0; i < 8; i += 1) {
+    for (let i = 0; i < 10; i += 1) {
       secondary.push({
-        x: clamp(randNormal(8, 10), -18, 34),
-        y: clamp(randNormal(52, 14), 20, 85)
+        x: clamp(randNormal(9, 8.5), -15, 33),
+        y: clamp(randNormal(52, 11), 24, 82)
       });
     }
 
@@ -377,9 +377,9 @@
         datasets: [
           {
             data: model.cluster.concat(model.secondary),
-            backgroundColor: "rgba(107, 114, 128, 0.78)",
-            pointRadius: 2.9,
-            pointHoverRadius: 2.9,
+            backgroundColor: "rgba(174, 182, 194, 0.88)",
+            pointRadius: 3.5,
+            pointHoverRadius: 3.5,
             borderWidth: 0
           },
           {
