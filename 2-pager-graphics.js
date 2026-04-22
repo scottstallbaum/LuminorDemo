@@ -545,13 +545,51 @@
     return out;
   }
 
+  function canvasToBlob(canvas) {
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+          return;
+        }
+        try {
+          const dataUrl = canvas.toDataURL("image/png");
+          const byteString = atob(dataUrl.split(",")[1]);
+          const mimeString = dataUrl.split(",")[0].split(":")[1].split(";")[0];
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteString.length; i += 1) {
+            ia[i] = byteString.charCodeAt(i);
+          }
+          resolve(new Blob([ab], { type: mimeString }));
+        } catch (_) {
+          resolve(null);
+        }
+      }, "image/png");
+    });
+  }
+
+  function downloadCanvasPng(canvas, fileName) {
+    const dataUrl = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  function waitForFrame() {
+    return new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+
   async function copyCanvasToClipboard(canvas) {
-    if (!navigator.clipboard || !window.ClipboardItem) return false;
+    if (!navigator.clipboard || !window.ClipboardItem) return null;
     const exportCanvas = buildExportCanvas(canvas);
-    const blob = await new Promise((resolve) => exportCanvas.toBlob(resolve, "image/png"));
-    if (!blob) return false;
+    const blob = await canvasToBlob(exportCanvas);
+    if (!blob) return null;
     await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-    return true;
+    return exportCanvas;
   }
 
   function wireExport(buttonId, statusId, canvasId) {
@@ -565,14 +603,27 @@
       const old = btn.textContent;
       btn.textContent = "Copying...";
       try {
-        const copied = await copyCanvasToClipboard(canvas);
-        if (copied) {
+        if (canvas.width < 4 || canvas.height < 4) {
+          await waitForFrame();
+          await waitForFrame();
+        }
+
+        const copiedCanvas = await copyCanvasToClipboard(canvas);
+        if (copiedCanvas) {
           status.textContent = "Copied. Paste into your slide deck.";
         } else {
-          status.textContent = "Clipboard copy unavailable in this browser. Right-click image to save.";
+          const exportCanvas = buildExportCanvas(canvas);
+          downloadCanvasPng(exportCanvas, `${canvasId}.png`);
+          status.textContent = "Clipboard unavailable. Downloaded PNG instead.";
         }
       } catch (_) {
-        status.textContent = "Copy failed. Try again.";
+        try {
+          const exportCanvas = buildExportCanvas(canvas);
+          downloadCanvasPng(exportCanvas, `${canvasId}.png`);
+          status.textContent = "Copy failed. Downloaded PNG instead.";
+        } catch (__){
+          status.textContent = "Copy failed. Try again.";
+        }
       }
       btn.textContent = old;
       btn.disabled = false;
