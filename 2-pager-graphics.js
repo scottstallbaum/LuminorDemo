@@ -592,6 +592,100 @@
     return exportCanvas;
   }
 
+  function makeServiceModelStackedChart() {
+    const canvas = document.getElementById("pg-service-model-stacked");
+    if (!canvas) return null;
+
+    const revenueLinePlugin = {
+      id: "revenueLine",
+      afterDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        if (!chartArea || !scales.x) return;
+
+        const revenueY = scales.x.getPixelForValue(100);
+
+        // Draw thin horizontal line
+        ctx.save();
+        ctx.strokeStyle = "#9CA3AF";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, revenueY);
+        ctx.lineTo(chartArea.right, revenueY);
+        ctx.stroke();
+
+        // Draw label "Revenue" at the start of the line
+        ctx.font = "600 12px Inter, sans-serif";
+        ctx.fillStyle = "#9CA3AF";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "bottom";
+        ctx.fillText("Revenue", chartArea.left - 6, revenueY - 4);
+
+        ctx.restore();
+      }
+    };
+
+    const chart = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: ["Current", "Optimized"],
+        datasets: [
+          {
+            label: "COGS",
+            data: [60, 60],
+            backgroundColor: "#6B7280",
+            borderWidth: 0
+          },
+          {
+            label: "Logistics",
+            data: [30, 15],
+            backgroundColor: "#0EA5E9",
+            borderWidth: 0
+          },
+          {
+            label: "Other",
+            data: [5, 5],
+            backgroundColor: "#4B5563",
+            borderWidth: 0
+          },
+          {
+            label: "Profit",
+            data: [5, 20],
+            backgroundColor: "#E5E7EB",
+            borderWidth: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: "y",
+        animation: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false }
+        },
+        scales: {
+          x: {
+            display: false,
+            stacked: true,
+            min: 0,
+            max: 100,
+            beginAtZero: true
+          },
+          y: {
+            display: false,
+            stacked: true,
+            barPercentage: 0.4,
+            categoryPercentage: 0.6
+          }
+        }
+      },
+      plugins: [revenueLinePlugin]
+    });
+
+    return chart;
+  }
+
   function wireExport(buttonId, statusId, canvasId) {
     const btn = document.getElementById(buttonId);
     const status = document.getElementById(statusId);
@@ -633,7 +727,9 @@
   makeWhaleChart();
   makeMarginRevenueScatterChart();
   makeLogisticsWaterfallChart();
+  makeServiceModelStackedChart();
   wireExport("pg-copy-whale", "pg-copy-status", "pg-whale-curve");
   wireExport("pg-copy-scatter", "pg-copy-scatter-status", "pg-margin-revenue-scatter");
   wireExport("pg-copy-waterfall", "pg-copy-waterfall-status", "pg-logistics-waterfall");
+  wireExport("pg-copy-stacked", "pg-copy-stacked-status", "pg-service-model-stacked");
 })();
