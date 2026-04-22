@@ -340,53 +340,23 @@
       }
     };
 
-    const annotationPlugin = {
-      id: "scatterAnnotation",
-      afterDatasetsDraw(chart) {
-        const { ctx, chartArea, scales } = chart;
-        const xScale = scales.x;
-        const yScale = scales.y;
-        if (!chartArea || !xScale || !yScale) return;
-
-        const target = model.annotationTarget;
-        const px = xScale.getPixelForValue(target.x);
-        const py = yScale.getPixelForValue(target.y);
-        const tx = Math.min(chartArea.right - 210, px + 26);
-        const ty = Math.max(chartArea.top + 20, py - 14);
-
-        ctx.save();
-        ctx.strokeStyle = "rgba(148, 163, 184, 0.9)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(px + 5, py - 2);
-        ctx.lineTo(tx - 8, ty - 4);
-        ctx.stroke();
-
-        ctx.fillStyle = "rgba(226, 232, 240, 0.95)";
-        ctx.font = "600 11px Inter, sans-serif";
-        ctx.textBaseline = "alphabetic";
-        ctx.fillText("High revenue, low margin outlier", tx, ty);
-        ctx.restore();
-      }
-    };
-
     return new Chart(canvas, {
       type: "scatter",
-      plugins: [quadrantPlugin, annotationPlugin],
+      plugins: [quadrantPlugin],
       data: {
         datasets: [
           {
             data: model.cluster.concat(model.secondary),
             backgroundColor: "rgba(174, 182, 194, 0.88)",
-            pointRadius: 3.5,
-            pointHoverRadius: 3.5,
+            pointRadius: 4.3,
+            pointHoverRadius: 4.3,
             borderWidth: 0
           },
           {
             data: model.outliers,
             backgroundColor: "#0EA5E9",
-            pointRadius: 5.3,
-            pointHoverRadius: 5.3,
+            pointRadius: 6.1,
+            pointHoverRadius: 6.1,
             borderWidth: 0
           }
         ]
