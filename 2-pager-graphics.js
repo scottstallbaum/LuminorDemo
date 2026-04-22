@@ -397,10 +397,10 @@
     const canvas = document.getElementById("pg-logistics-waterfall");
     if (!canvas) return null;
 
-    const labels = ["Revenue", "COGS", "Logistics", "SG&A", "", "Profit"];
-    const starts = [0, 100, 40, 10, null, 0];
-    const ends = [100, 40, 10, 5, null, 5];
-    const barIndices = [0, 1, 2, 3, 5];
+    const labels = ["Revenue", "COGS", "Logistics", "SG&A", "Profit"];
+    const starts = [0, 100, 40, 10, 0];
+    const ends = [100, 40, 10, 5, 5];
+    const barIndices = [0, 1, 2, 3, 4];
 
     const connectorPlugin = {
       id: "waterfallConnectors",
@@ -480,7 +480,6 @@
               "#9CA3AF", // COGS
               "#0EA5E9", // Logistics
               "#6B7280", // SG&A
-              "rgba(0,0,0,0)", // spacer
               "#E2E8F0"  // Profit
             ],
             barPercentage: 0.84,
