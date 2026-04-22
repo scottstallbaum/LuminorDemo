@@ -426,7 +426,7 @@
           const x1 = bar.x + (bar.width / 2);
           const x2 = nextBar.x - (nextBar.width / 2);
 
-          if (Math.abs(flowEnds[i] - flowStarts[i + 1]) < 0.001) {
+          if (Math.abs(ends[barIndices[i]] - starts[barIndices[i + 1]]) < 0.001) {
             ctx.beginPath();
             ctx.moveTo(x1, currentEndY);
             ctx.lineTo(x2, currentEndY);
