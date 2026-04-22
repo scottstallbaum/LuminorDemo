@@ -397,11 +397,10 @@
     const canvas = document.getElementById("pg-logistics-waterfall");
     if (!canvas) return null;
 
-    const labels = ["Revenue", "COGS", "Logistics", "SG&A", "Profit"];
-    const starts = [0, 100, 40, 0, 0];
-    const ends = [100, 40, 0, -5, 5];
-    const flowStarts = [0, 100, 40, 0, 0];
-    const flowEnds = [100, 40, 0, -5, 5];
+    const labels = ["Revenue", "COGS", "Logistics", "SG&A", "", "Profit"];
+    const starts = [0, 100, 40, 10, null, 0];
+    const ends = [100, 40, 10, 5, null, 5];
+    const barIndices = [0, 1, 2, 3, 5];
 
     const connectorPlugin = {
       id: "waterfallConnectors",
@@ -412,17 +411,18 @@
         if (!chartArea || !xScale || !yScale) return;
 
         const meta = chart.getDatasetMeta(0);
-        if (!meta || !meta.data || meta.data.length < 2) return;
+        if (!meta || !meta.data || meta.data.length < 4) return;
 
         ctx.save();
         ctx.strokeStyle = "rgba(75, 85, 99, 0.55)";
         ctx.lineWidth = 1;
 
-        for (let i = 0; i < meta.data.length - 1; i += 1) {
-          const bar = meta.data[i];
-          const nextBar = meta.data[i + 1];
-          const currentEndY = yScale.getPixelForValue(flowEnds[i]);
-          const nextStartY = yScale.getPixelForValue(flowStarts[i + 1]);
+        // Draw only sequential waterfall connectors through SG&A.
+        for (let i = 0; i < 3; i += 1) {
+          const bar = meta.data[barIndices[i]];
+          const nextBar = meta.data[barIndices[i + 1]];
+          const currentEndY = yScale.getPixelForValue(ends[barIndices[i]]);
+          const nextStartY = yScale.getPixelForValue(starts[barIndices[i + 1]]);
           const x1 = bar.x + (bar.width / 2);
           const x2 = nextBar.x - (nextBar.width / 2);
 
@@ -448,15 +448,15 @@
 
     const baselinePlugin = {
       id: "waterfallBaseline",
-      beforeDatasetsDraw(chart) {
+      afterDatasetsDraw(chart) {
         const { ctx, chartArea, scales } = chart;
         const yScale = scales.y;
         if (!chartArea || !yScale) return;
 
         const y0 = yScale.getPixelForValue(0);
         ctx.save();
-        ctx.strokeStyle = "#4B5563";
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.9)";
+        ctx.lineWidth = 1.25;
         ctx.beginPath();
         ctx.moveTo(chartArea.left, y0);
         ctx.lineTo(chartArea.right, y0);
@@ -480,10 +480,11 @@
               "#9CA3AF", // COGS
               "#0EA5E9", // Logistics
               "#6B7280", // SG&A
+              "rgba(0,0,0,0)", // spacer
               "#E2E8F0"  // Profit
             ],
-            barPercentage: 0.76,
-            categoryPercentage: 0.82
+            barPercentage: 0.84,
+            categoryPercentage: 0.9
           }
         ]
       },
@@ -504,7 +505,7 @@
             ticks: { display: false }
           },
           y: {
-            min: -8,
+            min: 0,
             max: 105,
             grid: { display: false },
             border: { display: true, color: "#4B5563", width: 1 },
