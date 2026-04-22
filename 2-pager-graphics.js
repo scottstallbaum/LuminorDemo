@@ -446,9 +446,28 @@
       }
     };
 
+    const baselinePlugin = {
+      id: "waterfallBaseline",
+      beforeDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        const yScale = scales.y;
+        if (!chartArea || !yScale) return;
+
+        const y0 = yScale.getPixelForValue(0);
+        ctx.save();
+        ctx.strokeStyle = "#4B5563";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, y0);
+        ctx.lineTo(chartArea.right, y0);
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+
     return new Chart(canvas, {
       type: "bar",
-      plugins: [connectorPlugin],
+      plugins: [baselinePlugin, connectorPlugin],
       data: {
         labels,
         datasets: [
@@ -481,7 +500,7 @@
         scales: {
           x: {
             grid: { display: false },
-            border: { display: true, color: "#4B5563", width: 1 },
+            border: { display: false },
             ticks: { display: false }
           },
           y: {
