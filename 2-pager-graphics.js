@@ -393,6 +393,96 @@
     });
   }
 
+  function makeLogisticsWaterfallChart() {
+    const canvas = document.getElementById("pg-logistics-waterfall");
+    if (!canvas) return null;
+
+    const labels = ["Revenue", "COGS", "Logistics", "SG&A", "Profit"];
+    const starts = [0, 40, 10, 0, 0];
+    const ends = [100, 100, 40, 10, 0.8];
+
+    const connectorPlugin = {
+      id: "waterfallConnectors",
+      afterDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        const xScale = scales.x;
+        const yScale = scales.y;
+        if (!chartArea || !xScale || !yScale) return;
+
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data || meta.data.length < 2) return;
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(75, 85, 99, 0.55)";
+        ctx.lineWidth = 1;
+
+        for (let i = 0; i < meta.data.length - 1; i += 1) {
+          const bar = meta.data[i];
+          const nextBar = meta.data[i + 1];
+          const y = yScale.getPixelForValue(ends[i]);
+          const x1 = bar.x + (bar.width / 2);
+          const x2 = nextBar.x - (nextBar.width / 2);
+          ctx.beginPath();
+          ctx.moveTo(x1, y);
+          ctx.lineTo(x2, y);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+    };
+
+    return new Chart(canvas, {
+      type: "bar",
+      plugins: [connectorPlugin],
+      data: {
+        labels,
+        datasets: [
+          {
+            data: starts.map((s, i) => [s, ends[i]]),
+            borderSkipped: false,
+            borderRadius: 2,
+            backgroundColor: [
+              "#E2E8F0", // Revenue
+              "#9CA3AF", // COGS
+              "#0EA5E9", // Logistics
+              "#6B7280", // SG&A
+              "#E2E8F0"  // Profit
+            ],
+            barPercentage: 0.58,
+            categoryPercentage: 0.72
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: { top: 8, right: 10, bottom: 4, left: 6 }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            border: { display: true, color: "#4B5563", width: 1 },
+            ticks: { display: false }
+          },
+          y: {
+            min: 0,
+            max: 105,
+            grid: { display: false },
+            border: { display: true, color: "#4B5563", width: 1 },
+            ticks: { display: false }
+          }
+        },
+        animation: false
+      }
+    });
+  }
+
   function buildExportCanvas(canvas) {
     const ratio = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
     const srcW = canvas.width;
@@ -458,6 +548,8 @@
 
   makeWhaleChart();
   makeMarginRevenueScatterChart();
+  makeLogisticsWaterfallChart();
   wireExport("pg-copy-whale", "pg-copy-status", "pg-whale-curve");
   wireExport("pg-copy-scatter", "pg-copy-scatter-status", "pg-margin-revenue-scatter");
+  wireExport("pg-copy-waterfall", "pg-copy-waterfall-status", "pg-logistics-waterfall");
 })();
