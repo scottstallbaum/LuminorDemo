@@ -545,6 +545,55 @@
     return out;
   }
 
+  function buildServiceModelExportCanvas(chartCanvas) {
+    const exportBg = "#0d1528";
+    const rightRatio = 34 / 66;
+    const gapPx = 18;
+    const rightPaddingX = 24;
+
+    const lines = Array.from(document.querySelectorAll(".pg-chart-4-right li"))
+      .map((node) => (node.textContent || "").trim())
+      .filter(Boolean);
+    const textLines = lines.length ? lines : ["Fewer shipments", "Fuller truckloads", "Larger orders"];
+
+    const leftW = chartCanvas.width;
+    const h = chartCanvas.height;
+    const rightW = Math.round(leftW * rightRatio);
+
+    const out = document.createElement("canvas");
+    out.width = leftW + gapPx + rightW;
+    out.height = h;
+    const ctx = out.getContext("2d");
+
+    ctx.fillStyle = exportBg;
+    ctx.fillRect(0, 0, out.width, out.height);
+
+    ctx.drawImage(chartCanvas, 0, 0, leftW, h);
+
+    const panelX = leftW + gapPx;
+    ctx.fillStyle = exportBg;
+    ctx.fillRect(panelX, 0, rightW, h);
+
+    const fontPx = Math.round(23 * (96 / 72));
+    const lineHeightPx = fontPx * 1.45;
+    const lineGapPx = 16;
+    const textBlockHeight = (textLines.length * lineHeightPx) + ((textLines.length - 1) * lineGapPx);
+    const startY = Math.round(((h - textBlockHeight) / 2) - 4);
+
+    ctx.font = `400 ${fontPx}px Inter, sans-serif`;
+    ctx.fillStyle = "#E5E7EB";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+
+    let y = startY;
+    for (let i = 0; i < textLines.length; i += 1) {
+      ctx.fillText(textLines[i], panelX + rightPaddingX, y);
+      y += lineHeightPx + lineGapPx;
+    }
+
+    return out;
+  }
+
   function canvasToBlob(canvas) {
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
@@ -583,9 +632,9 @@
     return new Promise((resolve) => requestAnimationFrame(resolve));
   }
 
-  async function copyCanvasToClipboard(canvas) {
+  async function copyCanvasToClipboard(canvas, preparedCanvas) {
     if (!navigator.clipboard || !window.ClipboardItem) return null;
-    const exportCanvas = buildExportCanvas(canvas);
+    const exportCanvas = preparedCanvas || buildExportCanvas(canvas);
     const blob = await canvasToBlob(exportCanvas);
     if (!blob) return null;
     await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
@@ -697,17 +746,22 @@
           await waitForFrame();
         }
 
-        const copiedCanvas = await copyCanvasToClipboard(canvas);
+        const exportCanvas = canvasId === "pg-service-model-stacked"
+          ? buildServiceModelExportCanvas(canvas)
+          : buildExportCanvas(canvas);
+
+        const copiedCanvas = await copyCanvasToClipboard(canvas, exportCanvas);
         if (copiedCanvas) {
           status.textContent = "Copied. Paste into your slide deck.";
         } else {
-          const exportCanvas = buildExportCanvas(canvas);
           downloadCanvasPng(exportCanvas, `${canvasId}.png`);
           status.textContent = "Clipboard unavailable. Downloaded PNG instead.";
         }
       } catch (_) {
         try {
-          const exportCanvas = buildExportCanvas(canvas);
+          const exportCanvas = canvasId === "pg-service-model-stacked"
+            ? buildServiceModelExportCanvas(canvas)
+            : buildExportCanvas(canvas);
           downloadCanvasPng(exportCanvas, `${canvasId}.png`);
           status.textContent = "Copy failed. Downloaded PNG instead.";
         } catch (__){
