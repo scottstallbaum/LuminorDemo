@@ -48,16 +48,11 @@
       background: var(--panel);
     }
     .identity-bar .wordmark {
-      font-size: 1.02rem;
+      font-size: 2.04rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: .1em;
       color: var(--accent);
-    }
-    .identity-bar .screen-indicator {
-      margin-left: auto;
-      font-size: .75rem;
-      color: var(--muted);
     }
 
     /* ── KPI header (matches dashboard KPIs) ────────────────── */
@@ -205,7 +200,6 @@
   <!-- Identity bar -->
   <div class="identity-bar">
     <span class="wordmark">Luminor</span>
-    <span class="screen-indicator" id="screen-indicator">1 / 6</span>
   </div>
 
   <!-- KPI header (matches dashboard) -->
@@ -305,7 +299,8 @@
     document.getElementById("screen-" + current).classList.remove("active");
     current = n;
     document.getElementById("screen-" + current).classList.add("active");
-    document.getElementById("screen-indicator").textContent = current + " / 6";
+    const indicator = document.getElementById("screen-indicator");
+    if (indicator) indicator.textContent = current + " / 6";
   }
 
   window.goTo = goTo;
