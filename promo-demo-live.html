@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Luminor Demo Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ── Design tokens ───────────────────────────────────────── */
+    :root {
+      --bg:      #0b1220;
+      --panel:   #121c2f;
+      --text:    #e8eefc;
+      --muted:   #9fb0d3;
+      --line:    #24314d;
+      --accent:  #45d0a2;
+      --warn:    #ffae57;
+      --danger:  #ff6d6d;
+    }
+
+    /* ── Reset ───────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: Inter, system-ui, sans-serif;
+      background: radial-gradient(circle at top right, #17233b, var(--bg) 35%);
+      color: var(--text);
+    }
+
+    /* ── App shell ───────────────────────────────────────────── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ── Top identity bar ────────────────────────────────────── */
+    .identity-bar {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .55rem 1.25rem;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+    .identity-bar .wordmark {
+      font-size: 2.04rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--accent);
+    }
+
+    /* ── KPI header (matches dashboard KPIs) ────────────────── */
+    .kpi-bar {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: .6rem;
+      padding: .6rem 1.25rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .kpi-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: .75rem;
+      padding: .65rem .9rem;
+    }
+    .kpi-card .kpi-label {
+      font-size: .75rem;
+      color: var(--muted);
+    }
+    .kpi-card .kpi-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin: .2rem 0 .1rem;
+    }
+    .kpi-card .kpi-value.accent { color: var(--accent); }
+    .kpi-card .kpi-sub {
+      font-size: .72rem;
+      color: rgba(159,176,211,.88);
+      font-weight: 500;
+    }
+
+    /* ── Screen container ────────────────────────────────────── */
+    .screens {
+      flex: 1 1 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem 1.25rem 1rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .35s ease;
+    }
+    .screen.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .screen-title {
+      font-size: .78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: var(--muted);
+      margin-bottom: .55rem;
+    }
+
+    /* ── Waterfall chart host ────────────────────────────────── */
+    .wf-host {
+      flex: 1 1 0;
+      min-height: 0;
+      position: relative;
+    }
+    .wf-host svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .wf-bar { stroke: rgba(255,255,255,.15); stroke-width: 1; }
+    .wf-bar.wf-base    { fill: #5da8ff; }
+    .wf-bar.wf-cost    { fill: #ff8c7a; }
+    .wf-bar.wf-subtotal,
+    .wf-bar.wf-final   { fill: #43c99a; }
+    .wf-bar.wf-clickable { cursor: pointer; transition: filter .15s; }
+    .wf-bar.wf-clickable:hover { filter: brightness(1.22); stroke: rgba(255,255,255,.55); stroke-width: 1.4; }
+    .wf-connector { stroke: rgba(159,176,211,.35); stroke-width: 1; stroke-dasharray: 3 3; }
+    .wf-grid { stroke: rgba(159,176,211,.1); stroke-width: 1; }
+    .wf-zero { stroke: rgba(159,176,211,.25); stroke-width: 1.2; }
+    .wf-axis { fill: var(--muted); font-size: 10px; font-family: Inter, sans-serif; }
+    .wf-label { fill: var(--text); font-size: 10px; font-weight: 500; font-family: Inter, sans-serif; }
+    .wf-pct   { fill: var(--muted); font-size: 9.5px; font-family: Inter, sans-serif; }
+    .wf-value { fill: var(--text); font-size: 10.5px; font-weight: 700; font-family: Inter, sans-serif; }
+
+    /* ── Action strip ────────────────────────────────────────── */
+    .action-strip {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: .75rem;
+      padding-top: .65rem;
+    }
+    .hint-text {
+      font-size: .78rem;
+      color: var(--muted);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0b1220;
+      border: none;
+      border-radius: .55rem;
+      padding: .55rem 1.15rem;
+      font-size: .85rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .015em;
+      transition: filter .15s;
+    }
+    .btn-primary:hover { filter: brightness(1.12); }
+    .btn-ghost {
+      background: #0c1527;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: .55rem;
+      padding: .5rem 1rem;
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .btn-ghost:hover { border-color: #3b4a68; }
+
+    /* ── Placeholder panels for screens 2-6 ─────────────────── */
+    .placeholder {
+      flex: 1 1 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px dashed var(--line);
+      border-radius: .85rem;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Identity bar -->
+  <div class="identity-bar">
+    <span class="wordmark">Luminor</span>
+  </div>
+
+  <!-- KPI header (matches dashboard) -->
+  <div class="kpi-bar">
+    <div class="kpi-card">
+      <div class="kpi-label">Revenue</div>
+      <div class="kpi-value">$6,725,934,909</div>
+      <div class="kpi-sub">$7,515,011.07 / SKU</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Gross Margin</div>
+      <div class="kpi-value accent">$3,285,524,554</div>
+      <div class="kpi-sub">$3,670,977.16 / SKU</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Operating Income</div>
+      <div class="kpi-value accent">$1,479,926,270</div>
+      <div class="kpi-sub">$1,653,548.91 / SKU</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Volume</div>
+      <div class="kpi-value">55,045,286 bbl</div>
+      <div class="kpi-sub">61,503 bbl / SKU</div>
+    </div>
+  </div>
+
+  <!-- Screens -->
+  <div class="screens">
+
+    <!-- ── Screen 1: Full P&L Waterfall ──────────────────────── -->
+    <div class="screen active" id="screen-1">
+      <div class="screen-title">Revenue to Operating Income — Full Portfolio</div>
+      <div class="wf-host" id="wf-s1"></div>
+      <div class="action-strip">
+        <button class="btn-primary" id="btn-addressable">Addressable Spend →</button>
+      </div>
+    </div>
+
+    <!-- ── Screen 2 placeholder ───────────────────────────────── -->
+    <div class="screen" id="screen-2">
+      <div class="screen-title">Addressable Spend</div>
+      <div class="placeholder">Screen 2 — coming soon</div>
+      <div class="action-strip">
+        <button class="btn-ghost" onclick="goTo(1)">← Back</button>
+        <button class="btn-primary" onclick="goTo(3)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ── Screen 3 placeholder ───────────────────────────────── -->
+    <div class="screen" id="screen-3">
+      <div class="screen-title">Screen 3</div>
+      <div class="placeholder">Screen 3 — coming soon</div>
+      <div class="action-strip">
+        <button class="btn-ghost" onclick="goTo(2)">← Back</button>
+        <button class="btn-primary" onclick="goTo(4)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ── Screen 4 placeholder ───────────────────────────────── -->
+    <div class="screen" id="screen-4">
+      <div class="screen-title">Screen 4</div>
+      <div class="placeholder">Screen 4 — coming soon</div>
+      <div class="action-strip">
+        <button class="btn-ghost" onclick="goTo(3)">← Back</button>
+        <button class="btn-primary" onclick="goTo(5)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ── Screen 5 placeholder ───────────────────────────────── -->
+    <div class="screen" id="screen-5">
+      <div class="screen-title">Screen 5</div>
+      <div class="placeholder">Screen 5 — coming soon</div>
+      <div class="action-strip">
+        <button class="btn-ghost" onclick="goTo(4)">← Back</button>
+        <button class="btn-primary" onclick="goTo(6)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ── Screen 6 placeholder ───────────────────────────────── -->
+    <div class="screen" id="screen-6">
+      <div class="screen-title">Screen 6</div>
+      <div class="placeholder">Screen 6 — coming soon</div>
+      <div class="action-strip">
+        <button class="btn-ghost" onclick="goTo(5)">← Back</button>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+</div><!-- /app -->
+
+<script>
+(function () {
+  // ── Navigation ────────────────────────────────────────────────
+  let current = 1;
+
+  function goTo(n) {
+    document.getElementById("screen-" + current).classList.remove("active");
+    current = n;
+    document.getElementById("screen-" + current).classList.add("active");
+    const indicator = document.getElementById("screen-indicator");
+    if (indicator) indicator.textContent = current + " / 6";
+  }
+
+  window.goTo = goTo;
+
+  document.getElementById("btn-addressable").addEventListener("click", () => goTo(2));
+
+  // ── Static waterfall data (matches dashboard full-portfolio) ──
+  // Values in dollars — all bars sum from Revenue → Operating Income.
+  const STEPS = [
+    { key: "revenue",         label: "Revenue",               value:  6725934909, kind: "base"     },
+    { key: "brewMat",         label: "Brewing\nMaterials",    value:  1450000000, kind: "cost"     },
+    { key: "pkgMat",          label: "Packaging\nMaterials",  value:  1200000000, kind: "cost"     },
+    { key: "conversion",      label: "Conversion\nCosts",     value:   790410355, kind: "cost"     },
+    { key: "grossMargin",     label: "Gross\nMargin",         value:  3285524554, kind: "subtotal" },
+    { key: "freight",         label: "Distribution /\nFreight", value: 750000000, kind: "cost"     },
+    { key: "marketing",       label: "Marketing",             value:   650000000, kind: "cost"     },
+    { key: "sga",             label: "SG&A",                  value:   405598284, kind: "cost"     },
+    { key: "operatingIncome", label: "Operating\nIncome",     value:  1479926270, kind: "final"    }
+  ];
+
+  // ── Compute cumulative positions ──────────────────────────────
+  function buildPlotSteps(steps) {
+    const revenue = steps[0].value;
+    const plotSteps = [];
+    let cum = 0;
+
+    steps.forEach((step) => {
+      if (step.kind === "base") {
+        cum = step.value;
+        plotSteps.push({ ...step, from: 0, to: cum, pct: 1 });
+      } else if (step.kind === "cost") {
+        const delta = -Math.abs(step.value);
+        const from = cum;
+        const to = from + delta;
+        cum = to;
+        plotSteps.push({ ...step, from, to, delta, pct: delta / revenue });
+      } else {
+        // subtotal / final — pin to cumulative
+        plotSteps.push({ ...step, from: 0, to: cum, pct: cum / revenue });
+      }
+    });
+
+    return plotSteps;
+  }
+
+  function fmt(v) {
+    const abs = Math.abs(v);
+    const sign = v < 0 ? "-" : (v > 0 && false ? "+" : "");
+    if (abs >= 1e9) return sign + "$" + (abs / 1e9).toFixed(1) + "B";
+    if (abs >= 1e6) return sign + "$" + (abs / 1e6).toFixed(0) + "M";
+    return sign + "$" + abs.toFixed(0);
+  }
+
+  function fmtPct(v) {
+    return (v * 100).toFixed(1) + "%";
+  }
+
+  // ── Render waterfall into the host div ────────────────────────
+  function renderWf(hostId, steps) {
+    const host = document.getElementById(hostId);
+    if (!host) return;
+
+    const plotSteps = buildPlotSteps(steps);
+    const allVals = plotSteps.flatMap((s) => [s.from, s.to, 0]);
+    const maxVal = Math.max(...allVals);
+    const minVal = Math.min(...allVals, 0);
+
+    const W = 1100, H = 340;
+    const M = { top: 44, right: 18, bottom: 72, left: 82 };
+    const pW = W - M.left - M.right;
+    const pH = H - M.top - M.bottom;
+    const count = plotSteps.length;
+    const slot = pW / count;
+    const barW = Math.min(64, slot * 0.6);
+
+    const scaleY = (v) => {
+      if (maxVal === minVal) return M.top + pH / 2;
+      return M.top + ((maxVal - v) / (maxVal - minVal)) * pH;
+    };
+    const zeroY = scaleY(0);
+
+    // Grid lines
+    const ticks = [maxVal, maxVal * 0.5, 0];
+    const gridSvg = ticks.map((t) => {
+      const yt = scaleY(t).toFixed(1);
+      return `<line class="wf-grid" x1="${M.left}" y1="${yt}" x2="${W - M.right}" y2="${yt}"/>
+              <text class="wf-axis" x="${M.left - 8}" y="${(+yt + 4).toFixed(1)}" text-anchor="end">${fmt(t)}</text>`;
+    }).join("");
+
+    // Bars
+    const barsSvg = plotSteps.map((step, i) => {
+      const cx = M.left + (i + 0.5) * slot;
+      const x = cx - barW / 2;
+      const y1 = scaleY(step.kind === "cost" ? step.from : 0);
+      const y2 = scaleY(step.to);
+      const ry = Math.min(y1, y2);
+      const rh = Math.max(2, Math.abs(y2 - y1));
+      const cls = `wf-bar wf-${step.kind}${step.key === "freight" ? " wf-clickable" : ""}`;
+
+      const displayVal = step.kind === "cost" ? step.delta : step.to;
+      const valLabel = fmt(displayVal);
+      const pctLabel = "(" + fmtPct(Math.abs(step.pct)) + ")";
+
+      const labelLines = step.label.split("\n");
+      const labelBaseY = M.top + pH + 14;
+
+      const valY = (M.top - 18).toFixed(1);
+      const pctY = (M.top - 5).toFixed(1);
+
+      return `<g>
+        <rect class="${cls}" data-key="${step.key}"
+          x="${x.toFixed(1)}" y="${ry.toFixed(1)}"
+          width="${barW.toFixed(1)}" height="${rh.toFixed(1)}" rx="5"/>
+        <text class="wf-value" x="${cx.toFixed(1)}" y="${valY}" text-anchor="middle">${valLabel}</text>
+        <text class="wf-pct"   x="${cx.toFixed(1)}" y="${pctY}" text-anchor="middle">${pctLabel}</text>
+        ${labelLines.map((ln, li) =>
+          `<text class="wf-label" x="${cx.toFixed(1)}" y="${(labelBaseY + li * 13).toFixed(1)}" text-anchor="middle">${ln}</text>`
+        ).join("")}
+      </g>`;
+    }).join("");
+
+    // Connectors
+    const connSvg = plotSteps.slice(0, -1).map((step, i) => {
+      const next = plotSteps[i + 1];
+      if (!next || next.kind !== "cost") return "";
+      const x1 = (M.left + (i + 0.5) * slot + barW / 2).toFixed(1);
+      const x2 = (M.left + (i + 1.5) * slot - barW / 2).toFixed(1);
+      const yLine = scaleY(step.to).toFixed(1);
+      return `<line class="wf-connector" x1="${x1}" y1="${yLine}" x2="${x2}" y2="${yLine}"/>`;
+    }).join("");
+
+    host.innerHTML = `
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"
+           style="width:100%;height:100%;display:block;">
+        ${gridSvg}
+        <line class="wf-zero" x1="${M.left}" y1="${zeroY.toFixed(1)}"
+              x2="${W - M.right}" y2="${zeroY.toFixed(1)}"/>
+        ${connSvg}
+        ${barsSvg}
+      </svg>`;
+
+    // Wire clickable bars → click-to-advance
+    host.querySelectorAll("[data-key]").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        const key = e.currentTarget.getAttribute("data-key");
+        if (key === "freight") goTo(2);
+      });
+    });
+  }
+
+  // Render on load
+  renderWf("wf-s1", STEPS);
+})();
+</script>
+</body>
+</html>
