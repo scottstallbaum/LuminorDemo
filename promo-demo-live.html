@@ -187,110 +187,156 @@
     /* ── Screen 2: Addressable cost panel ───────────────────── */
     .addr-wrap {
       flex: 1 1 0;
-      border: 1px solid var(--line);
+      border: 1px solid #273757;
       border-radius: .85rem;
-      background: linear-gradient(180deg, #111a2c 0%, #0f1728 100%);
-      padding: 1.1rem 1.1rem 1rem;
+      background: linear-gradient(180deg, #111a2c 0%, #0d1628 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04), 0 18px 38px rgba(0, 0, 0, .2);
+      padding: 1.05rem 1.05rem .95rem;
       display: flex;
       flex-direction: column;
+      justify-content: center;
+      gap: .9rem;
       min-height: 0;
     }
     .addr-total {
       text-align: center;
-      font-size: 2.3rem;
-      font-weight: 700;
-      letter-spacing: .01em;
-      margin: .15rem 0 1rem;
+      margin: 0;
     }
     .addr-total .label {
       color: var(--muted);
-      font-size: 1.22rem;
+      font-size: .86rem;
       font-weight: 600;
-      margin-right: .35rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-right: .45rem;
+    }
+    .addr-total .amount {
+      color: #f5f9ff;
+      font-size: 2.1rem;
+      font-weight: 800;
+      letter-spacing: .01em;
     }
     .addr-grid {
-      flex: 1 1 0;
+      flex: 0 0 auto;
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      border-top: 1px dashed rgba(159,176,211,.35);
-      border-bottom: 1px dashed rgba(159,176,211,.35);
+      gap: .85rem;
       min-height: 0;
     }
     .addr-col {
-      padding: 1rem .9rem .75rem;
+      padding: .9rem .85rem .75rem;
       display: flex;
       flex-direction: column;
-      gap: .6rem;
+      gap: .42rem;
       min-width: 0;
+      border-radius: .74rem;
+      border: 1px solid #2a3a59;
+      background: linear-gradient(180deg, #11203a 0%, #0f1b31 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
     }
-    .addr-col + .addr-col {
-      border-left: 1px dashed rgba(159,176,211,.35);
+    .addr-col:nth-child(1) {
+      background: linear-gradient(180deg, rgba(79,159,255,.14) 0%, #0f1b31 34%);
+    }
+    .addr-col:nth-child(2) {
+      background: linear-gradient(180deg, rgba(69,208,162,.14) 0%, #0f1b31 34%);
+    }
+    .addr-col:nth-child(3) {
+      background: linear-gradient(180deg, rgba(255,174,87,.15) 0%, #0f1b31 34%);
     }
     .addr-col h3 {
-      font-size: 2.3rem;
-      line-height: 1.1;
-      font-weight: 600;
-      min-height: 2.2rem;
-      color: var(--text);
+      font-size: 1.02rem;
+      line-height: 1.2;
+      font-weight: 700;
+      min-height: 2.35rem;
+      color: #dce8ff;
+      text-transform: uppercase;
+      letter-spacing: .05em;
       white-space: nowrap;
     }
     .addr-value {
-      font-size: 2.2rem;
-      font-weight: 700;
+      font-size: 1.95rem;
+      font-weight: 800;
       letter-spacing: .005em;
       color: #f2f7ff;
-      margin-top: .15rem;
+      margin-top: .08rem;
     }
     .addr-bar-track {
       width: 100%;
-      height: 14px;
+      height: 12px;
       background: #0b1220;
-      border: 1px solid #1f2b45;
+      border: 1px solid #273555;
       border-radius: 999px;
       overflow: hidden;
-      margin: .1rem 0 .35rem;
+      margin: .12rem 0 .48rem;
     }
     .addr-bar-fill {
       height: 100%;
       width: 0;
-      background: linear-gradient(90deg, rgba(69,208,162,.8), rgba(69,208,162,.45));
+      background: linear-gradient(90deg, rgba(69,208,162,.92), rgba(69,208,162,.55));
       border-right: 1px solid rgba(255,255,255,.35);
       transition: width .5s ease;
+    }
+    .addr-col:nth-child(1) .addr-bar-fill {
+      background: linear-gradient(90deg, rgba(79,159,255,.92), rgba(79,159,255,.54));
+    }
+    .addr-col:nth-child(2) .addr-bar-fill {
+      background: linear-gradient(90deg, rgba(69,208,162,.92), rgba(69,208,162,.55));
+    }
+    .addr-col:nth-child(3) .addr-bar-fill {
+      background: linear-gradient(90deg, rgba(255,174,87,.92), rgba(255,174,87,.58));
+    }
+    .addr-drivers-label {
+      font-size: .72rem;
+      color: #93a8d3;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 600;
+      margin-bottom: .05rem;
     }
     .addr-driver-list {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: .42rem;
-      margin-top: .2rem;
-      font-size: 2rem;
+      gap: .36rem;
+      margin-top: .02rem;
+      font-size: 1.22rem;
     }
     .addr-driver-list li {
-      color: var(--text);
-      font-weight: 500;
+      color: #dce8ff;
+      font-weight: 600;
       letter-spacing: .01em;
-      line-height: 1.2;
+      line-height: 1.22;
     }
     .addr-driver-list li.clickable {
       cursor: pointer;
-      color: #d8ebff;
+      color: #e9f4ff;
       display: inline-flex;
       align-items: center;
       gap: .4rem;
       width: fit-content;
-      border-bottom: 1px solid transparent;
-      transition: color .15s, border-color .15s;
+      border-bottom: 1px solid rgba(159,176,211,.45);
+      transition: color .15s, border-color .15s, background .15s;
+      border-radius: .3rem;
+      padding: .08rem .2rem .12rem;
     }
     .addr-driver-list li.clickable:hover {
       color: #ffffff;
-      border-color: rgba(255,255,255,.55);
+      border-color: rgba(255,255,255,.82);
+      background: rgba(255,255,255,.05);
     }
     .addr-driver-list li.clickable::before {
       content: ">";
-      color: var(--text);
-      font-size: 1.3rem;
+      color: #ffffff;
+      font-size: .95rem;
       font-weight: 600;
-      transform: translateY(-1px);
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1360px) {
+      .addr-total .amount { font-size: 1.72rem; }
+      .addr-col h3 { font-size: .92rem; }
+      .addr-value { font-size: 1.58rem; }
+      .addr-driver-list { font-size: 1.03rem; }
     }
 
     /* ── Placeholder panels for screens 2-6 ─────────────────── */
@@ -354,13 +400,14 @@
     <div class="screen" id="screen-2">
       <div class="screen-title">Addressable Spend</div>
       <div class="addr-wrap" id="addr-wrap">
-        <div class="addr-total"><span class="label">Addressable Cost:</span> $563,914,287</div>
+        <div class="addr-total"><span class="label">Addressable Cost</span><span class="amount">$563,914,287</span></div>
 
         <div class="addr-grid">
           <section class="addr-col" data-value="298742915">
             <h3>Commercial Behavior</h3>
             <div class="addr-value">$298,742,915</div>
             <div class="addr-bar-track"><div class="addr-bar-fill"></div></div>
+            <div class="addr-drivers-label">Primary Drivers</div>
             <ul class="addr-driver-list">
               <li class="clickable" id="promotions-driver">Promotions</li>
               <li>T&amp;Cs</li>
@@ -372,6 +419,7 @@
             <h3>Fulfillment / Service</h3>
             <div class="addr-value">$181,365,402</div>
             <div class="addr-bar-track"><div class="addr-bar-fill"></div></div>
+            <div class="addr-drivers-label">Primary Drivers</div>
             <ul class="addr-driver-list">
               <li>Lead Times</li>
               <li>Order Patterns</li>
@@ -383,6 +431,7 @@
             <h3>Manufacturing</h3>
             <div class="addr-value">$83,805,970</div>
             <div class="addr-bar-track"><div class="addr-bar-fill"></div></div>
+            <div class="addr-drivers-label">Primary Drivers</div>
             <ul class="addr-driver-list">
               <li>Routing</li>
               <li>Make vs Buy</li>
