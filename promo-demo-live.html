@@ -184,6 +184,115 @@
     }
     .btn-ghost:hover { border-color: #3b4a68; }
 
+    /* ── Screen 2: Addressable cost panel ───────────────────── */
+    .addr-wrap {
+      flex: 1 1 0;
+      border: 1px solid var(--line);
+      border-radius: .85rem;
+      background: linear-gradient(180deg, #111a2c 0%, #0f1728 100%);
+      padding: 1.1rem 1.1rem 1rem;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .addr-total {
+      text-align: center;
+      font-size: 1.95rem;
+      font-weight: 700;
+      letter-spacing: .01em;
+      margin: .15rem 0 1rem;
+    }
+    .addr-total .label {
+      color: var(--muted);
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-right: .35rem;
+    }
+    .addr-grid {
+      flex: 1 1 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-top: 1px dashed rgba(159,176,211,.35);
+      border-bottom: 1px dashed rgba(159,176,211,.35);
+      min-height: 0;
+    }
+    .addr-col {
+      padding: 1rem .9rem .75rem;
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+      min-width: 0;
+    }
+    .addr-col + .addr-col {
+      border-left: 1px dashed rgba(159,176,211,.35);
+    }
+    .addr-col h3 {
+      font-size: 1.95rem;
+      line-height: 1.1;
+      font-weight: 600;
+      min-height: 2.2rem;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .addr-value {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: .005em;
+      color: #f2f7ff;
+      margin-top: .15rem;
+    }
+    .addr-bar-track {
+      width: 100%;
+      height: 14px;
+      background: #0b1220;
+      border: 1px solid #1f2b45;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: .1rem 0 .35rem;
+    }
+    .addr-bar-fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, rgba(69,208,162,.8), rgba(69,208,162,.45));
+      border-right: 1px solid rgba(255,255,255,.35);
+      transition: width .5s ease;
+    }
+    .addr-driver-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: .42rem;
+      margin-top: .2rem;
+      font-size: 1.7rem;
+    }
+    .addr-driver-list li {
+      color: var(--text);
+      font-weight: 500;
+      letter-spacing: .01em;
+      line-height: 1.2;
+    }
+    .addr-driver-list li.clickable {
+      cursor: pointer;
+      color: #d8ebff;
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      width: fit-content;
+      border-bottom: 1px solid transparent;
+      transition: color .15s, border-color .15s;
+    }
+    .addr-driver-list li.clickable:hover {
+      color: #ffffff;
+      border-color: rgba(255,255,255,.55);
+    }
+    .addr-driver-list li.clickable::before {
+      content: ">";
+      color: var(--text);
+      font-size: 1.3rem;
+      font-weight: 600;
+      transform: translateY(-1px);
+    }
+
     /* ── Placeholder panels for screens 2-6 ─────────────────── */
     .placeholder {
       flex: 1 1 0;
@@ -244,7 +353,44 @@
     <!-- ── Screen 2 placeholder ───────────────────────────────── -->
     <div class="screen" id="screen-2">
       <div class="screen-title">Addressable Spend</div>
-      <div class="placeholder">Screen 2 — coming soon</div>
+      <div class="addr-wrap" id="addr-wrap">
+        <div class="addr-total"><span class="label">Addressable Cost:</span> $563,914,287</div>
+
+        <div class="addr-grid">
+          <section class="addr-col" data-value="298742915">
+            <h3>Commercial Behavior</h3>
+            <div class="addr-value">$298,742,915</div>
+            <div class="addr-bar-track"><div class="addr-bar-fill"></div></div>
+            <ul class="addr-driver-list">
+              <li class="clickable" id="promotions-driver">Promotions</li>
+              <li>T&amp;Cs</li>
+              <li>Pricing</li>
+            </ul>
+          </section>
+
+          <section class="addr-col" data-value="181365402">
+            <h3>Fulfillment / Service</h3>
+            <div class="addr-value">$181,365,402</div>
+            <div class="addr-bar-track"><div class="addr-bar-fill"></div></div>
+            <ul class="addr-driver-list">
+              <li>Lead Times</li>
+              <li>Order Patterns</li>
+              <li>Service Levels</li>
+            </ul>
+          </section>
+
+          <section class="addr-col" data-value="83805970">
+            <h3>Manufacturing</h3>
+            <div class="addr-value">$83,805,970</div>
+            <div class="addr-bar-track"><div class="addr-bar-fill"></div></div>
+            <ul class="addr-driver-list">
+              <li>Routing</li>
+              <li>Make vs Buy</li>
+              <li>Network</li>
+            </ul>
+          </section>
+        </div>
+      </div>
       <div class="action-strip">
         <button class="btn-ghost" onclick="goTo(1)">← Back</button>
         <button class="btn-primary" onclick="goTo(3)">Next →</button>
@@ -456,6 +602,28 @@
 
   // Render on load
   renderWf("wf-s1", STEPS);
+
+  function initAddressableBars() {
+    const cols = Array.from(document.querySelectorAll(".addr-col"));
+    if (!cols.length) return;
+
+    const values = cols.map((col) => Number(col.getAttribute("data-value") || 0));
+    const maxValue = Math.max(...values, 1);
+
+    cols.forEach((col, idx) => {
+      const fill = col.querySelector(".addr-bar-fill");
+      if (!fill) return;
+      const widthPct = (values[idx] / maxValue) * 100;
+      fill.style.width = `${widthPct.toFixed(1)}%`;
+    });
+  }
+
+  const promotionsDriver = document.getElementById("promotions-driver");
+  if (promotionsDriver) {
+    promotionsDriver.addEventListener("click", () => goTo(3));
+  }
+
+  initAddressableBars();
 })();
 </script>
 </body>
