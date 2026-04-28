@@ -980,6 +980,18 @@
       border-top: 1px dashed rgba(159,176,211,.28);
       padding-top: .65rem;
     }
+    .transport-compare-wrap {
+      max-width: 1080px;
+      width: 100%;
+      align-self: center;
+      display: flex;
+      flex-direction: column;
+      gap: .8rem;
+    }
+    .transport-chart-wrap {
+      position: relative;
+      height: 380px;
+    }
 
     /* ── Thinking overlay ─────────────────────────────────────── */
     #thinking-overlay {
@@ -1429,28 +1441,30 @@
           </div>
           <div class="lead-controls-actions">
             <button class="btn-ghost" onclick="goTo(7)">← Back</button>
-            <button class="btn-primary lead-btn" id="btn-cost-segment-details" disabled>Costs Segment Details →</button>
+            <button class="btn-primary lead-btn" id="btn-cost-segment-details" disabled>Transportation Cost Comparison →</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ── Screen 9: Cost segment details placeholder ────────── -->
+    <!-- ── Screen 9: Transportation cost comparison ───────────── -->
     <div class="screen" id="screen-9">
-      <div class="screen-title">Costs Segment Details</div>
-      <div class="lead-wrap">
+      <div class="screen-title">Transportation Cost Comparison</div>
+      <div class="transport-compare-wrap">
         <div class="lead-hero">
-          <div class="lead-hero-title">Costs Segment Details</div>
-          <div class="lead-hero-metric" id="lead-selected-cost-label">Awaiting cost segment</div>
+          <div class="lead-hero-title">Transportation Cost Comparison</div>
+          <div class="lead-hero-metric" id="lead-selected-cost-label">High-volume, high-margin vs high-volume, low-margin</div>
         </div>
         <div class="lead-chart-card">
           <div class="lead-chart-head">
             <div>
-              <h4>Next Cost Segment Screen</h4>
-              <div class="lead-chart-sub">This placeholder is ready for detailed breakdown of the selected cost segment.</div>
+              <h4>Transportation Cost Components by Customer Segment</h4>
+              <div class="lead-chart-sub">Stacked decomposition tied to transportation totals from the segment comparison waterfalls.</div>
             </div>
           </div>
-          <div class="placeholder">Cost segment drilldown — coming next</div>
+          <div class="transport-chart-wrap">
+            <canvas id="transport-cost-compare"></canvas>
+          </div>
         </div>
       </div>
       <div class="action-strip">
@@ -1503,7 +1517,8 @@
     customerChart: null,
     customerSelectedQuadrants: [],
     selectedCostSegment: null,
-    costCharts: {}
+    costCharts: {},
+    transportCompareChart: null
   };
 
   document.getElementById("btn-addressable").addEventListener("click", () => showThinking(() => goTo(2), 'Analyzing cost structure\u2026'));
@@ -2532,6 +2547,140 @@
     }, leadState.selectedCostSegment);
   }
 
+  function renderTransportationCostComparison() {
+    const canvas = document.getElementById("transport-cost-compare");
+    if (!canvas || typeof Chart === "undefined") return;
+    if (leadState.transportCompareChart) leadState.transportCompareChart.destroy();
+
+    const labels = ["High-volume, high-margin", "High-volume, low-margin"];
+    const transportationTotals = [31, 35];
+
+    const componentData = {
+      inbound: [6.2, 7.1],
+      outbound: [17.8, 18.4],
+      expedited: [4.3, 6.0],
+      delivery: [2.7, 3.5]
+    };
+
+    // Force perfect reconciliation with waterfall transportation anchors.
+    for (let i = 0; i < transportationTotals.length; i++) {
+      const current = componentData.inbound[i] + componentData.outbound[i] + componentData.expedited[i] + componentData.delivery[i];
+      const residual = Number((transportationTotals[i] - current).toFixed(2));
+      componentData.outbound[i] = Number((componentData.outbound[i] + residual).toFixed(2));
+    }
+
+    const maxTransport = Math.max(...transportationTotals);
+    const yMax = Math.ceil((maxTransport * 1.18) / 2) * 2;
+
+    const labelPlugin = {
+      id: "transportTotalsAndCallouts",
+      afterDatasetsDraw(chart) {
+        const { ctx, scales: { y } } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta?.data?.length) return;
+
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.font = "700 12px Inter";
+        ctx.fillStyle = "#ecf3ff";
+
+        meta.data.forEach((bar, i) => {
+          const total = transportationTotals[i];
+          const yTop = y.getPixelForValue(total);
+          ctx.fillText(`${total.toFixed(1)}%`, bar.x, yTop - 4);
+
+          const deliveryMid = y.getPixelForValue(componentData.inbound[i] + componentData.outbound[i] + componentData.expedited[i] + (componentData.delivery[i] / 2));
+          const expeditedMid = y.getPixelForValue(componentData.inbound[i] + componentData.outbound[i] + (componentData.expedited[i] / 2));
+
+          ctx.font = "600 10px Inter";
+          ctx.textAlign = "left";
+          ctx.fillStyle = "#ffc489";
+          ctx.fillText(`Exp ${componentData.expedited[i].toFixed(1)}%`, bar.x + 18, expeditedMid + 3);
+          ctx.fillStyle = "#ff9a9a";
+          ctx.fillText(`Issues ${componentData.delivery[i].toFixed(1)}%`, bar.x + 18, deliveryMid + 3);
+          ctx.textAlign = "center";
+          ctx.fillStyle = "#ecf3ff";
+        });
+
+        ctx.restore();
+      }
+    };
+
+    leadState.transportCompareChart = new Chart(canvas, {
+      type: "bar",
+      plugins: [labelPlugin],
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Inbound transportation",
+            data: componentData.inbound,
+            backgroundColor: "rgba(132,151,178,.72)",
+            borderColor: "rgba(132,151,178,1)",
+            borderWidth: 1,
+            stack: "transport"
+          },
+          {
+            label: "Outbound freight (standard)",
+            data: componentData.outbound,
+            backgroundColor: "rgba(168,187,214,.76)",
+            borderColor: "rgba(168,187,214,1)",
+            borderWidth: 1,
+            stack: "transport"
+          },
+          {
+            label: "Expedited freight",
+            data: componentData.expedited,
+            backgroundColor: "rgba(255,176,87,.86)",
+            borderColor: "rgba(255,176,87,1)",
+            borderWidth: 1,
+            stack: "transport"
+          },
+          {
+            label: "Delivery issues",
+            data: componentData.delivery,
+            backgroundColor: "rgba(255,109,109,.82)",
+            borderColor: "rgba(255,109,109,1)",
+            borderWidth: 1,
+            stack: "transport"
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        layout: { padding: { top: 14, right: 16, bottom: 0, left: 0 } },
+        plugins: {
+          legend: {
+            labels: { color: "#9fb0d3", boxWidth: 14, boxHeight: 10 }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ${Number(ctx.parsed.y || 0).toFixed(1)}%`
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            ticks: { color: "#9fb0d3", font: { size: 11 } },
+            grid: { display: false }
+          },
+          y: {
+            stacked: true,
+            min: 0,
+            max: yMax,
+            title: { display: true, text: "Transportation cost (% of revenue)", color: "#9fb0d3" },
+            ticks: { color: "#9fb0d3", callback: (v) => `${Number(v).toFixed(0)}%`, stepSize: 5 },
+            grid: { color: "rgba(159,176,211,.14)", borderDash: [3, 4] }
+          }
+        }
+      }
+    });
+  }
+
   function setSelectedCostSegment(segmentKey) {
     const labelMap = {
       gtn: "Gross to Net Sales",
@@ -2792,6 +2941,7 @@
   if (costDetailsBtn) {
     costDetailsBtn.addEventListener("click", () => {
       if (!leadState.selectedCostSegment) return;
+      renderTransportationCostComparison();
       goTo(9);
     });
   }
