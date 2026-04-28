@@ -849,9 +849,12 @@
       font-size: .74rem;
       color: var(--muted);
       font-weight: 500;
-      white-space: nowrap;
+      line-height: 1.35;
       text-align: right;
       margin-left: auto;
+    }
+    .lead-selection-copy .value.small {
+      font-size: .84rem;
     }
     .lead-chart-wrap {
       position: relative;
@@ -1249,15 +1252,45 @@
             <div>
               <h4>Customer Segmentation</h4>
             </div>
-            <div class="lead-chart-note">Customer segmentation based on common requirements. Bubble size = Number of Customers.</div>
+            <div class="lead-chart-note">Based on common requirements<br>Bubble size = Number of Customers</div>
           </div>
           <div class="lead-chart-wrap">
             <canvas id="lead-seg-bubble"></canvas>
           </div>
         </div>
+        <div class="lead-controls">
+          <div class="lead-selection-copy">
+            <div class="eyebrow">Selected Customer Group</div>
+            <div class="value small" id="lead-seg-selection-copy">Choose a bubble to continue</div>
+          </div>
+          <button class="btn-primary lead-btn" id="btn-lead-profitability" disabled>Customer Profitability Analysis →</button>
+        </div>
       </div>
       <div class="action-strip">
         <button class="btn-ghost" onclick="goTo(5)">← Back</button>
+      </div>
+    </div>
+
+    <!-- ── Screen 7: Lead Times next step placeholder ────────── -->
+    <div class="screen" id="screen-7">
+      <div class="screen-title">Customer Profitability Analysis</div>
+      <div class="lead-wrap">
+        <div class="lead-hero">
+          <div class="lead-hero-title">Customer Profitability Analysis</div>
+          <div class="lead-hero-metric" id="lead-selected-bubble-label">Awaiting customer group</div>
+        </div>
+        <div class="lead-chart-card">
+          <div class="lead-chart-head">
+            <div>
+              <h4>Next Lead Times Screen</h4>
+              <div class="lead-chart-sub">This placeholder is ready for the profitability comparison view tied to the selected customer group.</div>
+            </div>
+          </div>
+          <div class="placeholder">Customer profitability drilldown — coming next</div>
+        </div>
+      </div>
+      <div class="action-strip">
+        <button class="btn-ghost" onclick="goTo(6)">← Back</button>
       </div>
     </div>
 
@@ -1300,7 +1333,8 @@
   const leadState = {
     selectedQuadrant: null,
     chart: null,
-    segChart: null
+    segChart: null,
+    selectedBubble: null
   };
 
   document.getElementById("btn-addressable").addEventListener("click", () => showThinking(() => goTo(2), 'Analyzing cost structure\u2026'));
@@ -1577,6 +1611,27 @@
         ctx.moveTo(x.left, yFifty);
         ctx.lineTo(x.right, yFifty);
         ctx.stroke();
+
+        const selected = leadState.selectedBubble;
+        if (selected != null) {
+          const meta = chart.getDatasetMeta(0);
+          meta.data.forEach((point, idx) => {
+            const props = point.getProps(["x", "y", "options"], true);
+            const radius = point.options.radius || point.options.hoverRadius || 8;
+            if (idx !== selected) {
+              ctx.fillStyle = "rgba(11,18,32,.45)";
+              ctx.beginPath();
+              ctx.arc(props.x, props.y, radius + 8, 0, Math.PI * 2);
+              ctx.fill();
+            } else {
+              ctx.strokeStyle = "rgba(69,208,162,.88)";
+              ctx.lineWidth = 2.5;
+              ctx.beginPath();
+              ctx.arc(props.x, props.y, radius + 6, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+          });
+        }
         ctx.restore();
       }
     };
@@ -1636,10 +1691,46 @@
             ticks: { color: "#9fb0d3", callback: (v) => `${Number(v).toFixed(0)}%` },
             grid: { color: "rgba(159,176,211,.12)" }
           }
+        },
+        onClick: (_, elements) => {
+          if (!elements || !elements.length) return;
+          setLeadBubble(elements[0].index, pts[elements[0].index]);
         }
       },
       plugins: [segCrosshairPlugin]
     });
+  }
+
+  function setLeadBubble(index, bubble) {
+    const labels = [
+      "Low-margin, high-spread micro segment",
+      "Unprofitable high-volume service-sensitive segment",
+      "Unprofitable core service-sensitive segment",
+      "Low-margin rationalize segment",
+      "Low-margin niche service segment",
+      "Low-margin small-format segment",
+      "Low-spread low-margin segment",
+      "Marginal break-even niche segment",
+      "Neutral service baseline segment",
+      "Near-profit transition segment",
+      "Service-heavy profitable niche segment",
+      "Profitable service-sensitive segment",
+      "Profitable core segment",
+      "High-spread premium segment",
+      "Best-fit strategic segment",
+      "High-margin expedites segment",
+      "High-margin scalable segment",
+      "Small high-margin segment"
+    ];
+    leadState.selectedBubble = index;
+    const label = labels[index] || `Customer Group ${index + 1}`;
+    const copy = document.getElementById("lead-seg-selection-copy");
+    const nextLabel = document.getElementById("lead-selected-bubble-label");
+    const button = document.getElementById("btn-lead-profitability");
+    if (copy) copy.textContent = `${label} • ${Number(bubble.count || 0)} customers`;
+    if (nextLabel) nextLabel.textContent = label;
+    if (button) button.disabled = false;
+    if (leadState.segChart) leadState.segChart.update();
   }
 
   function setLeadQuadrant(key) {
@@ -1845,6 +1936,14 @@
     leadSegBtn.addEventListener("click", () => {
       if (!leadState.selectedQuadrant) return;
       goTo(6);
+    });
+  }
+
+  const leadProfitBtn = document.getElementById("btn-lead-profitability");
+  if (leadProfitBtn) {
+    leadProfitBtn.addEventListener("click", () => {
+      if (leadState.selectedBubble == null) return;
+      goTo(7);
     });
   }
 
