@@ -450,20 +450,40 @@
     }
     .std-promo-head {
       padding: .45rem .15rem .2rem;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1.5rem;
     }
     .std-promo-title {
       font-size: 1.1rem;
       font-weight: 700;
       letter-spacing: .015em;
       color: #f0f6ff;
-      margin-bottom: .22rem;
     }
     .std-promo-vol {
-      font-size: .95rem;
+      font-size: 1.1rem;
       color: #9fd8c4;
-      font-weight: 600;
-      letter-spacing: .02em;
+      font-weight: 700;
+      letter-spacing: .015em;
+      white-space: nowrap;
     }
+    .std-col-headers {
+      display: grid;
+      grid-template-columns: 1fr 120px 120px;
+      gap: .5rem;
+      padding: .18rem 0 .08rem;
+      border-bottom: 1px solid rgba(159,176,211,.2);
+    }
+    .std-col-headers span {
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      text-align: right;
+    }
+    .std-col-headers span:first-child { text-align: left; }
     .std-table {
       border-top: 1px dashed rgba(159,176,211,.52);
       border-bottom: 1px dashed rgba(159,176,211,.52);
@@ -474,28 +494,26 @@
     }
     .std-row {
       display: grid;
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns: 1fr 120px 120px;
       align-items: baseline;
-      gap: .75rem;
+      gap: .5rem;
       padding: .16rem 0;
     }
     .std-row .label {
       color: #e7efff;
-      font-size: 1.08rem;
+      font-size: .95rem;
       font-weight: 500;
       letter-spacing: .01em;
     }
     .std-row .amount {
-      font-size: 1.12rem;
+      font-size: .98rem;
       font-weight: 700;
       letter-spacing: .01em;
-      min-width: 150px;
       text-align: right;
     }
     .std-row .per {
-      font-size: 1rem;
+      font-size: .9rem;
       color: #b9caea;
-      min-width: 150px;
       text-align: right;
     }
     .std-row .amount.pos,
@@ -509,36 +527,34 @@
     .std-profit {
       padding-top: .22rem;
       display: grid;
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns: 1fr 120px 120px;
       align-items: baseline;
-      gap: .75rem;
+      gap: .5rem;
     }
     .std-profit .label {
-      font-size: 1.85rem;
+      font-size: 1.25rem;
       font-weight: 800;
       color: #f4f8ff;
       letter-spacing: .01em;
     }
     .std-profit .amount {
-      font-size: 1.85rem;
+      font-size: 1.2rem;
       font-weight: 800;
       color: #8ff0cc;
-      min-width: 165px;
       text-align: right;
     }
     .std-profit .per {
-      font-size: 1.6rem;
+      font-size: 1.1rem;
       font-weight: 700;
       color: #8ff0cc;
-      min-width: 170px;
       text-align: right;
     }
     .std-profit-note {
-      margin-top: .22rem;
+      margin-top: .18rem;
       text-align: right;
       color: #bff8e6;
-      font-weight: 700;
-      font-size: .98rem;
+      font-weight: 600;
+      font-size: .85rem;
       letter-spacing: .02em;
     }
 
@@ -686,42 +702,41 @@
     <div class="screen" id="screen-3">
       <div class="screen-title">Standard Promotion Costing &amp; Profitability</div>
       <div class="std-wrap">
-        <div class="std-top-strip">
-          <div class="std-top-item">Revenue<br><strong>$6.7B</strong></div>
-          <div class="std-top-item">GM<br><strong>$3.5B</strong></div>
-          <div class="std-top-item">Operating Income<br><strong>$1.48B</strong></div>
-        </div>
-
         <div class="std-promo-head">
-          <div class="std-promo-title">Promotion: Super Bowl Packaging</div>
-          <div class="std-promo-vol">Incremental Volume: 44,818 bbl</div>
+          <div class="std-promo-title">Coors Light – Super Bowl Promotion</div>
+          <div class="std-promo-vol">Planned Incremental Volume: 44,818 bbl</div>
         </div>
 
+        <div class="std-col-headers">
+          <span></span>
+          <span>Total $</span>
+          <span>$ / bbl</span>
+        </div>
         <div class="std-table">
           <div class="std-row">
             <div class="label">Incremental Revenue</div>
             <div class="amount pos">+ $5,548,257</div>
-            <div class="per pos">($123.84 / bbl)</div>
+            <div class="per pos">$123.84</div>
           </div>
           <div class="std-row">
             <div class="label">Normal Product Cost</div>
             <div class="amount neg">- $3,876,106</div>
-            <div class="per neg">($86.53 / bbl)</div>
+            <div class="per neg">$86.53</div>
           </div>
           <div class="std-row">
             <div class="label">Slotting &amp; Display Allowances</div>
             <div class="amount neg">- $306,208</div>
-            <div class="per neg">($6.83 / bbl)</div>
+            <div class="per neg">$6.83</div>
           </div>
           <div class="std-row">
             <div class="label">Repack (Labor + Materials)</div>
             <div class="amount neg">- $220,503</div>
-            <div class="per neg">($4.92 / bbl)</div>
+            <div class="per neg">$4.92</div>
           </div>
           <div class="std-row">
             <div class="label">Incremental Freight</div>
             <div class="amount neg">- $83,812</div>
-            <div class="per neg">($1.87 / bbl)</div>
+            <div class="per neg">$1.87</div>
           </div>
         </div>
 
@@ -729,9 +744,9 @@
           <div class="std-profit">
             <div class="label">Incremental Profit</div>
             <div class="amount">+ $1,061,628</div>
-            <div class="per">(~$23.7 / bbl)</div>
+            <div class="per">$23.70</div>
           </div>
-          <div class="std-profit-note">(~19% margin)</div>
+          <div class="std-profit-note">~19% incremental margin</div>
         </div>
       </div>
       <div class="action-strip">
