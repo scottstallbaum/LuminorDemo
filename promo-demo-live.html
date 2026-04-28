@@ -1188,14 +1188,32 @@
       overflow-y: auto;
     }
     .benefits-section-title {
-      font-size: 1.08rem;
-      font-weight: 800;
-      color: #f2f8ff;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: #6b7fa3;
       margin-bottom: .8rem;
     }
-    .benefits-divider {
+    .row-section-label td {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: #6b7fa3;
+      padding: .9rem .6rem .3rem;
+      border-bottom: none;
+    }
+    .row-section-label--gap td {
+      padding-top: 1.4rem;
       border-top: 1px solid #24314d;
-      margin: 1.6rem 0;
+    }
+    .row-grand-total td {
+      font-weight: 800;
+      font-size: .95rem;
+      color: #f2f8ff;
+      border-top: 2px solid rgba(69,208,162,.45);
+      padding-top: .75rem;
     }
     .benefits-table {
       width: 100%;
@@ -1812,85 +1830,78 @@
     <div class="screen" id="screen-11">
       <div class="screen-title">Lead Time Constraint — Estimated Impact</div>
       <div class="benefits-wrap">
-        <div class="benefits-section">
-          <div class="benefits-section-title">Direct impact</div>
-          <table class="benefits-table">
-            <thead>
-              <tr>
-                <th>Cost category</th>
-                <th>Current</th>
-                <th>Adjusted</th>
-                <th>Change</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Inbound transportation</td>
-                <td>4.0</td>
-                <td>3.2</td>
-                <td class="cell-change"><span class="chg-arrow">↓</span> 0.8</td>
-              </tr>
-              <tr>
-                <td>Outbound (standard)</td>
-                <td>9.0</td>
-                <td>7.2</td>
-                <td class="cell-change"><span class="chg-arrow">↓</span> 1.8</td>
-              </tr>
-              <tr>
-                <td>Expedited</td>
-                <td>12.0</td>
-                <td>5.5</td>
-                <td class="cell-change"><span class="chg-arrow">↓</span> 6.5</td>
-              </tr>
-              <tr class="row-total">
-                <td>Transportation total</td>
-                <td>25.0</td>
-                <td>15.9</td>
-                <td class="cell-change"><span class="chg-arrow">↓</span> 9.1</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="benefits-divider"></div>
-        <div class="benefits-section">
-          <div class="benefits-section-title">Indirect impact</div>
-          <table class="benefits-table">
-            <thead>
-              <tr>
-                <th>Cost category</th>
-                <th>Current</th>
-                <th>Adjusted</th>
-                <th>Change</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Manufacturing</td>
-                <td class="cell-warn">14.0</td>
-                <td class="cell-warn">12.8</td>
-                <td class="cell-change"><span class="chg-arrow">↓</span> 1.2</td>
-              </tr>
-              <tr>
-                <td>Inventory</td>
-                <td class="cell-warn">6.0</td>
-                <td class="cell-warn">5.2</td>
-                <td class="cell-change"><span class="chg-arrow">↓</span> 0.8</td>
-              </tr>
-              <tr>
-                <td>Penalties</td>
-                <td class="cell-warn">2.0</td>
-                <td class="cell-warn">1.5</td>
-                <td class="cell-change"><span class="chg-arrow">↓</span> 0.5</td>
-              </tr>
-              <tr class="row-total">
-                <td>Indirect total</td>
-                <td></td>
-                <td></td>
-                <td class="cell-change"><span class="chg-arrow">↓</span> 2.5</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <table class="benefits-table">
+          <thead>
+            <tr>
+              <th>Cost category</th>
+              <th>Current</th>
+              <th>Improved</th>
+              <th>Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row-section-label">
+              <td colspan="4">Direct impact</td>
+            </tr>
+            <tr>
+              <td>Inbound transportation</td>
+              <td>4.0</td>
+              <td>3.2</td>
+              <td class="cell-change"><span class="chg-arrow">↓</span> 0.8</td>
+            </tr>
+            <tr>
+              <td>Outbound (standard)</td>
+              <td>9.0</td>
+              <td>7.2</td>
+              <td class="cell-change"><span class="chg-arrow">↓</span> 1.8</td>
+            </tr>
+            <tr>
+              <td>Expedited</td>
+              <td>12.0</td>
+              <td>5.5</td>
+              <td class="cell-change"><span class="chg-arrow">↓</span> 6.5</td>
+            </tr>
+            <tr class="row-total">
+              <td>Transportation total</td>
+              <td>25.0</td>
+              <td>15.9</td>
+              <td class="cell-change"><span class="chg-arrow">↓</span> 9.1</td>
+            </tr>
+            <tr class="row-section-label row-section-label--gap">
+              <td colspan="4">Indirect impact</td>
+            </tr>
+            <tr>
+              <td>Manufacturing</td>
+              <td class="cell-warn">14.0</td>
+              <td class="cell-warn">12.8</td>
+              <td class="cell-change"><span class="chg-arrow">↓</span> 1.2</td>
+            </tr>
+            <tr>
+              <td>Inventory</td>
+              <td class="cell-warn">6.0</td>
+              <td class="cell-warn">5.2</td>
+              <td class="cell-change"><span class="chg-arrow">↓</span> 0.8</td>
+            </tr>
+            <tr>
+              <td>Penalties</td>
+              <td class="cell-warn">2.0</td>
+              <td class="cell-warn">1.5</td>
+              <td class="cell-change"><span class="chg-arrow">↓</span> 0.5</td>
+            </tr>
+            <tr class="row-total">
+              <td>Indirect total</td>
+              <td class="cell-warn">22.0</td>
+              <td class="cell-warn">19.5</td>
+              <td class="cell-change"><span class="chg-arrow">↓</span> 2.5</td>
+            </tr>
+            <tr class="row-grand-total">
+              <td>Grand total</td>
+              <td>47.0</td>
+              <td>35.4</td>
+              <td class="cell-change"><span class="chg-arrow">↓</span> 11.6</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <div class="action-strip">
         <button class="btn-ghost" onclick="goTo(10)">← Back</button>
