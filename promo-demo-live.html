@@ -1179,14 +1179,13 @@
     }
     .lt-input-group .lt-days-input {
       border: none;
-      border-right: 1px solid rgba(69,208,162,.22);
+      border-left: 1px solid rgba(69,208,162,.22);
       border-radius: 0;
       background: transparent;
       width: 48px;
     }
     .lt-input-group .lt-days-unit {
-      border-right: 1px solid rgba(69,208,162,.22);
-      padding: 0 .45rem;
+      padding: 0 .55rem 0 .25rem;
       line-height: 2;
     }
     .lt-constraint-btn--attached {
@@ -1724,12 +1723,12 @@
               <div class="lt-constraint-block">
                 <div class="lt-constraint-label">Apply Lead Time Constraint</div>
                 <div class="lt-constraint-row">
-                  <button class="lt-constraint-btn" onclick="applyLeadTimeConstraint('benchmark')">Normalize to Benchmark</button>
+                  <button class="lt-constraint-btn" onclick="applyLeadTimeConstraint('benchmark')">Raise to High-Margin Average</button>
                   <div class="lt-minlead-wrap">
                     <div class="lt-input-group">
+                      <button class="lt-constraint-btn lt-constraint-btn--attached" onclick="applyLeadTimeConstraint('minimum')">Set Minimum</button>
                       <input class="lt-days-input" id="lt-min-days" type="number" min="1" max="30" value="10" step="1" />
                       <span class="lt-days-unit">days</span>
-                      <button class="lt-constraint-btn lt-constraint-btn--attached" onclick="applyLeadTimeConstraint('minimum')">Set Minimum Lead Time</button>
                     </div>
                   </div>
                 </div>
@@ -3078,28 +3077,32 @@
     const chart = leadState.leadTimeLowMarginChart;
     if (!chart) return;
     if (mode === 'benchmark') {
-      // Remove any minimum constraint line; add/update benchmark line at high-margin avg
+      removeLeadTimeAnnotationLine(chart, 'minimum');
       const highAvg = Number(document.getElementById('lt-leg-high-avg')
         ?.textContent.match(/[\d.]+/)?.[0] || 12.1);
-      setLeadTimeAnnotationLine(chart, 'benchmark', highAvg, 'rgba(173,215,223,.85)', 'Benchmark avg (' + highAvg.toFixed(1) + ' days)');
-      removeLeadTimeAnnotationLine(chart, 'minimum');
+      setLeadTimeAnnotationLine(chart, 'benchmark', highAvg,
+        'rgba(173,215,223,.85)', 'rgba(173,215,223,.13)',
+        'Raise to high-margin avg (' + highAvg.toFixed(1) + ' days)');
     } else {
+      removeLeadTimeAnnotationLine(chart, 'benchmark');
       const days = parseFloat(document.getElementById('lt-min-days').value) || 10;
-      setLeadTimeAnnotationLine(chart, 'minimum', days, 'rgba(255,174,87,.9)', 'Min constraint (' + days + ' days)');
+      setLeadTimeAnnotationLine(chart, 'minimum', days,
+        'rgba(255,174,87,.9)', 'rgba(255,174,87,.15)',
+        'Min lead time (' + days + ' days)');
     }
   }
   window.applyLeadTimeConstraint = applyLeadTimeConstraint;
 
-  function setLeadTimeAnnotationLine(chart, key, yVal, color, labelText) {
-    // Store annotation as a custom dataset tagged by key; remove previous if exists
+  function setLeadTimeAnnotationLine(chart, key, yVal, lineColor, fillColor, labelText) {
     removeLeadTimeAnnotationLine(chart, key);
     const count = chart.data.labels.length;
     chart.data.datasets.push({
       _annotationKey: key,
       label: labelText,
       data: Array(count).fill(yVal),
-      fill: false,
-      borderColor: color,
+      fill: { target: 0, above: fillColor, below: 'transparent' },
+      borderColor: lineColor,
+      backgroundColor: fillColor,
       borderDash: [10, 4],
       borderWidth: 2,
       pointRadius: 0,
