@@ -2825,23 +2825,16 @@
 
     const labels = ["High-volume, low-margin", "High-volume, high-margin"];
 
-    // Transportation category totals from the waterfall decomposition:
-    // high-margin = 4% + 3% + 4% = 11%
+    // Transportation category totals from the exact waterfall deltas:
     // low-margin  = 4% + 9% + 12% = 25%
+    // high-margin = 4% + 3% + 4% = 11%
     const transportationTotals = [25, 11];
 
     const componentData = {
-      inbound: [3.3, 2.3],
-      outbound: [6.1, 5.6],
-      expedited: [15.6, 3.1]
+      inbound: [4, 4],
+      outbound: [9, 3],
+      expedited: [12, 4]
     };
-
-    // Force perfect reconciliation with waterfall transportation anchors.
-    for (let i = 0; i < transportationTotals.length; i++) {
-      const current = componentData.inbound[i] + componentData.outbound[i] + componentData.expedited[i];
-      const residual = Number((transportationTotals[i] - current).toFixed(2));
-      componentData.outbound[i] = Number((componentData.outbound[i] + residual).toFixed(2));
-    }
 
     const maxTransport = Math.max(...transportationTotals);
     const yMax = Math.ceil((maxTransport * 1.18) / 2) * 2;
