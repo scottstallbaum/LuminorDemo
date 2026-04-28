@@ -115,7 +115,7 @@
     }
     #screen-5,
     #screen-6 {
-      overflow-y: auto;
+      overflow: hidden;
     }
     .screen-title {
       font-size: .78rem;
@@ -787,16 +787,16 @@
 
     /* ── Lead Times screen ───────────────────────────────────── */
     .lead-wrap {
-      max-width: 880px;
+      max-width: 840px;
       width: 100%;
       align-self: center;
       display: flex;
       flex-direction: column;
-      gap: .95rem;
+      gap: .75rem;
       border: 1px solid #2a3b5c;
       border-radius: .85rem;
       background: linear-gradient(180deg, #111b2d 0%, #0d1628 100%);
-      padding: 1rem 1.1rem;
+      padding: .82rem .95rem;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 16px 34px rgba(0,0,0,.22);
     }
     .lead-hero {
@@ -804,17 +804,17 @@
       justify-content: space-between;
       align-items: baseline;
       gap: 1rem;
-      padding-bottom: .75rem;
+      padding-bottom: .55rem;
       border-bottom: 1px dashed rgba(159,176,211,.35);
     }
     .lead-hero-title {
-      font-size: 1.2rem;
+      font-size: 1.08rem;
       font-weight: 800;
       color: #eff5ff;
       letter-spacing: .01em;
     }
     .lead-hero-metric {
-      font-size: .86rem;
+      font-size: .8rem;
       color: #9fd8c4;
       font-weight: 700;
       letter-spacing: .06em;
@@ -825,29 +825,29 @@
       border: 1px solid #24314d;
       border-radius: .74rem;
       background: rgba(255,255,255,.02);
-      padding: .95rem 1rem 1rem;
+      padding: .75rem .85rem .85rem;
     }
     .lead-chart-head {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
       gap: 1rem;
-      margin-bottom: .7rem;
+      margin-bottom: .45rem;
     }
     .lead-chart-head h4 {
-      font-size: 1rem;
+      font-size: .94rem;
       font-weight: 700;
       color: #f3f7ff;
       line-height: 1.3;
     }
     .lead-chart-sub {
-      font-size: .8rem;
+      font-size: .74rem;
       color: var(--muted);
       font-weight: 500;
     }
     .lead-chart-wrap {
       position: relative;
-      height: 470px;
+      height: 360px;
     }
     .lead-controls {
       display: flex;
@@ -855,7 +855,7 @@
       align-items: center;
       gap: 1rem;
       border-top: 1px dashed rgba(159,176,211,.28);
-      padding-top: .8rem;
+      padding-top: .65rem;
     }
     .lead-selection-copy {
       display: flex;
@@ -870,7 +870,7 @@
       font-weight: 700;
     }
     .lead-selection-copy .value {
-      font-size: .98rem;
+      font-size: .9rem;
       color: #ecf3ff;
       font-weight: 600;
     }
@@ -1726,7 +1726,7 @@
   const leadTimesDriver = document.getElementById("lead-times-driver");
   if (leadTimesDriver) {
     leadTimesDriver.addEventListener("click", () => {
-      showThinking(() => goTo(5), 'Analyzing lead times…');
+      goTo(5);
     });
   }
 
