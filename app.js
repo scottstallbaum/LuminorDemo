@@ -335,6 +335,10 @@ const els = {
   segmentRealityEmpty: document.getElementById("segment-reality-empty"),
   segmentRealityChart: document.getElementById("segment-reality-chart"),
   segmentRealityFooter: document.getElementById("segment-reality-footer"),
+  priceWalkPanel: document.getElementById("price-walk-panel"),
+  priceWalkLegend: document.getElementById("price-walk-legend"),
+  priceWalkSvg: document.getElementById("price-walk-svg"),
+  priceWalkTooltip: document.getElementById("price-walk-tooltip"),
   comparisonPanel: document.getElementById("comparison-panel"),
   comparisonCurrentWaterfall: document.getElementById("comparison-current-waterfall"),
   comparisonCompareWaterfall: document.getElementById("comparison-compare-waterfall"),
@@ -434,6 +438,309 @@ let breakdownChart;
 let whaleCurveChart;
 let bubbleChart;
 let segmentRealityChart;
+
+const PRICE_WALK_SEGMENTS = [
+  "Budget",
+  "Near Premium",
+  "Premium",
+  "Above Premium",
+  "Non-Alcohol",
+  "Contract"
+];
+
+const PRICE_WALK_SEGMENT_COLORS = [
+  "#c4ccd9",
+  "#b2bfd4",
+  "#93a6c3",
+  "#7089ae",
+  "#4f688f",
+  "#314c74"
+];
+
+const PRICE_WALK_COLUMNS = [
+  { key: "skus", label: "#SKUs", totalLabel: "1,704", totalSubLabel: "Plant-OSKUs", totalValue: 1704, unit: "sku" },
+  { key: "volume", label: "Volume", totalLabel: "55M", totalSubLabel: "bbl", totalValue: 55_000_000, unit: "volume" },
+  { key: "netSales", label: "Net Sales", totalLabel: "$6.4B", totalSubLabel: "", totalValue: 6_400_000_000, unit: "money" },
+  { key: "adjGp", label: "Adjusted Gross Profit", totalLabel: "$3.3B", totalSubLabel: "", totalValue: 3_300_000_000, unit: "money" },
+  { key: "adjOp", label: "Adjusted Operating Profit", totalLabel: "$1.5B", totalSubLabel: "", totalValue: 1_500_000_000, unit: "money" }
+];
+
+const PRICE_WALK_PCT = {
+  skus: [16.2, 16.4, 27.9, 11.0, 0.9, 27.7],
+  volume: [15.6, 12.2, 57.8, 5.5, -0.2, 8.7],
+  netSales: [12.9, 10.4, 68.0, 8.5, 0.2, 0.0],
+  adjGp: [9.8, 6.9, 73.6, 9.6, 0.1, 0.0],
+  adjOp: [9.4, 4.8, 78.7, 7.3, 0.1, -0.3]
+};
+
+function formatPriceWalkAbsolute(unit, value) {
+  if (unit === "sku") {
+    return `${Math.round(value).toLocaleString()} SKUs`;
+  }
+  if (unit === "volume") {
+    return `${(value / 1_000_000).toFixed(2)}M bbl`;
+  }
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+  if (abs >= 1_000_000_000) return `${sign}$${(abs / 1_000_000_000).toFixed(2)}B`;
+  if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(1)}M`;
+  return `${sign}$${abs.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+}
+
+function setPriceWalkTooltipPosition(event) {
+  const tip = els.priceWalkTooltip;
+  if (!tip || tip.classList.contains("is-hidden")) return;
+  const pad = 12;
+  const x = event.clientX + 14;
+  const y = event.clientY + 12;
+  const maxLeft = window.innerWidth - tip.offsetWidth - pad;
+  const maxTop = window.innerHeight - tip.offsetHeight - pad;
+  tip.style.left = `${Math.max(pad, Math.min(x, maxLeft))}px`;
+  tip.style.top = `${Math.max(pad, Math.min(y, maxTop))}px`;
+}
+
+function hidePriceWalkTooltip() {
+  const tip = els.priceWalkTooltip;
+  if (!tip) return;
+  tip.classList.add("is-hidden");
+}
+
+function renderPriceSegmentWalk() {
+  if (!els.priceWalkSvg || !els.priceWalkLegend) return;
+
+  const svg = els.priceWalkSvg;
+  const rect = svg.getBoundingClientRect();
+  const width = Math.max(880, Math.floor(rect.width || svg.clientWidth || 0));
+  const height = 450;
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.innerHTML = "";
+
+  els.priceWalkLegend.innerHTML = PRICE_WALK_SEGMENTS.map((segment, i) => `
+    <span class="price-walk-legend-item">
+      <span class="price-walk-legend-swatch" style="background:${PRICE_WALK_SEGMENT_COLORS[i]}"></span>
+      <span>${segment}</span>
+    </span>
+  `).join("");
+
+  const NS = "http://www.w3.org/2000/svg";
+  const make = (tag, attrs = {}) => {
+    const node = document.createElementNS(NS, tag);
+    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+    return node;
+  };
+
+  const chartLeft = 146;
+  const chartTop = 72;
+  const chartRight = width - 28;
+  const chartBottom = height - 58;
+  const chartWidth = chartRight - chartLeft;
+  const chartHeight = chartBottom - chartTop;
+  const barWidth = Math.max(50, Math.min(78, chartWidth / 11));
+  const valueMin = -2;
+  const valueMax = 100;
+  const colGap = chartWidth / (PRICE_WALK_COLUMNS.length - 1);
+
+  const yOf = (val) => chartTop + ((valueMax - val) / (valueMax - valueMin)) * chartHeight;
+  const baselineY = yOf(0);
+
+  svg.appendChild(make("line", {
+    x1: chartLeft - 28,
+    y1: baselineY,
+    x2: chartRight,
+    y2: baselineY,
+    stroke: "rgba(159,176,211,.4)",
+    "stroke-width": 1
+  }));
+
+  const columnLayouts = [];
+
+  PRICE_WALK_COLUMNS.forEach((column, colIdx) => {
+    const x = chartLeft + colIdx * colGap;
+    const values = PRICE_WALK_PCT[column.key];
+    const colGroup = make("g");
+    let pos = 0;
+    let neg = 0;
+    const segmentLayout = Array(PRICE_WALK_SEGMENTS.length).fill(null);
+
+    for (let segIdx = PRICE_WALK_SEGMENTS.length - 1; segIdx >= 0; segIdx -= 1) {
+      const val = values[segIdx] || 0;
+      let start = 0;
+      let end = 0;
+      if (val >= 0) {
+        start = pos;
+        end = pos + val;
+        pos = end;
+      } else {
+        start = neg;
+        end = neg + val;
+        neg = end;
+      }
+
+      const y1 = yOf(start);
+      const y2 = yOf(end);
+      const y = Math.min(y1, y2);
+      const h = Math.max(0.6, Math.abs(y2 - y1));
+      const fill = PRICE_WALK_SEGMENT_COLORS[segIdx];
+
+      const r = make("rect", {
+        x: x - barWidth / 2,
+        y,
+        width: barWidth,
+        height: h,
+        fill,
+        stroke: "rgba(255,255,255,.2)",
+        "stroke-width": 0.8,
+        "data-segment": PRICE_WALK_SEGMENTS[segIdx],
+        "data-column": column.label,
+        "data-pct": val.toFixed(1),
+        "data-rank": "0",
+        "data-abs": formatPriceWalkAbsolute(column.unit, (val / 100) * column.totalValue)
+      });
+
+      colGroup.appendChild(r);
+      segmentLayout[segIdx] = {
+        centerY: (y1 + y2) / 2,
+        value: val,
+        rect: r
+      };
+
+      if (Math.abs(val) >= 0.35) {
+        const tx = make("text", {
+          x,
+          y: y + h / 2 + 4,
+          fill: segIdx >= 4 ? "#f1f6ff" : "#0b1220",
+          "font-size": 12,
+          "text-anchor": "middle",
+          "font-weight": 500
+        });
+        tx.textContent = `${val.toFixed(1)}%`;
+        colGroup.appendChild(tx);
+      } else if (Math.abs(val) > 0.001) {
+        const labelY = val >= 0 ? y - 8 : y + h + 16;
+        colGroup.appendChild(make("line", {
+          x1: x + barWidth / 2,
+          y1: (y1 + y2) / 2,
+          x2: x + barWidth / 2 + 18,
+          y2: labelY - 4,
+          stroke: "rgba(159,176,211,.6)",
+          "stroke-width": 0.9,
+          "stroke-dasharray": "2 2"
+        }));
+        const tiny = make("text", {
+          x: x + barWidth / 2 + 20,
+          y: labelY,
+          fill: "#c8d4eb",
+          "font-size": 11,
+          "text-anchor": "start"
+        });
+        tiny.textContent = `${val.toFixed(1)}%`;
+        colGroup.appendChild(tiny);
+      }
+    }
+
+    const ranked = values
+      .map((value, idx) => ({ value, idx }))
+      .sort((a, b) => b.value - a.value)
+      .reduce((acc, item, rankIndex) => {
+        acc[item.idx] = rankIndex + 1;
+        return acc;
+      }, {});
+
+    segmentLayout.forEach((layout, segIdx) => {
+      if (!layout) return;
+      layout.rect.setAttribute("data-rank", String(ranked[segIdx] || 0));
+    });
+
+    const topValue = make("text", {
+      x,
+      y: chartTop - 26,
+      fill: "#eaf1ff",
+      "font-size": 27,
+      "font-weight": 700,
+      "text-anchor": "middle"
+    });
+    topValue.textContent = column.totalLabel;
+    svg.appendChild(topValue);
+
+    if (column.totalSubLabel) {
+      const topSub = make("text", {
+        x,
+        y: chartTop - 7,
+        fill: "#9fb0d3",
+        "font-size": 13,
+        "text-anchor": "middle"
+      });
+      topSub.textContent = column.totalSubLabel;
+      svg.appendChild(topSub);
+    }
+
+    const bottom = make("text", {
+      x,
+      y: chartBottom + 32,
+      fill: "#d9e5fb",
+      "font-size": 14,
+      "font-weight": 600,
+      "text-anchor": "middle"
+    });
+    bottom.textContent = column.label;
+    svg.appendChild(bottom);
+
+    svg.appendChild(colGroup);
+    columnLayouts.push({ x, segments: segmentLayout });
+  });
+
+  PRICE_WALK_SEGMENTS.forEach((segment, segIdx) => {
+    for (let i = 0; i < columnLayouts.length - 1; i += 1) {
+      const a = columnLayouts[i].segments[segIdx];
+      const b = columnLayouts[i + 1].segments[segIdx];
+      if (!a || !b) continue;
+      svg.insertBefore(make("line", {
+        x1: columnLayouts[i].x + barWidth / 2,
+        y1: a.centerY,
+        x2: columnLayouts[i + 1].x - barWidth / 2,
+        y2: b.centerY,
+        stroke: "rgba(159,176,211,.62)",
+        "stroke-width": 1,
+        "stroke-dasharray": "3 3"
+      }), svg.firstChild);
+    }
+  });
+
+  const firstCol = columnLayouts[0]?.segments || [];
+  firstCol.forEach((layout, segIdx) => {
+    if (!layout) return;
+    const t = make("text", {
+      x: chartLeft - barWidth / 2 - 14,
+      y: layout.centerY + 4,
+      fill: "#e1eaf9",
+      "font-size": 13,
+      "text-anchor": "end"
+    });
+    t.textContent = PRICE_WALK_SEGMENTS[segIdx];
+    svg.appendChild(t);
+  });
+
+  svg.querySelectorAll("rect[data-segment]").forEach((node) => {
+    node.addEventListener("mouseenter", (event) => {
+      if (!els.priceWalkTooltip) return;
+      const segment = node.getAttribute("data-segment") || "";
+      const column = node.getAttribute("data-column") || "";
+      const pct = node.getAttribute("data-pct") || "0.0";
+      const abs = node.getAttribute("data-abs") || "";
+      const rank = node.getAttribute("data-rank") || "";
+      els.priceWalkTooltip.innerHTML = `
+        <div class="tooltip-title">${segment} • ${column}</div>
+        <div class="tooltip-row"><span>Mix share</span><strong>${pct}%</strong></div>
+        <div class="tooltip-row"><span>Absolute value</span><strong>${abs}</strong></div>
+        <div class="tooltip-row"><span>Contribution rank</span><strong>#${rank}</strong></div>
+      `;
+      els.priceWalkTooltip.classList.remove("is-hidden");
+      setPriceWalkTooltipPosition(event);
+    });
+    node.addEventListener("mousemove", (event) => setPriceWalkTooltipPosition(event));
+    node.addEventListener("mouseleave", hidePriceWalkTooltip);
+  });
+}
 
 function reportRuntimeError(error, source = "runtime") {
   const message = error && error.message ? error.message : String(error || "Unknown error");
@@ -3866,6 +4173,7 @@ function render() {
     }));
     els.insightStripPanel?.classList.add("is-hidden");
     safeRenderSection("segmentReality", () => renderSegmentRealityCheck(focusedRows));
+    safeRenderSection("priceSegmentWalk", () => renderPriceSegmentWalk());
     safeRenderSection("breakdown", () => renderBreakdownPanel(totals));
     return;
   }
@@ -3874,6 +4182,7 @@ function render() {
   safeRenderSection("summaryKpis", () => renderSummaryKpis(totals, focusedRows));
   safeRenderSection("insightStrip", () => renderInsightStrip(focusedRows));
   safeRenderSection("segmentReality", () => renderSegmentRealityCheck(focusedRows));
+  safeRenderSection("priceSegmentWalk", () => renderPriceSegmentWalk());
   safeRenderSection("skuRanking", () => renderSkuRanking(focusedRows, {
     scope: "single"
   }));

@@ -157,8 +157,82 @@ textarea {
   order: 40;
 }
 
+#price-walk-panel {
+  order: 45;
+}
+
 #insight-strip-panel {
   order: 50;
+}
+
+.price-walk-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem .9rem;
+  margin: .15rem 0 .65rem;
+}
+
+.price-walk-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  color: var(--muted);
+  font-size: .76rem;
+  font-weight: 500;
+}
+
+.price-walk-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,.14);
+}
+
+.price-walk-chart-wrap {
+  position: relative;
+  border: 1px solid rgba(159,176,211,.12);
+  border-radius: .7rem;
+  background: linear-gradient(180deg, rgba(255,255,255,.024), rgba(255,255,255,.012));
+  padding: .2rem;
+}
+
+.price-walk-svg {
+  width: 100%;
+  height: 450px;
+  display: block;
+}
+
+.price-walk-tooltip {
+  position: fixed;
+  z-index: 9999;
+  max-width: 270px;
+  border: 1px solid rgba(159,176,211,.26);
+  border-radius: .55rem;
+  background: rgba(10,18,33,.96);
+  color: var(--text);
+  box-shadow: 0 12px 26px rgba(0,0,0,.34);
+  padding: .55rem .64rem;
+  pointer-events: none;
+  font-size: .77rem;
+  line-height: 1.35;
+}
+
+.price-walk-tooltip .tooltip-title {
+  font-size: .8rem;
+  font-weight: 700;
+  margin-bottom: .35rem;
+}
+
+.price-walk-tooltip .tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: .8rem;
+  color: var(--muted);
+}
+
+.price-walk-tooltip .tooltip-row strong {
+  color: var(--text);
+  font-weight: 700;
 }
 
 #sku-ranking-panel,
