@@ -113,6 +113,10 @@
     #screen-3 {
       overflow-y: auto;
     }
+    #screen-5,
+    #screen-6 {
+      overflow-y: auto;
+    }
     .screen-title {
       font-size: .78rem;
       font-weight: 600;
@@ -783,12 +787,12 @@
 
     /* ── Lead Times screen ───────────────────────────────────── */
     .lead-wrap {
-      max-width: 760px;
+      max-width: 880px;
       width: 100%;
       align-self: center;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: .95rem;
       border: 1px solid #2a3b5c;
       border-radius: .85rem;
       background: linear-gradient(180deg, #111b2d 0%, #0d1628 100%);
@@ -817,50 +821,63 @@
       text-transform: uppercase;
       white-space: nowrap;
     }
-    .lead-placeholder {
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 1rem;
-    }
-    .lead-card {
+    .lead-chart-card {
       border: 1px solid #24314d;
       border-radius: .74rem;
       background: rgba(255,255,255,.02);
-      padding: .95rem 1rem;
+      padding: .95rem 1rem 1rem;
     }
-    .lead-card h4 {
-      font-size: .75rem;
+    .lead-chart-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: .7rem;
+    }
+    .lead-chart-head h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #f3f7ff;
+      line-height: 1.3;
+    }
+    .lead-chart-sub {
+      font-size: .8rem;
       color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .09em;
-      margin-bottom: .55rem;
+      font-weight: 500;
     }
-    .lead-card p {
-      color: #dce8ff;
-      font-size: .95rem;
-      line-height: 1.55;
+    .lead-chart-wrap {
+      position: relative;
+      height: 470px;
     }
-    .lead-card ul {
-      list-style: none;
+    .lead-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      border-top: 1px dashed rgba(159,176,211,.28);
+      padding-top: .8rem;
+    }
+    .lead-selection-copy {
       display: flex;
       flex-direction: column;
-      gap: .45rem;
+      gap: .18rem;
     }
-    .lead-card li {
-      color: #dce8ff;
-      font-size: .92rem;
-      padding-left: .85rem;
-      position: relative;
+    .lead-selection-copy .eyebrow {
+      font-size: .72rem;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 700;
     }
-    .lead-card li::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #45d0a2;
-      position: absolute;
-      left: 0;
-      top: .48rem;
+    .lead-selection-copy .value {
+      font-size: .98rem;
+      color: #ecf3ff;
+      font-weight: 600;
+    }
+    .lead-btn[disabled] {
+      opacity: .45;
+      cursor: not-allowed;
+      filter: grayscale(.15);
     }
 
     /* ── Thinking overlay ─────────────────────────────────────── */
@@ -1179,7 +1196,7 @@
       </div>
     </div>
 
-    <!-- ── Screen 5 placeholder ───────────────────────────────── -->
+    <!-- ── Screen 5: Lead Times scatter ───────────────────────── -->
     <div class="screen" id="screen-5">
       <div class="screen-title">Lead Times</div>
       <div class="lead-wrap">
@@ -1187,19 +1204,23 @@
           <div class="lead-hero-title">Lead Times</div>
           <div class="lead-hero-metric">$82.5M addressable cost</div>
         </div>
-        <div class="lead-placeholder">
-          <div class="lead-card">
-            <h4>Demo Direction</h4>
-            <p>This path will show how longer and inconsistent lead times drive cost through earlier commitments, service buffers, and avoidable fulfillment inefficiency.</p>
+        <div class="lead-chart-card">
+          <div class="lead-chart-head">
+            <div>
+              <h4>Economic Contribution vs. Volume (by SKU)</h4>
+              <div class="lead-chart-sub">Click a quadrant to isolate a customer / SKU segment for analysis.</div>
+            </div>
           </div>
-          <div class="lead-card">
-            <h4>Planned Drilldowns</h4>
-            <ul>
-              <li>Current vs recommended lead-time bands</li>
-              <li>Cost impact by customer / lane</li>
-              <li>Service and inventory tradeoff view</li>
-            </ul>
+          <div class="lead-chart-wrap">
+            <canvas id="lead-sku-scatter"></canvas>
           </div>
+        </div>
+        <div class="lead-controls">
+          <div class="lead-selection-copy">
+            <div class="eyebrow">Selected Segment</div>
+            <div class="value" id="lead-selection-copy">Choose a quadrant to continue</div>
+          </div>
+          <button class="btn-primary lead-btn" id="btn-lead-segmentation" disabled>Customer Segmentation Analysis →</button>
         </div>
       </div>
       <div class="action-strip">
@@ -1207,10 +1228,24 @@
       </div>
     </div>
 
-    <!-- ── Screen 6 placeholder ───────────────────────────────── -->
+    <!-- ── Screen 6: Lead Times next step ─────────────────────── -->
     <div class="screen" id="screen-6">
-      <div class="screen-title">Screen 6</div>
-      <div class="placeholder">Screen 6 — coming soon</div>
+      <div class="screen-title">Customer Segmentation Analysis</div>
+      <div class="lead-wrap">
+        <div class="lead-hero">
+          <div class="lead-hero-title">Customer Segmentation Analysis</div>
+          <div class="lead-hero-metric" id="lead-selected-segment-label">Awaiting segment</div>
+        </div>
+        <div class="lead-chart-card">
+          <div class="lead-chart-head">
+            <div>
+              <h4>Next Lead Times Screen</h4>
+              <div class="lead-chart-sub">This placeholder is ready for the next Delivery Time Optimization visual once you pick which chart comes next.</div>
+            </div>
+          </div>
+          <div class="placeholder">Lead Times segmentation drilldown — coming next</div>
+        </div>
+      </div>
       <div class="action-strip">
         <button class="btn-ghost" onclick="goTo(5)">← Back</button>
       </div>
@@ -1219,6 +1254,7 @@
   </div><!-- /screens -->
 </div><!-- /app -->
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function () {
   // ── Navigation ────────────────────────────────────────────────
@@ -1250,6 +1286,11 @@
   }
   window.setView = setView;
   window.showThinking = showThinking;
+
+  const leadState = {
+    selectedQuadrant: null,
+    chart: null
+  };
 
   document.getElementById("btn-addressable").addEventListener("click", () => showThinking(() => goTo(2), 'Analyzing cost structure\u2026'));
 
@@ -1340,6 +1381,172 @@
 
     overlay.classList.add('visible');
     raf = requestAnimationFrame(draw);
+  }
+
+  function leadRand(seed) {
+    let t = seed;
+    return function () {
+      t += 0x6D2B79F5;
+      let r = Math.imul(t ^ (t >>> 15), 1 | t);
+      r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+      return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function buildLeadScatterChart() {
+    const canvas = document.getElementById("lead-sku-scatter");
+    if (!canvas || typeof Chart === "undefined") return;
+
+    const r1 = leadRand(11);
+    const quadTopLeft = [];
+    const quadTopRight = [];
+    const quadBottomLeft = [];
+    const quadBottomRight = [];
+
+    function randNormal() {
+      const u = Math.max(1e-6, r1());
+      const v = Math.max(1e-6, r1());
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    }
+
+    function addPointToQuadrant(point) {
+      const { x, y } = point;
+      if (x < 0 && y >= 6) quadTopLeft.push(point);
+      else if (x >= 0 && y >= 6) quadTopRight.push(point);
+      else if (x < 0 && y < 6) quadBottomLeft.push(point);
+      else quadBottomRight.push(point);
+    }
+
+    function addCluster(centerX, centerY, spreadX, spreadY, count) {
+      for (let i = 0; i < count; i++) {
+        const x = centerX + (randNormal() * spreadX);
+        const y = centerY + (randNormal() * spreadY);
+        addPointToQuadrant({
+          x: Math.max(-60, Math.min(60, x)),
+          y: Math.max(0.15, Math.min(11.85, y))
+        });
+      }
+    }
+
+    addCluster(-22, 8.2, 14.5, 1.35, 260);
+    addCluster(22, 8.3, 14.5, 1.35, 300);
+    addCluster(-21, 2.6, 14.5, 1.75, 290);
+    addCluster(22, 2.8, 14.5, 1.85, 320);
+    addCluster(0, 6.0, 8.5, 1.0, 120);
+
+    const leadQuadrantPlugin = {
+      id: "leadQuadrantPlugin",
+      beforeDatasetsDraw(chart) {
+        const { ctx, scales: { x, y } } = chart;
+        const xZero = x.getPixelForValue(0);
+        const yMid = y.getPixelForValue(6);
+        const bounds = {
+          tl: [x.left, y.top, xZero - x.left, yMid - y.top],
+          tr: [xZero, y.top, x.right - xZero, yMid - y.top],
+          bl: [x.left, yMid, xZero - x.left, y.bottom - yMid],
+          br: [xZero, yMid, x.right - xZero, y.bottom - yMid]
+        };
+        const selected = leadState.selectedQuadrant;
+        ctx.save();
+        Object.entries(bounds).forEach(([key, rect]) => {
+          if (selected && selected !== key) {
+            ctx.fillStyle = "rgba(11,18,32,.54)";
+            ctx.fillRect(...rect);
+          }
+          if (selected === key) {
+            ctx.fillStyle = "rgba(69,208,162,.14)";
+            ctx.fillRect(...rect);
+            ctx.strokeStyle = "rgba(69,208,162,.7)";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(rect[0] + 1, rect[1] + 1, rect[2] - 2, rect[3] - 2);
+          }
+        });
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = "rgba(159,176,211,.55)";
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(xZero, y.top);
+        ctx.lineTo(xZero, y.bottom);
+        ctx.moveTo(x.left, yMid);
+        ctx.lineTo(x.right, yMid);
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+
+    leadState.chart = new Chart(canvas, {
+      type: "scatter",
+      data: {
+        datasets: [
+          { label: "Quadrant 1", data: quadTopLeft, backgroundColor: "rgba(255,109,109,.68)", borderColor: "rgba(255,109,109,1)", pointRadius: 2.4 },
+          { label: "Quadrant 2", data: quadTopRight, backgroundColor: "rgba(255,174,87,.68)", borderColor: "rgba(255,174,87,1)", pointRadius: 2.4 },
+          { label: "Quadrant 3", data: quadBottomLeft, backgroundColor: "rgba(88,178,255,.62)", borderColor: "rgba(88,178,255,1)", pointRadius: 2.2 },
+          { label: "Quadrant 4", data: quadBottomRight, backgroundColor: "rgba(69,208,162,.72)", borderColor: "rgba(69,208,162,1)", pointRadius: 2.2 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(15,26,45,.95)",
+            borderColor: "rgba(159,176,211,.2)",
+            borderWidth: 1,
+            titleColor: "#9fb0d3",
+            bodyColor: "#e8eefc",
+            padding: 10
+          }
+        },
+        scales: {
+          x: {
+            min: -60,
+            max: 60,
+            title: { display: true, text: "Contribution Margin %", color: "#9fb0d3" },
+            ticks: { color: "#9fb0d3", callback: (v) => `${Number(v).toFixed(0)}%` },
+            grid: { color: "rgba(159,176,211,.16)" }
+          },
+          y: {
+            min: 0,
+            max: 12,
+            title: { display: true, text: "Volume (k units)", color: "#9fb0d3" },
+            ticks: { color: "#9fb0d3" },
+            grid: { color: "rgba(159,176,211,.16)" }
+          }
+        },
+        onClick: (event, _, chart) => {
+          const pos = Chart.helpers.getRelativePosition(event, chart);
+          const xVal = chart.scales.x.getValueForPixel(pos.x);
+          const yVal = chart.scales.y.getValueForPixel(pos.y);
+          if (xVal == null || yVal == null) return;
+          if (xVal < -60 || xVal > 60 || yVal < 0 || yVal > 12) return;
+          let key = "br";
+          if (xVal < 0 && yVal >= 6) key = "tl";
+          else if (xVal >= 0 && yVal >= 6) key = "tr";
+          else if (xVal < 0 && yVal < 6) key = "bl";
+          setLeadQuadrant(key);
+        }
+      },
+      plugins: [leadQuadrantPlugin]
+    });
+  }
+
+  function setLeadQuadrant(key) {
+    const labels = {
+      tl: "High-volume, low-margin segment",
+      tr: "High-volume, high-margin segment",
+      bl: "Low-volume, low-margin segment",
+      br: "Low-volume, high-margin segment"
+    };
+    leadState.selectedQuadrant = key;
+    const copy = document.getElementById("lead-selection-copy");
+    const nextLabel = document.getElementById("lead-selected-segment-label");
+    const button = document.getElementById("btn-lead-segmentation");
+    if (copy) copy.textContent = labels[key] || "Choose a quadrant to continue";
+    if (nextLabel) nextLabel.textContent = labels[key] || "Awaiting segment";
+    if (button) button.disabled = !key;
+    if (leadState.chart) leadState.chart.update();
   }
 
   // ── Static waterfall data (matches dashboard full-portfolio) ──
@@ -1523,11 +1730,20 @@
     });
   }
 
+  const leadSegBtn = document.getElementById("btn-lead-segmentation");
+  if (leadSegBtn) {
+    leadSegBtn.addEventListener("click", () => {
+      if (!leadState.selectedQuadrant) return;
+      showThinking(() => goTo(6), 'Running customer segmentation analysis…');
+    });
+  }
+
   if (promotionsSublist) {
     promotionsSublist.addEventListener("click", (e) => e.stopPropagation());
   }
 
   initAddressableBars();
+  buildLeadScatterChart();
 })();
 </script>
 </body>
