@@ -2232,11 +2232,16 @@
 
       const low = Math.min(startValue, endValue);
       const high = Math.max(startValue, endValue);
+      const isLastStep = index === config.steps.length - 1;
+      const displayPct = (step.kind === "anchor" || (step.kind === "total" && isLastStep))
+        ? formatPct(endValue)
+        : step.pct;
 
-      labels.push(step.pct);
+      labels.push(displayPct);
       bars.push([low, high]);
       modelSteps.push({
         ...step,
+        pct: displayPct,
         metricValue: step.kind === "delta" ? (endValue - startValue) : endValue,
         start: startValue,
         end: endValue,
@@ -2334,7 +2339,6 @@
         for (let i = 0; i < modelSteps.length - 1; i++) {
           const current = modelSteps[i];
           const next = modelSteps[i + 1];
-          if (current.kind === "total" || next.kind === "total") continue;
           const curr = getBounds(i);
           const nxt = getBounds(i + 1);
           const yy = y.getPixelForValue(current.end);
