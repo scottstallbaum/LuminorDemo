@@ -413,7 +413,6 @@
 
     /* ── Screen 3: Standard Promotion Costing ──────────────── */
     .std-wrap {
-      flex: 1 1 0;
       border: 1px solid #2a3b5c;
       border-radius: .85rem;
       background: linear-gradient(180deg, #111b2d 0%, #0d1628 100%);
@@ -423,6 +422,9 @@
       flex-direction: column;
       min-height: 0;
       gap: .75rem;
+      max-width: 680px;
+      align-self: flex-start;
+      width: 100%;
     }
     .std-top-strip {
       border-top: 1px dashed rgba(159,176,211,.52);
