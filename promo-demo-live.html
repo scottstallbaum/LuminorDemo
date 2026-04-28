@@ -1166,6 +1166,36 @@
     .lt-days-unit {
       font-size: .78rem;
       color: #9fb0d3;
+      padding: 0 .3rem 0 .1rem;
+      user-select: none;
+    }
+    .lt-input-group {
+      display: flex;
+      align-items: center;
+      border: 1px solid rgba(69,208,162,.38);
+      border-radius: .45rem;
+      overflow: hidden;
+      background: rgba(255,255,255,.04);
+    }
+    .lt-input-group .lt-days-input {
+      border: none;
+      border-right: 1px solid rgba(69,208,162,.22);
+      border-radius: 0;
+      background: transparent;
+      width: 48px;
+    }
+    .lt-input-group .lt-days-unit {
+      border-right: 1px solid rgba(69,208,162,.22);
+      padding: 0 .45rem;
+      line-height: 2;
+    }
+    .lt-constraint-btn--attached {
+      border: none;
+      border-radius: 0;
+      background: rgba(69,208,162,.12);
+    }
+    .lt-constraint-btn--attached:hover {
+      background: rgba(69,208,162,.26);
     }
     @media (max-width: 980px) {
       .transport-layout {
@@ -1696,9 +1726,11 @@
                 <div class="lt-constraint-row">
                   <button class="lt-constraint-btn" onclick="applyLeadTimeConstraint('benchmark')">Normalize to Benchmark</button>
                   <div class="lt-minlead-wrap">
-                    <button class="lt-constraint-btn" onclick="applyLeadTimeConstraint('minimum')">Set Minimum Lead Time</button>
-                    <input class="lt-days-input" id="lt-min-days" type="number" min="1" max="30" value="10" step="1" />
-                    <span class="lt-days-unit">days</span>
+                    <div class="lt-input-group">
+                      <input class="lt-days-input" id="lt-min-days" type="number" min="1" max="30" value="10" step="1" />
+                      <span class="lt-days-unit">days</span>
+                      <button class="lt-constraint-btn lt-constraint-btn--attached" onclick="applyLeadTimeConstraint('minimum')">Set Minimum Lead Time</button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3043,14 +3075,42 @@
   window.openLeadTimeComparison = openLeadTimeComparison;
 
   function applyLeadTimeConstraint(mode) {
-    const days = parseFloat(document.getElementById("lt-min-days").value) || 10;
-    // placeholder — hook into simulation logic when ready
-    const label = mode === "benchmark"
-      ? "Normalizing to benchmark lead time…"
-      : `Setting minimum lead time to ${days} days…`;
-    console.log("[lt-constraint]", label);
+    const chart = leadState.leadTimeLowMarginChart;
+    if (!chart) return;
+    if (mode === 'benchmark') {
+      // Remove any minimum constraint line; add/update benchmark line at high-margin avg
+      const highAvg = Number(document.getElementById('lt-leg-high-avg')
+        ?.textContent.match(/[\d.]+/)?.[0] || 12.1);
+      setLeadTimeAnnotationLine(chart, 'benchmark', highAvg, 'rgba(173,215,223,.85)', 'Benchmark avg (' + highAvg.toFixed(1) + ' days)');
+      removeLeadTimeAnnotationLine(chart, 'minimum');
+    } else {
+      const days = parseFloat(document.getElementById('lt-min-days').value) || 10;
+      setLeadTimeAnnotationLine(chart, 'minimum', days, 'rgba(255,174,87,.9)', 'Min constraint (' + days + ' days)');
+    }
   }
   window.applyLeadTimeConstraint = applyLeadTimeConstraint;
+
+  function setLeadTimeAnnotationLine(chart, key, yVal, color, labelText) {
+    // Store annotation as a custom dataset tagged by key; remove previous if exists
+    removeLeadTimeAnnotationLine(chart, key);
+    const count = chart.data.labels.length;
+    chart.data.datasets.push({
+      _annotationKey: key,
+      label: labelText,
+      data: Array(count).fill(yVal),
+      fill: false,
+      borderColor: color,
+      borderDash: [10, 4],
+      borderWidth: 2,
+      pointRadius: 0,
+      tension: 0
+    });
+    chart.update();
+  }
+
+  function removeLeadTimeAnnotationLine(chart, key) {
+    chart.data.datasets = chart.data.datasets.filter(d => d._annotationKey !== key);
+  }
 
   function setSelectedCostSegment(segmentKey) {
     const labelMap = {
