@@ -717,8 +717,55 @@
       color: var(--muted);
       line-height: 1.4;
     }
-    /* btn-optimize — always visible on screen 3 */
-    .btn-optimize { display: inline-flex; }
+    /* ── Screen 4: Comparison table ─────────────────────────── */
+    .cmp-wrap {
+      max-width: 680px;
+      width: 100%;
+      align-self: center;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      border: 1px solid #2a3b5c;
+      border-radius: .85rem;
+      background: linear-gradient(180deg, #111b2d 0%, #0d1628 100%);
+      padding: 1rem 1.1rem;
+    }
+    .cmp-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr;
+      gap: 0;
+    }
+    .cmp-cell {
+      padding: .32rem .5rem;
+      font-size: .92rem;
+      color: #e8eefc;
+      font-weight: 500;
+    }
+    .cmp-cell.hdr {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      padding-bottom: .18rem;
+    }
+    .cmp-cell.hdr.best { color: #45d0a2; }
+    .cmp-cell.rule {
+      border-bottom: 1px dashed rgba(159,176,211,.35);
+      padding: 0;
+      height: .5rem;
+    }
+    .cmp-cell.spacer { padding-top: .55rem; }
+    .cmp-cell.profit {
+      font-size: 1rem;
+      font-weight: 800;
+      padding-top: .55rem;
+      border-top: 1px dashed rgba(159,176,211,.45);
+    }
+    .cmp-cell.profit.neg { color: #ff6d6d; }
+    .cmp-cell.profit.pos { color: #8ff0cc; }
+    .cmp-cell.profit.best-val { color: #45d0a2; }
+
   </style>
 </head>
 <body>
@@ -949,26 +996,47 @@
     <!-- ── Screen 4: Volume Optimization Recommendation ─────── -->
     <div class="screen" id="screen-4">
       <div class="screen-title">Recommendation: Super Bowl Promotion</div>
-      <div class="rec-wrap">
-        <div class="rec-options">
-
-          <div class="rec-card">
-            <div class="rec-card-label">Option 1<br>Reduce Volume to Limit Waste</div>
-            <div class="rec-card-profit">$312,846</div>
-            <div class="rec-card-per">~$8.04 / bbl incremental profit</div>
-            <div class="rec-bar-track"><div class="rec-bar-fill" style="width:68%"></div></div>
-            <div class="rec-card-vol">38,927 bbl</div>
-          </div>
-
-          <div class="rec-card best">
-            <div class="rec-card-tag">Best Option</div>
-            <div class="rec-card-label">Option 2<br>Reduce Volume Further to Reduce Waste + Rework</div>
-            <div class="rec-card-profit">$648,219</div>
-            <div class="rec-card-per">~$18.20 / bbl incremental profit</div>
-            <div class="rec-bar-track"><div class="rec-bar-fill" style="width:62%"></div></div>
-            <div class="rec-card-vol">35,614 bbl</div>
-          </div>
-
+      <div class="cmp-wrap">
+        <div class="cmp-grid">
+          <!-- Header row -->
+          <div class="cmp-cell hdr"></div>
+          <div class="cmp-cell hdr">Baseline</div>
+          <div class="cmp-cell hdr">Option 1</div>
+          <div class="cmp-cell hdr best">Option 2 (Best)</div>
+          <!-- Volume -->
+          <div class="cmp-cell">Volume (bbl)</div>
+          <div class="cmp-cell">44,818</div>
+          <div class="cmp-cell">38,927</div>
+          <div class="cmp-cell">35,614</div>
+          <!-- spacer -->
+          <div class="cmp-cell spacer"></div><div class="cmp-cell spacer"></div><div class="cmp-cell spacer"></div><div class="cmp-cell spacer"></div>
+          <!-- Revenue -->
+          <div class="cmp-cell">Revenue</div>
+          <div class="cmp-cell">$5,548,257</div>
+          <div class="cmp-cell">$4,818,979</div>
+          <div class="cmp-cell">$4,408,845</div>
+          <!-- Base costs -->
+          <div class="cmp-cell">Base / Forward Costs</div>
+          <div class="cmp-cell">$4,486,629</div>
+          <div class="cmp-cell">$3,896,894</div>
+          <div class="cmp-cell">$3,565,237</div>
+          <!-- spacer -->
+          <div class="cmp-cell spacer"></div><div class="cmp-cell spacer"></div><div class="cmp-cell spacer"></div><div class="cmp-cell spacer"></div>
+          <!-- Returns/Rework -->
+          <div class="cmp-cell">Returns / Rework</div>
+          <div class="cmp-cell">$274,026</div>
+          <div class="cmp-cell">$190,284</div>
+          <div class="cmp-cell">$83,776</div>
+          <!-- Waste -->
+          <div class="cmp-cell">Waste / Expired Product</div>
+          <div class="cmp-cell">$954,602</div>
+          <div class="cmp-cell">$418,955</div>
+          <div class="cmp-cell">$111,613</div>
+          <!-- Profit row -->
+          <div class="cmp-cell profit">Profit</div>
+          <div class="cmp-cell profit neg">-$167,000</div>
+          <div class="cmp-cell profit pos">$312,846</div>
+          <div class="cmp-cell profit best-val">$648,219</div>
         </div>
         <div class="rec-footnote">
           <span>Volume set using prior promotion performance (~95% sell-through confidence)</span>
