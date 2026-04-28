@@ -468,9 +468,12 @@
       letter-spacing: .015em;
       white-space: nowrap;
     }
+    .std-wrap-inner {
+      max-width: 560px;
+    }
     .std-col-headers {
       display: grid;
-      grid-template-columns: 1fr 120px 120px;
+      grid-template-columns: 1fr 110px 90px;
       gap: .5rem;
       padding: .18rem 0 .08rem;
       border-bottom: 1px solid rgba(159,176,211,.2);
@@ -494,7 +497,7 @@
     }
     .std-row {
       display: grid;
-      grid-template-columns: 1fr 120px 120px;
+      grid-template-columns: 1fr 110px 90px;
       align-items: baseline;
       gap: .5rem;
       padding: .16rem 0;
@@ -505,6 +508,8 @@
       font-weight: 500;
       letter-spacing: .01em;
     }
+    .std-row .label.rev { color: #8ff0cc; }
+    .std-row .label.cost { color: #ffb3a6; }
     .std-row .amount {
       font-size: .98rem;
       font-weight: 700;
@@ -527,8 +532,8 @@
     .std-profit {
       padding-top: .22rem;
       display: grid;
-      grid-template-columns: 1fr 120px 120px;
-      align-items: baseline;
+      grid-template-columns: 1fr 110px 90px;
+      align-items: start;
       gap: .5rem;
     }
     .std-profit .label {
@@ -549,13 +554,20 @@
       color: #8ff0cc;
       text-align: right;
     }
-    .std-profit-note {
-      margin-top: .18rem;
+    .std-profit-per {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #8ff0cc;
       text-align: right;
-      color: #bff8e6;
+    }
+    .std-profit-per-note {
+      margin-top: .22rem;
+      font-size: .78rem;
       font-weight: 600;
-      font-size: .85rem;
-      letter-spacing: .02em;
+      color: #bff8e6;
+      text-align: right;
+      line-height: 1.4;
+      letter-spacing: .01em;
     }
 
     /* ── Placeholder panels for screens 2-6 ─────────────────── */
@@ -714,39 +726,39 @@
         </div>
         <div class="std-table">
           <div class="std-row">
-            <div class="label">Incremental Revenue</div>
+            <div class="label rev">Incremental Revenue</div>
             <div class="amount pos">+ $5,548,257</div>
             <div class="per pos">$123.84</div>
           </div>
           <div class="std-row">
-            <div class="label">Normal Product Cost</div>
+            <div class="label cost">Normal Product Cost</div>
             <div class="amount neg">- $3,876,106</div>
             <div class="per neg">$86.53</div>
           </div>
           <div class="std-row">
-            <div class="label">Slotting &amp; Display Allowances</div>
+            <div class="label cost">Slotting &amp; Display Allowances</div>
             <div class="amount neg">- $306,208</div>
             <div class="per neg">$6.83</div>
           </div>
           <div class="std-row">
-            <div class="label">Repack (Labor + Materials)</div>
+            <div class="label cost">Repack (Labor + Materials)</div>
             <div class="amount neg">- $220,503</div>
             <div class="per neg">$4.92</div>
           </div>
           <div class="std-row">
-            <div class="label">Incremental Freight</div>
+            <div class="label cost">Incremental Freight</div>
             <div class="amount neg">- $83,812</div>
             <div class="per neg">$1.87</div>
           </div>
         </div>
 
-        <div>
-          <div class="std-profit">
-            <div class="label">Incremental Profit</div>
-            <div class="amount">+ $1,061,628</div>
-            <div class="per">$23.70</div>
+        <div class="std-profit">
+          <div class="label">Planned Incremental Profit</div>
+          <div class="amount">+ $1,061,628</div>
+          <div>
+            <div class="std-profit-per">$23.70</div>
+            <div class="std-profit-per-note">19% operating<br>margin</div>
           </div>
-          <div class="std-profit-note">~19% incremental margin</div>
         </div>
       </div>
       <div class="action-strip">
