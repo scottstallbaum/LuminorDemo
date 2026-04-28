@@ -411,6 +411,137 @@
       .addr-driver-list { font-size: 1.03rem; }
     }
 
+    /* ── Screen 3: Standard Promotion Costing ──────────────── */
+    .std-wrap {
+      flex: 1 1 0;
+      border: 1px solid #2a3b5c;
+      border-radius: .85rem;
+      background: linear-gradient(180deg, #111b2d 0%, #0d1628 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 16px 34px rgba(0,0,0,.22);
+      padding: .95rem 1rem .9rem;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      gap: .75rem;
+    }
+    .std-top-strip {
+      border-top: 1px dashed rgba(159,176,211,.52);
+      border-bottom: 1px dashed rgba(159,176,211,.52);
+      padding: .55rem 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .std-top-item {
+      font-size: .84rem;
+      color: #b7caec;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .std-top-item strong {
+      display: inline-block;
+      margin-top: .1rem;
+      color: #eff5ff;
+      font-size: 1.95rem;
+      font-weight: 800;
+      letter-spacing: .01em;
+      text-transform: none;
+    }
+    .std-promo-head {
+      padding: .45rem .15rem .2rem;
+    }
+    .std-promo-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: .015em;
+      color: #f0f6ff;
+      margin-bottom: .22rem;
+    }
+    .std-promo-vol {
+      font-size: .95rem;
+      color: #9fd8c4;
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+    .std-table {
+      border-top: 1px dashed rgba(159,176,211,.52);
+      border-bottom: 1px dashed rgba(159,176,211,.52);
+      padding: .62rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: .2rem;
+    }
+    .std-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: baseline;
+      gap: .75rem;
+      padding: .16rem 0;
+    }
+    .std-row .label {
+      color: #e7efff;
+      font-size: 1.08rem;
+      font-weight: 500;
+      letter-spacing: .01em;
+    }
+    .std-row .amount {
+      font-size: 1.12rem;
+      font-weight: 700;
+      letter-spacing: .01em;
+      min-width: 150px;
+      text-align: right;
+    }
+    .std-row .per {
+      font-size: 1rem;
+      color: #b9caea;
+      min-width: 150px;
+      text-align: right;
+    }
+    .std-row .amount.pos,
+    .std-row .per.pos {
+      color: #8ff0cc;
+    }
+    .std-row .amount.neg,
+    .std-row .per.neg {
+      color: #ffb3a6;
+    }
+    .std-profit {
+      padding-top: .22rem;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: baseline;
+      gap: .75rem;
+    }
+    .std-profit .label {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: #f4f8ff;
+      letter-spacing: .01em;
+    }
+    .std-profit .amount {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: #8ff0cc;
+      min-width: 165px;
+      text-align: right;
+    }
+    .std-profit .per {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #8ff0cc;
+      min-width: 170px;
+      text-align: right;
+    }
+    .std-profit-note {
+      margin-top: .22rem;
+      text-align: right;
+      color: #bff8e6;
+      font-weight: 700;
+      font-size: .98rem;
+      letter-spacing: .02em;
+    }
+
     /* ── Placeholder panels for screens 2-6 ─────────────────── */
     .placeholder {
       flex: 1 1 0;
@@ -485,7 +616,7 @@
                 <div class="driver-line clickable promotions" id="promotions-driver">Promotions <span class="driver-rank">#1 Driver</span></div>
                 <div class="driver-metric">$162,400,000</div>
                 <ul class="driver-sublist" id="promotions-sublist">
-                  <li class="promo-item">Coors Light - Super Bowl Promotion</li>
+                  <li class="promo-item" id="promo-coors-superbowl">Coors Light - Super Bowl Promotion</li>
                   <li class="promo-item">Leinenkugel - Summar Sampler</li>
                   <li class="promo-item">Leinenkugel - Holiday Sampler</li>
                   <li class="promo-item">Miller Lite - Northeast Price Promotion</li>
@@ -548,17 +679,63 @@
       </div>
       <div class="action-strip">
         <button class="btn-ghost" onclick="goTo(1)">← Back</button>
-        <button class="btn-primary" onclick="goTo(3)">Next →</button>
       </div>
     </div>
 
     <!-- ── Screen 3 placeholder ───────────────────────────────── -->
     <div class="screen" id="screen-3">
-      <div class="screen-title">Screen 3</div>
-      <div class="placeholder">Screen 3 — coming soon</div>
+      <div class="screen-title">Standard Promotion Costing &amp; Profitability</div>
+      <div class="std-wrap">
+        <div class="std-top-strip">
+          <div class="std-top-item">Revenue<br><strong>$6.7B</strong></div>
+          <div class="std-top-item">GM<br><strong>$3.5B</strong></div>
+          <div class="std-top-item">Operating Income<br><strong>$1.48B</strong></div>
+        </div>
+
+        <div class="std-promo-head">
+          <div class="std-promo-title">Promotion: Super Bowl Packaging</div>
+          <div class="std-promo-vol">Incremental Volume: 44,818 bbl</div>
+        </div>
+
+        <div class="std-table">
+          <div class="std-row">
+            <div class="label">Incremental Revenue</div>
+            <div class="amount pos">+ $5,548,257</div>
+            <div class="per pos">($123.84 / bbl)</div>
+          </div>
+          <div class="std-row">
+            <div class="label">Normal Product Cost</div>
+            <div class="amount neg">- $3,876,106</div>
+            <div class="per neg">($86.53 / bbl)</div>
+          </div>
+          <div class="std-row">
+            <div class="label">Slotting &amp; Display Allowances</div>
+            <div class="amount neg">- $306,208</div>
+            <div class="per neg">($6.83 / bbl)</div>
+          </div>
+          <div class="std-row">
+            <div class="label">Repack (Labor + Materials)</div>
+            <div class="amount neg">- $220,503</div>
+            <div class="per neg">($4.92 / bbl)</div>
+          </div>
+          <div class="std-row">
+            <div class="label">Incremental Freight</div>
+            <div class="amount neg">- $83,812</div>
+            <div class="per neg">($1.87 / bbl)</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="std-profit">
+            <div class="label">Incremental Profit</div>
+            <div class="amount">+ $1,061,628</div>
+            <div class="per">(~$23.7 / bbl)</div>
+          </div>
+          <div class="std-profit-note">(~19% margin)</div>
+        </div>
+      </div>
       <div class="action-strip">
         <button class="btn-ghost" onclick="goTo(2)">← Back</button>
-        <button class="btn-primary" onclick="goTo(4)">Next →</button>
       </div>
     </div>
 
@@ -568,7 +745,6 @@
       <div class="placeholder">Screen 4 — coming soon</div>
       <div class="action-strip">
         <button class="btn-ghost" onclick="goTo(3)">← Back</button>
-        <button class="btn-primary" onclick="goTo(5)">Next →</button>
       </div>
     </div>
 
@@ -578,7 +754,6 @@
       <div class="placeholder">Screen 5 — coming soon</div>
       <div class="action-strip">
         <button class="btn-ghost" onclick="goTo(4)">← Back</button>
-        <button class="btn-primary" onclick="goTo(6)">Next →</button>
       </div>
     </div>
 
@@ -782,9 +957,8 @@
     });
   }
 
-  document.querySelectorAll(".promo-item").forEach((node) => {
-    node.addEventListener("click", () => goTo(3));
-  });
+  const coorsPromo = document.getElementById("promo-coors-superbowl");
+  if (coorsPromo) coorsPromo.addEventListener("click", () => goTo(3));
 
   if (promotionsSublist) {
     promotionsSublist.addEventListener("click", (e) => e.stopPropagation());
