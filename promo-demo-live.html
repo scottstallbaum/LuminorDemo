@@ -960,7 +960,7 @@
       margin-bottom: .36rem;
     }
     .cost-chart-host {
-      height: 356px;
+      height: 330px;
     }
     .cost-chart-host canvas {
       width: 100% !important;
@@ -1364,7 +1364,7 @@
         <div class="lead-hero">
           <div>
             <div class="lead-hero-title">Customer Profitability Analysis</div>
-            <div class="lead-hero-metric" id="lead-selected-bubble-label">High volume-low margin customer segment</div>
+            <div class="lead-hero-metric" id="lead-selected-bubble-label">High-volume, low-margin customer segment</div>
           </div>
         </div>
         <div class="lead-chart-card">
@@ -1385,7 +1385,7 @@
           </div>
           <div class="lead-controls-actions">
             <button class="btn-ghost" onclick="goTo(6)">← Back</button>
-            <button class="btn-primary lead-btn" id="btn-compare-cost-structures" disabled>Compare Cost Structures →</button>
+            <button class="btn-primary lead-btn" id="btn-compare-cost-structures" disabled>Customer Segment Cost Comparison →</button>
           </div>
         </div>
       </div>
@@ -1393,10 +1393,10 @@
 
     <!-- ── Screen 8: Compare cost structures ─────────────────── -->
     <div class="screen" id="screen-8">
-      <div class="screen-title">Compare Cost Structures</div>
+      <div class="screen-title">Customer Segment Cost Comparison</div>
       <div class="cost-compare-wrap">
         <div class="lead-hero">
-          <div class="lead-hero-title">Compare Cost Structures</div>
+          <div class="lead-hero-title">Customer Segment Cost Comparison</div>
           <div class="lead-hero-metric" id="lead-compared-quadrants-label">Awaiting two quadrants</div>
         </div>
 
@@ -1413,11 +1413,11 @@
 
         <div class="cost-panels">
           <div class="cost-panel">
-            <div class="cost-panel-title">Group 1 Economic Comparison (unprofitable high-volume)</div>
+            <div class="cost-panel-title">Group 1 - High-Volume, Low-Margin</div>
             <div class="cost-chart-host" id="cost-chart-unprofitable"></div>
           </div>
           <div class="cost-panel">
-            <div class="cost-panel-title">Group 2 Economic Comparison (profitable high-volume)</div>
+            <div class="cost-panel-title">Group 2 - High-Volume, High-Margin</div>
             <div class="cost-chart-host" id="cost-chart-profitable"></div>
           </div>
         </div>
@@ -1870,7 +1870,7 @@
   function setLeadBubble(index, bubble) {
     const labels = [
       "Low-margin, high-spread micro segment",
-      "Unprofitable high-volume service-sensitive segment",
+      "Unprofitable high-volume, service-sensitive segment",
       "Unprofitable core service-sensitive segment",
       "Low-margin rationalize segment",
       "Low-margin niche service segment",
@@ -2453,7 +2453,11 @@
             max: config.max,
             title: { display: true, text: "% of Net Sales", color: "#9fb0d3" },
             ticks: { color: "#9fb0d3", callback: (v) => formatPct(Number(v)), font: { size: 9 }, stepSize: 20 },
-            grid: { color: "rgba(159,176,211,.12)", borderDash: [3, 4] }
+            grid: {
+              color: (ctx) => (Number(ctx.tick?.value) === 0 ? "rgba(188,203,231,.42)" : "rgba(159,176,211,.12)"),
+              borderDash: (ctx) => (Number(ctx.tick?.value) === 0 ? [] : [3, 4]),
+              lineWidth: (ctx) => (Number(ctx.tick?.value) === 0 ? 1.4 : 1)
+            }
           }
         }
       }
