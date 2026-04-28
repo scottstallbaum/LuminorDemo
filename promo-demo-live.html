@@ -1233,6 +1233,20 @@
       padding: .3rem .6rem .6rem;
       border-bottom: 1px solid #24314d;
     }
+    .benefits-table .th-main {
+      display: block;
+      color: #9fb0d3;
+      line-height: 1.2;
+    }
+    .benefits-table .th-sub {
+      display: block;
+      margin-top: .18rem;
+      color: #6f83a8;
+      font-size: .64rem;
+      letter-spacing: .04em;
+      text-transform: none;
+      line-height: 1.2;
+    }
     .benefits-table th:not(:first-child) { text-align: right; }
     .benefits-table td {
       padding: .7rem .6rem;
@@ -1860,9 +1874,9 @@
           <thead>
             <tr>
               <th>Cost category</th>
-              <th>Current (% of net revenue)</th>
-              <th>Improved (% of net revenue)</th>
-              <th>Change (% of net revenue)</th>
+              <th><span class="th-main">Current</span><span class="th-sub">% of net revenue</span></th>
+              <th><span class="th-main">Improved</span><span class="th-sub">% of net revenue</span></th>
+              <th><span class="th-main">Change</span><span class="th-sub">% of net revenue</span></th>
             </tr>
           </thead>
           <tbody>
