@@ -629,17 +629,96 @@
     .std-wrap.full-view .actual-profit .std-profit-per { color: #ff6d6d; }
     .std-wrap.full-view .actual-profit .std-profit-per-note { color: #ffb3a6; }
 
-    /* ── Placeholder panels for screens 2-6 ─────────────────── */
-    .placeholder {
-      flex: 1 1 0;
+    /* ── Screen 4: Recommendation panel ─────────────────────── */
+    .rec-wrap {
+      max-width: 760px;
+      width: 100%;
+      align-self: center;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px dashed var(--line);
-      border-radius: .85rem;
-      color: var(--muted);
-      font-size: .9rem;
+      flex-direction: column;
+      gap: 1rem;
     }
+    .rec-title {
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+    }
+    .rec-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .rec-card {
+      border: 1px solid #2a3b5c;
+      border-radius: .85rem;
+      background: linear-gradient(180deg, #111b2d 0%, #0d1628 100%);
+      padding: 1rem 1.1rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: .65rem;
+    }
+    .rec-card.best {
+      border-color: #45d0a2;
+      box-shadow: 0 0 0 1px rgba(69,208,162,.25), 0 8px 24px rgba(69,208,162,.08);
+    }
+    .rec-card-tag {
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: #45d0a2;
+      margin-bottom: -.2rem;
+    }
+    .rec-card-label {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #e8eefc;
+      line-height: 1.35;
+    }
+    .rec-card-profit {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #8ff0cc;
+      letter-spacing: .01em;
+    }
+    .rec-card-per {
+      font-size: .88rem;
+      color: #9fd8c4;
+      font-weight: 600;
+      margin-top: -.35rem;
+    }
+    .rec-bar-track {
+      height: 8px;
+      background: rgba(255,255,255,.07);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .rec-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: #45d0a2;
+    }
+    .rec-card-vol {
+      font-size: .85rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .rec-footnote {
+      border-top: 1px dashed rgba(159,176,211,.35);
+      padding-top: .7rem;
+      display: flex;
+      flex-direction: column;
+      gap: .22rem;
+    }
+    .rec-footnote span {
+      font-size: .8rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    /* btn-optimize — always visible on screen 3 */
+    .btn-optimize { display: inline-flex; }
   </style>
 </head>
 <body>
@@ -863,13 +942,39 @@
       </div>
       <div class="action-strip">
         <button class="btn-ghost" onclick="goTo(2)">← Back</button>
+        <button class="btn-primary btn-optimize" onclick="goTo(4)">Optimize Promotion Volumes →</button>
       </div>
     </div>
 
-    <!-- ── Screen 4 placeholder ───────────────────────────────── -->
+    <!-- ── Screen 4: Volume Optimization Recommendation ─────── -->
     <div class="screen" id="screen-4">
-      <div class="screen-title">Screen 4</div>
-      <div class="placeholder">Screen 4 — coming soon</div>
+      <div class="screen-title">Recommendation: Super Bowl Promotion</div>
+      <div class="rec-wrap">
+        <div class="rec-options">
+
+          <div class="rec-card">
+            <div class="rec-card-label">Option 1<br>Reduce Volume to Limit Waste</div>
+            <div class="rec-card-profit">$312,846</div>
+            <div class="rec-card-per">~$8.04 / bbl incremental profit</div>
+            <div class="rec-bar-track"><div class="rec-bar-fill" style="width:68%"></div></div>
+            <div class="rec-card-vol">38,927 bbl</div>
+          </div>
+
+          <div class="rec-card best">
+            <div class="rec-card-tag">Best Option</div>
+            <div class="rec-card-label">Option 2<br>Reduce Volume Further to Reduce Waste + Rework</div>
+            <div class="rec-card-profit">$648,219</div>
+            <div class="rec-card-per">~$18.20 / bbl incremental profit</div>
+            <div class="rec-bar-track"><div class="rec-bar-fill" style="width:62%"></div></div>
+            <div class="rec-card-vol">35,614 bbl</div>
+          </div>
+
+        </div>
+        <div class="rec-footnote">
+          <span>Volume set using prior promotion performance (~95% sell-through confidence)</span>
+          <span>Economically optimal based on modeled cost and demand behavior</span>
+        </div>
+      </div>
       <div class="action-strip">
         <button class="btn-ghost" onclick="goTo(3)">← Back</button>
       </div>
