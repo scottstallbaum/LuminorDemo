@@ -1276,11 +1276,13 @@
         <div class="lead-chart-card">
           <div class="lead-chart-head">
             <div>
-              <h4>Next Lead Times Screen</h4>
-              <div class="lead-chart-sub">This placeholder is ready for the profitability comparison view tied to the selected customer group.</div>
+              <h4>Economic Contribution vs. Volume (by customer)</h4>
+              <div class="lead-chart-sub" id="lead-customer-count-copy">Point count will match selected customer group size.</div>
             </div>
           </div>
-          <div class="placeholder">Customer profitability drilldown — coming next</div>
+          <div class="lead-chart-wrap">
+            <canvas id="lead-customer-scatter"></canvas>
+          </div>
         </div>
       </div>
       <div class="action-strip">
@@ -1328,7 +1330,9 @@
     selectedQuadrant: null,
     chart: null,
     segChart: null,
-    selectedBubble: null
+    selectedBubble: null,
+    selectedBubbleData: null,
+    customerChart: null
   };
 
   document.getElementById("btn-addressable").addEventListener("click", () => showThinking(() => goTo(2), 'Analyzing cost structure\u2026'));
@@ -1714,6 +1718,7 @@
       "Small high-margin segment"
     ];
     leadState.selectedBubble = index;
+    leadState.selectedBubbleData = bubble;
     const label = labels[index] || `Customer Group ${index + 1}`;
     const copy = document.getElementById("lead-seg-selection-copy");
     const nextLabel = document.getElementById("lead-selected-bubble-label");
@@ -1722,6 +1727,98 @@
     if (nextLabel) nextLabel.textContent = label;
     if (button) button.disabled = false;
     if (leadState.segChart) leadState.segChart.update();
+  }
+
+  function buildLeadCustomerScatterChart() {
+    const canvas = document.getElementById("lead-customer-scatter");
+    if (!canvas || typeof Chart === "undefined") return;
+    if (!leadState.selectedBubbleData) return;
+
+    if (leadState.customerChart) {
+      leadState.customerChart.destroy();
+      leadState.customerChart = null;
+    }
+
+    const count = Math.max(1, Math.round(Number(leadState.selectedBubbleData.count || 1)));
+    const seed = 1000 + (leadState.selectedBubble || 0) * 37 + count;
+    const rng = leadRand(seed);
+
+    function randNormal() {
+      const u = Math.max(1e-6, rng());
+      const v = Math.max(1e-6, rng());
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    }
+
+    const centerX = Number(leadState.selectedBubbleData.x || 0);
+    const centerY = ((Number(leadState.selectedBubbleData.y || 50) - 20) / 60) * 12;
+    const pts = [];
+    for (let i = 0; i < count; i++) {
+      const x = Math.max(-60, Math.min(60, centerX + randNormal() * 16));
+      const y = Math.max(0.15, Math.min(11.85, centerY + randNormal() * 1.9));
+      pts.push({ x, y });
+    }
+
+    const copy = document.getElementById("lead-customer-count-copy");
+    if (copy) copy.textContent = `${count} customers in selected group`;
+
+    const customerGuidePlugin = {
+      id: "leadCustomerGuidePlugin",
+      afterDraw(chart) {
+        const { ctx, scales: { x, y } } = chart;
+        const xZero = x.getPixelForValue(0);
+        const yMid = y.getPixelForValue(6);
+        ctx.save();
+        ctx.strokeStyle = "rgba(184,170,126,.78)";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(xZero, y.top);
+        ctx.lineTo(xZero, y.bottom);
+        ctx.moveTo(x.left, yMid);
+        ctx.lineTo(x.right, yMid);
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+
+    leadState.customerChart = new Chart(canvas, {
+      type: "scatter",
+      data: {
+        datasets: [{
+          label: "Customers",
+          data: pts,
+          backgroundColor: "rgba(186,180,151,.34)",
+          borderColor: "rgba(210,203,171,.7)",
+          pointRadius: 3.1,
+          pointHoverRadius: 3.1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false }
+        },
+        scales: {
+          x: {
+            min: -60,
+            max: 60,
+            title: { display: true, text: "Contribution Margin %", color: "#9fb0d3" },
+            ticks: { color: "#9fb0d3", callback: (v) => `${Number(v).toFixed(0)}%` },
+            grid: { color: "rgba(159,176,211,.16)" }
+          },
+          y: {
+            min: 0,
+            max: 12,
+            title: { display: true, text: "Volume (k units)", color: "#9fb0d3" },
+            ticks: { color: "#9fb0d3" },
+            grid: { color: "rgba(159,176,211,.16)" }
+          }
+        }
+      },
+      plugins: [customerGuidePlugin]
+    });
   }
 
   function setLeadQuadrant(key) {
@@ -1934,6 +2031,7 @@
   if (leadProfitBtn) {
     leadProfitBtn.addEventListener("click", () => {
       if (leadState.selectedBubble == null) return;
+      buildLeadCustomerScatterChart();
       goTo(7);
     });
   }
