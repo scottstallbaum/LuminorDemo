@@ -2219,8 +2219,12 @@
       let endValue = cumulative;
       if (step.kind === "total") {
         startValue = 0;
-        endValue = pctValue;
-        cumulative = pctValue;
+        if (index === 0) {
+          endValue = pctValue;
+          cumulative = pctValue;
+        } else {
+          endValue = cumulative;
+        }
       } else if (step.kind === "anchor") {
         startValue = 0;
         endValue = cumulative;
