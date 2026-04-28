@@ -868,6 +868,12 @@
       border-top: 1px dashed rgba(159,176,211,.28);
       padding-top: .65rem;
     }
+    .lead-controls-actions {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      margin-left: auto;
+    }
     .lead-selection-copy {
       display: flex;
       flex-direction: column;
@@ -1272,8 +1278,10 @@
       <div class="screen-title">Customer Profitability Analysis</div>
       <div class="lead-wrap">
         <div class="lead-hero">
-          <div class="lead-hero-title">Customer Profitability Analysis</div>
-          <div class="lead-hero-metric" id="lead-selected-bubble-label">Awaiting customer group</div>
+          <div>
+            <div class="lead-hero-title">Customer Profitability Analysis</div>
+            <div class="lead-hero-metric" id="lead-selected-bubble-label">High volume-low margin customer segment</div>
+          </div>
         </div>
         <div class="lead-chart-card">
           <div class="lead-chart-head">
@@ -1291,11 +1299,11 @@
             <div class="eyebrow">Selected Quadrants</div>
             <div class="value small" id="lead-customer-quadrants-copy">Choose two quadrants to compare</div>
           </div>
-          <button class="btn-primary lead-btn" id="btn-compare-cost-structures" disabled>Compare Cost Structures →</button>
+          <div class="lead-controls-actions">
+            <button class="btn-ghost" onclick="goTo(6)">← Back</button>
+            <button class="btn-primary lead-btn" id="btn-compare-cost-structures" disabled>Compare Cost Structures →</button>
+          </div>
         </div>
-      </div>
-      <div class="action-strip">
-        <button class="btn-ghost" onclick="goTo(6)">← Back</button>
       </div>
     </div>
 
@@ -1754,10 +1762,8 @@
     leadState.selectedBubbleData = bubble;
     const label = labels[index] || `Customer Group ${index + 1}`;
     const copy = document.getElementById("lead-seg-selection-copy");
-    const nextLabel = document.getElementById("lead-selected-bubble-label");
     const button = document.getElementById("btn-lead-profitability");
     if (copy) copy.textContent = `${label} • ${Number(bubble.count || 0)} customers`;
-    if (nextLabel) nextLabel.textContent = label;
     if (button) button.disabled = false;
     if (leadState.segChart) leadState.segChart.update();
   }
@@ -1936,10 +1942,10 @@
 
   function updateCustomerQuadrantSelectionUI() {
     const map = {
-      tl: "Q1 Upper Left",
-      tr: "Q2 Upper Right",
-      bl: "Q3 Lower Left",
-      br: "Q4 Lower Right"
+      tl: "High-volume, low-margin segment",
+      tr: "High-volume, high-margin segment",
+      bl: "Low-volume, low-margin segment",
+      br: "Low-volume, high-margin segment"
     };
     const selected = leadState.customerSelectedQuadrants || [];
     const copy = document.getElementById("lead-customer-quadrants-copy");
