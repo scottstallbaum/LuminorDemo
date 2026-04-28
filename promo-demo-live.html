@@ -1079,7 +1079,36 @@
       font-weight: 800;
       letter-spacing: .01em;
       color: #f2f8ff;
-      margin-bottom: .36rem;
+      margin-bottom: .28rem;
+    }
+    .leadtime-legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: .55rem 1rem;
+      height: 28px;
+      min-height: 28px;
+      margin-bottom: .4rem;
+      overflow: hidden;
+    }
+    .lt-legend-item {
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+      font-size: .73rem;
+      color: #9fb0d3;
+      white-space: nowrap;
+    }
+    .lt-swatch {
+      display: inline-block;
+      width: 18px;
+      height: 3px;
+      border-radius: 1px;
+    }
+    .lt-dash {
+      display: inline-block;
+      width: 18px;
+      border-top: 2.5px dashed;
     }
     .leadtime-line-wrap {
       position: relative;
@@ -1588,24 +1617,26 @@
     <div class="screen" id="screen-10">
       <div class="screen-title">Lead Time Requirements</div>
       <div class="leadtime-compare-wrap">
-        <div class="lead-hero">
-          <div class="lead-hero-title">Lead Time Requirements</div>
-          <div class="lead-hero-metric">High-volume, high-margin vs high-volume, low-margin</div>
-        </div>
         <div class="lead-chart-card">
           <div class="lead-chart-head">
-            <div>
-              <h4>Lead Time Comparison by Customer Group</h4>
-              <div class="lead-chart-sub">Customer groups ranked from most to least profitable.</div>
-            </div>
+            <div class="lead-chart-sub">High-volume, high-margin vs. high-volume, low-margin customers — ordered from most to least profitable.</div>
           </div>
           <div class="leadtime-grid">
             <div class="leadtime-panel">
               <div class="leadtime-panel-title">High-volume, high-margin customers</div>
+              <div class="leadtime-legend-row">
+                <span class="lt-legend-item"><span class="lt-swatch" style="background:rgba(173,215,223,1)"></span>Lead time per order</span>
+                <span class="lt-legend-item"><span class="lt-dash" style="border-color:rgba(173,215,223,.9)"></span>Avg lead time</span>
+              </div>
               <div class="leadtime-line-wrap"><canvas id="leadtime-high-margin"></canvas></div>
             </div>
             <div class="leadtime-panel">
               <div class="leadtime-panel-title">High-volume, low-margin customers</div>
+              <div class="leadtime-legend-row">
+                <span class="lt-legend-item"><span class="lt-swatch" style="background:rgba(236,114,149,1)"></span>Lead time per order</span>
+                <span class="lt-legend-item"><span class="lt-dash" style="border-color:rgba(173,215,223,.9)"></span>Avg high-margin</span>
+                <span class="lt-legend-item"><span class="lt-dash" style="border-color:rgba(236,114,149,.92)"></span>Avg low-margin</span>
+              </div>
               <div class="leadtime-line-wrap"><canvas id="leadtime-low-margin"></canvas></div>
             </div>
           </div>
@@ -2698,17 +2729,17 @@
     if (!canvas || typeof Chart === "undefined") return;
     if (leadState.transportCompareChart) leadState.transportCompareChart.destroy();
 
-    const labels = ["High-volume, high-margin", "High-volume, low-margin"];
+    const labels = ["High-volume, low-margin", "High-volume, high-margin"];
 
     // Transportation category totals from the waterfall decomposition:
     // high-margin = 4% + 3% + 4% = 11%
     // low-margin  = 4% + 9% + 12% = 25%
-    const transportationTotals = [11, 25];
+    const transportationTotals = [25, 11];
 
     const componentData = {
-      inbound: [2.3, 3.3],
-      outbound: [5.6, 6.1],
-      expedited: [3.1, 15.6]
+      inbound: [3.3, 2.3],
+      outbound: [6.1, 5.6],
+      expedited: [15.6, 3.1]
     };
 
     // Force perfect reconciliation with waterfall transportation anchors.
@@ -2841,14 +2872,7 @@
         maintainAspectRatio: false,
         animation: false,
         plugins: {
-          legend: {
-            labels: {
-              color: "#9fb0d3",
-              boxWidth: 16,
-              boxHeight: 2,
-              usePointStyle: false
-            }
-          },
+          legend: { display: false },
           tooltip: {
             callbacks: {
               label: (ctx) => `${ctx.dataset.label}: ${Number(ctx.parsed.y || 0).toFixed(1)} days`
