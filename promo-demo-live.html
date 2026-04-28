@@ -845,6 +845,14 @@
       color: var(--muted);
       font-weight: 500;
     }
+    .lead-chart-note {
+      font-size: .74rem;
+      color: var(--muted);
+      font-weight: 500;
+      white-space: nowrap;
+      text-align: right;
+      margin-left: auto;
+    }
     .lead-chart-wrap {
       position: relative;
       height: 360px;
@@ -1240,8 +1248,8 @@
           <div class="lead-chart-head">
             <div>
               <h4>Customer Segmentation</h4>
-              <div class="lead-chart-sub">Based on common requirements. Bubble size = Number of Customers.</div>
             </div>
+            <div class="lead-chart-note">Customer segmentation based on common requirements. Bubble size = Number of Customers.</div>
           </div>
           <div class="lead-chart-wrap">
             <canvas id="lead-seg-bubble"></canvas>
@@ -1836,7 +1844,7 @@
   if (leadSegBtn) {
     leadSegBtn.addEventListener("click", () => {
       if (!leadState.selectedQuadrant) return;
-      showThinking(() => goTo(6), 'Running customer segmentation analysis…');
+      goTo(6);
     });
   }
 
