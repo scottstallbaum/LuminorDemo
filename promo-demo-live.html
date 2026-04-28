@@ -346,7 +346,6 @@
       color: #ffffff;
       border-color: rgba(69,208,162,.52);
       background: linear-gradient(90deg, rgba(69,208,162,.18), rgba(69,208,162,0));
-      animation: promoPulse 2.2s ease-in-out infinite;
     }
     .driver-rank {
       font-size: .63rem;
@@ -360,32 +359,57 @@
       padding: .14rem .38rem;
       transform: translateY(-1px);
     }
-    .driver-magnitude {
-      margin-top: .24rem;
-      margin-left: .22rem;
-      max-width: 250px;
-      opacity: .95;
+    .driver-comp {
+      margin-top: .15rem;
+      margin-left: .2rem;
+      max-width: 260px;
+      padding: .38rem .45rem .42rem;
+      border: 1px solid rgba(69,208,162,.32);
+      border-radius: .42rem;
+      background: rgba(11,18,32,.42);
     }
-    .driver-magnitude-label {
-      font-size: .68rem;
-      color: #9fd8c4;
-      letter-spacing: .06em;
+    .driver-comp-label {
+      font-size: .64rem;
+      color: #a8ddcc;
+      letter-spacing: .08em;
       text-transform: uppercase;
-      margin-bottom: .16rem;
+      margin-bottom: .22rem;
+      font-weight: 600;
     }
-    .driver-magnitude-track {
+    .driver-comp-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: .35rem;
+      align-items: baseline;
+      font-size: .72rem;
+      line-height: 1.2;
+      color: #cfe0ff;
+      margin-bottom: .12rem;
+    }
+    .driver-comp-row.is-top {
+      color: #e9fff7;
+      font-weight: 700;
+    }
+    .driver-comp-amt {
+      color: #d7fbe9;
+      font-weight: 700;
+    }
+    .driver-comp-track {
       width: 100%;
-      height: 7px;
-      background: rgba(11,18,32,.9);
-      border: 1px solid rgba(69,208,162,.35);
+      height: 6px;
       border-radius: 999px;
+      background: rgba(17, 31, 52, .95);
+      border: 1px solid rgba(79,159,255,.25);
       overflow: hidden;
+      margin-bottom: .2rem;
     }
-    .driver-magnitude-fill {
-      width: 53%;
+    .driver-comp-fill {
       height: 100%;
-      background: linear-gradient(90deg, #45d0a2, rgba(69,208,162,.55));
+      background: linear-gradient(90deg, #45d0a2, rgba(69,208,162,.54));
     }
+    .driver-comp-fill.promotions { width: 100%; }
+    .driver-comp-fill.terms { width: 55%; }
+    .driver-comp-fill.pricing { width: 29%; }
     .driver-sublist {
       list-style: none;
       margin: .08rem 0 0 .2rem;
@@ -414,12 +438,6 @@
       text-decoration: underline;
       text-underline-offset: 3px;
     }
-
-    @keyframes promoPulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(69,208,162,0); }
-      50% { box-shadow: 0 0 0 1px rgba(69,208,162,.35), 0 0 16px rgba(69,208,162,.18); }
-    }
-
     @media (max-width: 1360px) {
       .addr-total .amount { font-size: 1.72rem; }
       .addr-col h3 { font-size: .92rem; }
@@ -498,9 +516,17 @@
             <div class="addr-drivers-label">Primary Drivers</div>
             <ul class="addr-driver-list">
               <li class="clickable promotions" id="promotions-driver">Promotions <span class="driver-rank">#1 Driver</span></li>
-              <li class="driver-magnitude" aria-hidden="true">
-                <div class="driver-magnitude-label">53% of Addressable Cost</div>
-                <div class="driver-magnitude-track"><div class="driver-magnitude-fill"></div></div>
+              <li class="driver-comp" aria-hidden="true">
+                <div class="driver-comp-label">Commercial Drivers by Spend</div>
+
+                <div class="driver-comp-row is-top"><span>Promotions</span><span class="driver-comp-amt">$162.4M</span></div>
+                <div class="driver-comp-track"><div class="driver-comp-fill promotions"></div></div>
+
+                <div class="driver-comp-row"><span>T&amp;Cs</span><span>$89.6M</span></div>
+                <div class="driver-comp-track"><div class="driver-comp-fill terms"></div></div>
+
+                <div class="driver-comp-row"><span>Pricing</span><span>$46.7M</span></div>
+                <div class="driver-comp-track"><div class="driver-comp-fill pricing"></div></div>
               </li>
               <li>
                 <ul class="driver-sublist" id="promotions-sublist">
