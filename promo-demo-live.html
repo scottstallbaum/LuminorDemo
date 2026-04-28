@@ -3081,13 +3081,13 @@
       const highAvg = Number(document.getElementById('lt-leg-high-avg')
         ?.textContent.match(/[\d.]+/)?.[0] || 12.1);
       setLeadTimeAnnotationLine(chart, 'benchmark', highAvg,
-        'rgba(173,215,223,.85)', 'rgba(173,215,223,.13)',
+        'rgba(173,215,223,.85)', 'rgba(200,60,60,.38)',
         'Raise to high-margin avg (' + highAvg.toFixed(1) + ' days)');
     } else {
       removeLeadTimeAnnotationLine(chart, 'benchmark');
       const days = parseFloat(document.getElementById('lt-min-days').value) || 10;
       setLeadTimeAnnotationLine(chart, 'minimum', days,
-        'rgba(255,174,87,.9)', 'rgba(255,174,87,.15)',
+        'rgba(255,174,87,.9)', 'rgba(200,60,60,.38)',
         'Min lead time (' + days + ' days)');
     }
   }
