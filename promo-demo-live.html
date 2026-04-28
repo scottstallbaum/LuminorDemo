@@ -312,36 +312,42 @@
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: .36rem;
+      gap: .48rem;
       margin-top: .02rem;
-      font-size: 1.22rem;
     }
-    .addr-driver-list li {
+    .driver-item {
+      display: flex;
+      flex-direction: column;
+      gap: .14rem;
+    }
+    .driver-line {
       color: #dce8ff;
       font-weight: 600;
+      font-size: 1.16rem;
       letter-spacing: .01em;
-      line-height: 1.22;
+      line-height: 1.2;
+      width: fit-content;
+      border-bottom: 1px solid transparent;
     }
-    .addr-driver-list li.clickable {
+    .driver-line.clickable {
       cursor: pointer;
       color: #e9f4ff;
       display: inline-flex;
       align-items: baseline;
       gap: .5rem;
-      width: fit-content;
       border-bottom: 1px solid rgba(159,176,211,.45);
       transition: color .15s, border-color .15s, background .15s, box-shadow .15s;
       border-radius: .3rem;
       padding: .08rem .2rem .12rem;
       position: relative;
     }
-    .addr-driver-list li.clickable:hover {
+    .driver-line.clickable:hover {
       color: #ffffff;
       border-color: rgba(255,255,255,.82);
       background: rgba(255,255,255,.05);
       box-shadow: 0 0 0 1px rgba(159,176,211,.18) inset;
     }
-    .addr-driver-list li.clickable.promotions {
+    .driver-line.clickable.promotions {
       font-weight: 700;
       color: #ffffff;
       border-color: rgba(69,208,162,.52);
@@ -359,60 +365,20 @@
       padding: .14rem .38rem;
       transform: translateY(-1px);
     }
-    .driver-comp {
-      margin-top: .15rem;
-      margin-left: .2rem;
-      max-width: 260px;
-      padding: .38rem .45rem .42rem;
-      border: 1px solid rgba(69,208,162,.32);
-      border-radius: .42rem;
-      background: rgba(11,18,32,.42);
-    }
-    .driver-comp-label {
-      font-size: .64rem;
-      color: #a8ddcc;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      margin-bottom: .22rem;
+    .driver-metric {
+      margin-left: .22rem;
+      font-size: .83rem;
+      color: #9fd8c4;
+      letter-spacing: .03em;
       font-weight: 600;
+      line-height: 1.1;
     }
-    .driver-comp-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: .35rem;
-      align-items: baseline;
-      font-size: .72rem;
-      line-height: 1.2;
-      color: #cfe0ff;
-      margin-bottom: .12rem;
+    .driver-metric.dim {
+      color: #9eb6df;
     }
-    .driver-comp-row.is-top {
-      color: #e9fff7;
-      font-weight: 700;
-    }
-    .driver-comp-amt {
-      color: #d7fbe9;
-      font-weight: 700;
-    }
-    .driver-comp-track {
-      width: 100%;
-      height: 6px;
-      border-radius: 999px;
-      background: rgba(17, 31, 52, .95);
-      border: 1px solid rgba(79,159,255,.25);
-      overflow: hidden;
-      margin-bottom: .2rem;
-    }
-    .driver-comp-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #45d0a2, rgba(69,208,162,.54));
-    }
-    .driver-comp-fill.promotions { width: 100%; }
-    .driver-comp-fill.terms { width: 55%; }
-    .driver-comp-fill.pricing { width: 29%; }
     .driver-sublist {
       list-style: none;
-      margin: .08rem 0 0 .2rem;
+      margin: .04rem 0 0 .2rem;
       padding: 0;
       border-left: 2px solid rgba(69,208,162,.28);
       padding-left: .6rem;
@@ -515,20 +481,9 @@
             <div class="addr-bar-track"><div class="addr-bar-fill"></div></div>
             <div class="addr-drivers-label">Primary Drivers</div>
             <ul class="addr-driver-list">
-              <li class="clickable promotions" id="promotions-driver">Promotions <span class="driver-rank">#1 Driver</span></li>
-              <li class="driver-comp" aria-hidden="true">
-                <div class="driver-comp-label">Commercial Drivers by Spend</div>
-
-                <div class="driver-comp-row is-top"><span>Promotions</span><span class="driver-comp-amt">$162.4M</span></div>
-                <div class="driver-comp-track"><div class="driver-comp-fill promotions"></div></div>
-
-                <div class="driver-comp-row"><span>T&amp;Cs</span><span>$89.6M</span></div>
-                <div class="driver-comp-track"><div class="driver-comp-fill terms"></div></div>
-
-                <div class="driver-comp-row"><span>Pricing</span><span>$46.7M</span></div>
-                <div class="driver-comp-track"><div class="driver-comp-fill pricing"></div></div>
-              </li>
-              <li>
+              <li class="driver-item">
+                <div class="driver-line clickable promotions" id="promotions-driver">Promotions <span class="driver-rank">#1 Driver</span></div>
+                <div class="driver-metric">$162,400,000</div>
                 <ul class="driver-sublist" id="promotions-sublist">
                   <li class="promo-item">Coors Light - Super Bowl Promotion</li>
                   <li class="promo-item">Leinenkugel - Summar Sampler</li>
@@ -537,8 +492,14 @@
                   <li class="promo-item">MGD - Fall Display Program</li>
                 </ul>
               </li>
-              <li>T&amp;Cs</li>
-              <li>Pricing</li>
+              <li class="driver-item">
+                <div class="driver-line">T&amp;Cs</div>
+                <div class="driver-metric dim">$89,600,000</div>
+              </li>
+              <li class="driver-item">
+                <div class="driver-line">Pricing</div>
+                <div class="driver-metric dim">$46,742,915</div>
+              </li>
             </ul>
           </section>
 
@@ -548,9 +509,18 @@
             <div class="addr-bar-track"><div class="addr-bar-fill"></div></div>
             <div class="addr-drivers-label">Primary Drivers</div>
             <ul class="addr-driver-list">
-              <li>Lead Times</li>
-              <li>Order Patterns</li>
-              <li>Service Levels</li>
+              <li class="driver-item">
+                <div class="driver-line">Lead Times</div>
+                <div class="driver-metric dim">$82,500,000</div>
+              </li>
+              <li class="driver-item">
+                <div class="driver-line">Order Patterns</div>
+                <div class="driver-metric dim">$56,900,000</div>
+              </li>
+              <li class="driver-item">
+                <div class="driver-line">Service Levels</div>
+                <div class="driver-metric dim">$41,965,402</div>
+              </li>
             </ul>
           </section>
 
@@ -560,9 +530,18 @@
             <div class="addr-bar-track"><div class="addr-bar-fill"></div></div>
             <div class="addr-drivers-label">Primary Drivers</div>
             <ul class="addr-driver-list">
-              <li>Routing</li>
-              <li>Make vs Buy</li>
-              <li>Network</li>
+              <li class="driver-item">
+                <div class="driver-line">Routing</div>
+                <div class="driver-metric dim">$36,900,000</div>
+              </li>
+              <li class="driver-item">
+                <div class="driver-line">Make vs Buy</div>
+                <div class="driver-metric dim">$28,300,000</div>
+              </li>
+              <li class="driver-item">
+                <div class="driver-line">Network</div>
+                <div class="driver-metric dim">$18,605,970</div>
+              </li>
             </ul>
           </section>
         </div>
