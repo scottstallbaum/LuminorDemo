@@ -1263,6 +1263,9 @@
           <button class="btn-primary lead-btn" id="btn-lead-profitability" disabled>Customer Profitability Analysis →</button>
         </div>
       </div>
+      <div class="action-strip">
+        <button class="btn-ghost" onclick="goTo(5)">← Back</button>
+      </div>
     </div>
 
     <!-- ── Screen 7: Lead Times next step placeholder ────────── -->
@@ -1749,14 +1752,45 @@
       return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
     }
 
-    const centerX = Number(leadState.selectedBubbleData.x || 0);
-    const centerY = ((Number(leadState.selectedBubbleData.y || 50) - 20) / 60) * 12;
     const pts = [];
-    for (let i = 0; i < count; i++) {
-      const x = Math.max(-60, Math.min(60, centerX + randNormal() * 16));
-      const y = Math.max(0.15, Math.min(11.85, centerY + randNormal() * 1.9));
-      pts.push({ x, y });
+
+    function addCluster(centerX, centerY, spreadX, spreadY, n) {
+      for (let i = 0; i < n; i++) {
+        pts.push({
+          x: Math.max(-60, Math.min(60, centerX + (randNormal() * spreadX))),
+          y: Math.max(0.15, Math.min(11.85, centerY + (randNormal() * spreadY)))
+        });
+      }
     }
+
+    function addOutliers(n) {
+      for (let i = 0; i < n; i++) {
+        pts.push({
+          x: -60 + (rng() * 120),
+          y: 0.15 + (rng() * 11.7)
+        });
+      }
+    }
+
+    const shapeWeights = [180, 240, 180, 220, 110, 120];
+    const totalWeight = shapeWeights.reduce((a, b) => a + b, 0);
+    const alloc = shapeWeights.map((w) => (count * w) / totalWeight);
+    const counts = alloc.map((v) => Math.floor(v));
+    let remaining = count - counts.reduce((a, b) => a + b, 0);
+    const order = alloc
+      .map((v, i) => ({ i, frac: v - Math.floor(v) }))
+      .sort((a, b) => b.frac - a.frac);
+    for (let i = 0; i < order.length && remaining > 0; i++, remaining--) {
+      counts[order[i].i] += 1;
+    }
+
+    // Match model chart composition, scaled to selected customer count.
+    addCluster(-12, 7.9, 9.5, 1.0, counts[0]);
+    addCluster(18, 8.3, 8.5, 0.95, counts[1]);
+    addCluster(-10, 4.6, 11.5, 1.0, counts[2]);
+    addCluster(18, 4.4, 10.5, 1.15, counts[3]);
+    addCluster(6, 6.0, 6.5, 2.05, counts[4]);
+    addOutliers(counts[5]);
 
     const copy = document.getElementById("lead-customer-count-copy");
     if (copy) copy.textContent = `${count} customers in selected group`;
