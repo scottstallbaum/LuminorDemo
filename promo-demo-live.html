@@ -992,12 +992,76 @@
       position: relative;
       height: 380px;
     }
+    .transport-layout {
+      display: grid;
+      grid-template-columns: 1fr 290px;
+      gap: .9rem;
+      align-items: stretch;
+    }
+    .driver-panel {
+      border: 1px solid #2a3b5c;
+      border-radius: .72rem;
+      background: rgba(255,255,255,.02);
+      padding: .72rem .78rem;
+      display: flex;
+      flex-direction: column;
+      gap: .56rem;
+    }
+    .driver-title {
+      font-size: .82rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #c6d5f3;
+      padding-bottom: .4rem;
+      border-bottom: 1px dashed rgba(159,176,211,.34);
+    }
+    .driver-list {
+      margin: 0;
+      padding-left: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: .52rem;
+      color: #e7efff;
+      font-size: .83rem;
+      line-height: 1.35;
+      font-weight: 600;
+    }
+    .driver-list li::marker {
+      color: #8fb7ff;
+    }
+    .driver-link {
+      appearance: none;
+      border: 1px solid rgba(255,176,87,.92);
+      background: rgba(255,176,87,.14);
+      border-radius: .42rem;
+      padding: .34rem .48rem;
+      font-size: .8rem;
+      font-weight: 800;
+      letter-spacing: .03em;
+      color: #ffd9a9;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+    }
+    .driver-link:hover {
+      background: rgba(255,176,87,.2);
+      border-color: rgba(255,176,87,1);
+    }
     .transport-main-title {
       font-size: 1.08rem;
       font-weight: 800;
       color: #eff5ff;
       letter-spacing: .01em;
       line-height: 1.2;
+    }
+    @media (max-width: 980px) {
+      .transport-layout {
+        grid-template-columns: 1fr;
+      }
+      .transport-chart-wrap {
+        height: 340px;
+      }
     }
 
     /* ── Thinking overlay ─────────────────────────────────────── */
@@ -1465,13 +1529,48 @@
               <div class="lead-chart-sub">Stacked decomposition tied to transportation totals from the segment comparison waterfalls.</div>
             </div>
           </div>
-          <div class="transport-chart-wrap">
-            <canvas id="transport-cost-compare"></canvas>
+          <div class="transport-layout">
+            <div class="transport-chart-wrap">
+              <canvas id="transport-cost-compare"></canvas>
+            </div>
+            <aside class="driver-panel">
+              <div class="driver-title">Primary Drivers of Variation</div>
+              <ul class="driver-list">
+                <li>
+                  <button class="driver-link" onclick="goTo(10)">Lead Time Requirements →</button>
+                </li>
+                <li>Shipment Size and Consolidation</li>
+                <li>Delivery Location and Routing</li>
+              </ul>
+            </aside>
           </div>
         </div>
       </div>
       <div class="action-strip">
         <button class="btn-ghost" onclick="goTo(8)">← Back</button>
+      </div>
+    </div>
+
+    <!-- ── Screen 10: Lead time requirements placeholder ─────── -->
+    <div class="screen" id="screen-10">
+      <div class="screen-title">Lead Time Requirements</div>
+      <div class="lead-wrap">
+        <div class="lead-hero">
+          <div class="lead-hero-title">Lead Time Requirements</div>
+          <div class="lead-hero-metric">Driver Detail View</div>
+        </div>
+        <div class="lead-chart-card">
+          <div class="lead-chart-head">
+            <div>
+              <h4>Next Analysis Step</h4>
+              <div class="lead-chart-sub">This screen is ready for the lead-time requirement drilldown content.</div>
+            </div>
+          </div>
+          <div class="placeholder">Lead time requirement analysis — coming next</div>
+        </div>
+      </div>
+      <div class="action-strip">
+        <button class="btn-ghost" onclick="goTo(9)">← Back</button>
       </div>
     </div>
 
