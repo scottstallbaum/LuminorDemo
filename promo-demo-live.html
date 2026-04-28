@@ -1626,7 +1626,7 @@
               <div class="leadtime-panel-title">High-volume, high-margin customers</div>
               <div class="leadtime-legend-row">
                 <span class="lt-legend-item"><span class="lt-swatch" style="background:rgba(173,215,223,1)"></span>Lead time per order</span>
-                <span class="lt-legend-item"><span class="lt-dash" style="border-color:rgba(173,215,223,.9)"></span>Avg lead time</span>
+                <span class="lt-legend-item"><span class="lt-dash" style="border-color:rgba(173,215,223,.9)"></span><span id="lt-leg-high-avg">Avg lead time</span></span>
               </div>
               <div class="leadtime-line-wrap"><canvas id="leadtime-high-margin"></canvas></div>
             </div>
@@ -1634,8 +1634,8 @@
               <div class="leadtime-panel-title">High-volume, low-margin customers</div>
               <div class="leadtime-legend-row">
                 <span class="lt-legend-item"><span class="lt-swatch" style="background:rgba(236,114,149,1)"></span>Lead time per order</span>
-                <span class="lt-legend-item"><span class="lt-dash" style="border-color:rgba(173,215,223,.9)"></span>Avg high-margin</span>
-                <span class="lt-legend-item"><span class="lt-dash" style="border-color:rgba(236,114,149,.92)"></span>Avg low-margin</span>
+                <span class="lt-legend-item"><span class="lt-dash" style="border-color:rgba(173,215,223,.9)"></span><span id="lt-leg-low-high-avg">Avg high-margin</span></span>
+                <span class="lt-legend-item"><span class="lt-dash" style="border-color:rgba(236,114,149,.92)"></span><span id="lt-leg-low-low-avg">Avg low-margin</span></span>
               </div>
               <div class="leadtime-line-wrap"><canvas id="leadtime-low-margin"></canvas></div>
             </div>
@@ -2860,6 +2860,13 @@
 
     const highAvg = highSeries.reduce((a, b) => a + b, 0) / highSeries.length;
     const lowAvg = lowSeries.reduce((a, b) => a + b, 0) / lowSeries.length;
+
+    const legHighAvg = document.getElementById("lt-leg-high-avg");
+    const legLowHighAvg = document.getElementById("lt-leg-low-high-avg");
+    const legLowLowAvg = document.getElementById("lt-leg-low-low-avg");
+    if (legHighAvg) legHighAvg.textContent = `Avg lead time (${highAvg.toFixed(1)} days)`;
+    if (legLowHighAvg) legLowHighAvg.textContent = `Avg high-margin (${highAvg.toFixed(1)} days)`;
+    if (legLowLowAvg) legLowLowAvg.textContent = `Avg low-margin (${lowAvg.toFixed(1)} days)`;
     const highAvgLine = highSeries.map(() => Number(highAvg.toFixed(2)));
     const lowAvgLine = lowSeries.map(() => Number(lowAvg.toFixed(2)));
     const highIdx = highSeries.map((_, i) => i + 1);
