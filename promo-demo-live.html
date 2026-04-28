@@ -1036,7 +1036,7 @@
       </div>
       <div class="action-strip">
         <button class="btn-ghost" onclick="goTo(2)">← Back</button>
-        <button class="btn-primary btn-optimize" onclick="goTo(4)">Optimize Promotion Volumes →</button>
+        <button class="btn-primary btn-optimize" onclick="showThinking(() => goTo(4), 'Optimizing promotion volumes\u2026')">Optimize Promotion Volumes →</button>
       </div>
     </div>
 
@@ -1142,11 +1142,13 @@
     }
   }
   window.setView = setView;
+  window.showThinking = showThinking;
 
-  document.getElementById("btn-addressable").addEventListener("click", () => showThinking(() => goTo(2)));
+  document.getElementById("btn-addressable").addEventListener("click", () => showThinking(() => goTo(2), 'Analyzing cost structure\u2026'));
 
   // ── Thinking network animation ────────────────────────────────
-  function showThinking(onDone) {
+  function showThinking(onDone, label) {
+    document.querySelector('.thinking-label').textContent = label || 'Analyzing\u2026';
     const overlay = document.getElementById('thinking-overlay');
     const canvas  = document.getElementById('thinking-canvas');
     const ctx     = canvas.getContext('2d');
