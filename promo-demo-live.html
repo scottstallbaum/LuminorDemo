@@ -1198,16 +1198,16 @@
 
     <!-- ── Screen 5: Lead Times scatter ───────────────────────── -->
     <div class="screen" id="screen-5">
-      <div class="screen-title">Lead Times</div>
+      <div class="screen-title">Economic Contribution vs. Volume (by SKU)</div>
       <div class="lead-wrap">
         <div class="lead-hero">
-          <div class="lead-hero-title">Lead Times</div>
+          <div class="lead-hero-title">Economic Contribution vs. Volume (by SKU)</div>
           <div class="lead-hero-metric">$82.5M addressable cost</div>
         </div>
         <div class="lead-chart-card">
           <div class="lead-chart-head">
             <div>
-              <h4>Economic Contribution vs. Volume (by SKU)</h4>
+              <h4>Quadrant Selection</h4>
               <div class="lead-chart-sub">Click a quadrant to isolate a customer / SKU segment for analysis.</div>
             </div>
           </div>
@@ -1239,11 +1239,13 @@
         <div class="lead-chart-card">
           <div class="lead-chart-head">
             <div>
-              <h4>Next Lead Times Screen</h4>
-              <div class="lead-chart-sub">This placeholder is ready for the next Delivery Time Optimization visual once you pick which chart comes next.</div>
+              <h4>Customer Segmentation</h4>
+              <div class="lead-chart-sub">Based on common requirements. Bubble size = Number of Customers.</div>
             </div>
           </div>
-          <div class="placeholder">Lead Times segmentation drilldown — coming next</div>
+          <div class="lead-chart-wrap">
+            <canvas id="lead-seg-bubble"></canvas>
+          </div>
         </div>
       </div>
       <div class="action-strip">
@@ -1289,7 +1291,8 @@
 
   const leadState = {
     selectedQuadrant: null,
-    chart: null
+    chart: null,
+    segChart: null
   };
 
   document.getElementById("btn-addressable").addEventListener("click", () => showThinking(() => goTo(2), 'Analyzing cost structure\u2026'));
@@ -1488,16 +1491,10 @@
         responsive: true,
         maintainAspectRatio: false,
         animation: false,
+        events: ["click"],
         plugins: {
           legend: { display: false },
-          tooltip: {
-            backgroundColor: "rgba(15,26,45,.95)",
-            borderColor: "rgba(159,176,211,.2)",
-            borderWidth: 1,
-            titleColor: "#9fb0d3",
-            bodyColor: "#e8eefc",
-            padding: 10
-          }
+          tooltip: { enabled: false }
         },
         scales: {
           x: {
@@ -1529,6 +1526,111 @@
         }
       },
       plugins: [leadQuadrantPlugin]
+    });
+  }
+
+  function buildLeadSegBubbleChart() {
+    const canvas = document.getElementById("lead-seg-bubble");
+    if (!canvas || typeof Chart === "undefined") return;
+
+    const pts = [
+      { x: -46, y: 72, r: 9, count: 72 },
+      { x: -22, y: 61, r: 23, count: 184 },
+      { x: -29, y: 49, r: 24, count: 192 },
+      { x: -9, y: 34, r: 12, count: 96 },
+      { x: -43, y: 31, r: 13, count: 104 },
+      { x: -31, y: 24, r: 12, count: 96 },
+      { x: -20, y: 22, r: 20, count: 160 },
+      { x: -2, y: 30, r: 6, count: 48 },
+      { x: 0, y: 56, r: 10, count: 80 },
+      { x: 7, y: 53, r: 17, count: 136 },
+      { x: 13, y: 46, r: 9, count: 72 },
+      { x: 18, y: 40, r: 18, count: 144 },
+      { x: 16, y: 34, r: 16, count: 128 },
+      { x: 24, y: 63, r: 20, count: 160 },
+      { x: 42, y: 62, r: 25, count: 200 },
+      { x: 50, y: 55, r: 14, count: 112 },
+      { x: 34, y: 32, r: 24, count: 192 },
+      { x: 54, y: 24, r: 8, count: 64 }
+    ];
+
+    const segCrosshairPlugin = {
+      id: "leadSegCrosshairPlugin",
+      afterDraw(chart) {
+        const { ctx, scales: { x, y } } = chart;
+        const xZero = x.getPixelForValue(0);
+        const yFifty = y.getPixelForValue(50);
+        ctx.save();
+        ctx.strokeStyle = "rgba(159,176,211,.7)";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(xZero, y.top);
+        ctx.lineTo(xZero, y.bottom);
+        ctx.moveTo(x.left, yFifty);
+        ctx.lineTo(x.right, yFifty);
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+
+    leadState.segChart = new Chart(canvas, {
+      type: "bubble",
+      data: {
+        datasets: [{
+          label: "Customer clusters",
+          data: pts,
+          backgroundColor: "rgba(176,194,212,.58)",
+          borderColor: "rgba(176,194,212,.22)",
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        layout: {
+          padding: { top: 2, right: 4, bottom: 2, left: 2 }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(15,26,45,.95)",
+            borderColor: "rgba(159,176,211,.2)",
+            borderWidth: 1,
+            titleColor: "#9fb0d3",
+            bodyColor: "#e8eefc",
+            padding: 10,
+            callbacks: {
+              title: () => "Customer Group",
+              label: (item) => {
+                const p = item.raw || {};
+                return [
+                  `Contribution Margin: ${Number(p.x || 0).toFixed(0)}%`,
+                  `Cost to Serve Spread: ${Number(p.y || 0).toFixed(0)}%`,
+                  `Customer Count: ${Number(p.count || 0).toFixed(0)}`
+                ];
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            min: -60,
+            max: 60,
+            title: { display: true, text: "Contribution Margin %", color: "#9fb0d3" },
+            ticks: { color: "#9fb0d3", callback: (v) => `${Number(v).toFixed(0)}%` },
+            grid: { color: "rgba(159,176,211,.12)" }
+          },
+          y: {
+            min: 20,
+            max: 80,
+            title: { display: true, text: "Cost to Serve Spread", color: "#9fb0d3" },
+            ticks: { color: "#9fb0d3", callback: (v) => `${Number(v).toFixed(0)}%` },
+            grid: { color: "rgba(159,176,211,.12)" }
+          }
+        }
+      },
+      plugins: [segCrosshairPlugin]
     });
   }
 
@@ -1744,6 +1846,7 @@
 
   initAddressableBars();
   buildLeadScatterChart();
+  buildLeadSegBubbleChart();
 })();
 </script>
 </body>
