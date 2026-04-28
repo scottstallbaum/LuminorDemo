@@ -326,25 +326,98 @@
       cursor: pointer;
       color: #e9f4ff;
       display: inline-flex;
-      align-items: center;
-      gap: .4rem;
+      align-items: baseline;
+      gap: .5rem;
       width: fit-content;
       border-bottom: 1px solid rgba(159,176,211,.45);
-      transition: color .15s, border-color .15s, background .15s;
+      transition: color .15s, border-color .15s, background .15s, box-shadow .15s;
       border-radius: .3rem;
       padding: .08rem .2rem .12rem;
+      position: relative;
     }
     .addr-driver-list li.clickable:hover {
       color: #ffffff;
       border-color: rgba(255,255,255,.82);
       background: rgba(255,255,255,.05);
+      box-shadow: 0 0 0 1px rgba(159,176,211,.18) inset;
     }
-    .addr-driver-list li.clickable::before {
-      content: ">";
+    .addr-driver-list li.clickable.promotions {
+      font-weight: 700;
       color: #ffffff;
-      font-size: .95rem;
-      font-weight: 600;
-      transform: translateY(0);
+      border-color: rgba(69,208,162,.52);
+      background: linear-gradient(90deg, rgba(69,208,162,.18), rgba(69,208,162,0));
+      animation: promoPulse 2.2s ease-in-out infinite;
+    }
+    .driver-rank {
+      font-size: .63rem;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: #bff8e6;
+      background: rgba(69,208,162,.2);
+      border: 1px solid rgba(69,208,162,.4);
+      border-radius: 999px;
+      padding: .14rem .38rem;
+      transform: translateY(-1px);
+    }
+    .driver-magnitude {
+      margin-top: .24rem;
+      margin-left: .22rem;
+      max-width: 250px;
+      opacity: .95;
+    }
+    .driver-magnitude-label {
+      font-size: .68rem;
+      color: #9fd8c4;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: .16rem;
+    }
+    .driver-magnitude-track {
+      width: 100%;
+      height: 7px;
+      background: rgba(11,18,32,.9);
+      border: 1px solid rgba(69,208,162,.35);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .driver-magnitude-fill {
+      width: 53%;
+      height: 100%;
+      background: linear-gradient(90deg, #45d0a2, rgba(69,208,162,.55));
+    }
+    .driver-sublist {
+      list-style: none;
+      margin: .08rem 0 0 .2rem;
+      padding: 0;
+      border-left: 2px solid rgba(69,208,162,.28);
+      padding-left: .6rem;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height .32s ease, opacity .24s ease;
+    }
+    .driver-sublist.open {
+      max-height: 210px;
+      opacity: 1;
+    }
+    .driver-sublist li {
+      font-size: .88rem;
+      font-weight: 500;
+      color: #d8e6ff;
+      line-height: 1.25;
+      padding: .18rem 0;
+      cursor: pointer;
+    }
+    .driver-sublist li:hover {
+      color: #ffffff;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    @keyframes promoPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(69,208,162,0); }
+      50% { box-shadow: 0 0 0 1px rgba(69,208,162,.35), 0 0 16px rgba(69,208,162,.18); }
     }
 
     @media (max-width: 1360px) {
@@ -424,7 +497,20 @@
             <div class="addr-bar-track"><div class="addr-bar-fill"></div></div>
             <div class="addr-drivers-label">Primary Drivers</div>
             <ul class="addr-driver-list">
-              <li class="clickable" id="promotions-driver">Promotions</li>
+              <li class="clickable promotions" id="promotions-driver">Promotions <span class="driver-rank">#1 Driver</span></li>
+              <li class="driver-magnitude" aria-hidden="true">
+                <div class="driver-magnitude-label">53% of Addressable Cost</div>
+                <div class="driver-magnitude-track"><div class="driver-magnitude-fill"></div></div>
+              </li>
+              <li>
+                <ul class="driver-sublist" id="promotions-sublist">
+                  <li class="promo-item">Coors Light - Super Bowl Promotion</li>
+                  <li class="promo-item">Leinenkugel - Summar Sampler</li>
+                  <li class="promo-item">Leinenkugel - Holiday Sampler</li>
+                  <li class="promo-item">Miller Lite - Northeast Price Promotion</li>
+                  <li class="promo-item">MGD - Fall Display Program</li>
+                </ul>
+              </li>
               <li>T&amp;Cs</li>
               <li>Pricing</li>
             </ul>
@@ -683,8 +769,20 @@
   }
 
   const promotionsDriver = document.getElementById("promotions-driver");
+  const promotionsSublist = document.getElementById("promotions-sublist");
   if (promotionsDriver) {
-    promotionsDriver.addEventListener("click", () => goTo(3));
+    promotionsDriver.addEventListener("click", () => {
+      if (!promotionsSublist) return;
+      promotionsSublist.classList.toggle("open");
+    });
+  }
+
+  document.querySelectorAll(".promo-item").forEach((node) => {
+    node.addEventListener("click", () => goTo(3));
+  });
+
+  if (promotionsSublist) {
+    promotionsSublist.addEventListener("click", (e) => e.stopPropagation());
   }
 
   initAddressableBars();
