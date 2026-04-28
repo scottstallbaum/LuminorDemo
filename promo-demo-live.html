@@ -1452,13 +1452,12 @@
       <div class="screen-title">Transportation Cost Comparison</div>
       <div class="transport-compare-wrap">
         <div class="lead-hero">
-          <div class="lead-hero-title">Transportation Cost Comparison</div>
           <div class="lead-hero-metric" id="lead-selected-cost-label">High-volume, high-margin vs high-volume, low-margin</div>
         </div>
         <div class="lead-chart-card">
           <div class="lead-chart-head">
             <div>
-              <h4>Transportation Cost Components by Customer Segment</h4>
+              <h4>Transportation Cost Components</h4>
               <div class="lead-chart-sub">Stacked decomposition tied to transportation totals from the segment comparison waterfalls.</div>
             </div>
           </div>
@@ -2553,13 +2552,17 @@
     if (leadState.transportCompareChart) leadState.transportCompareChart.destroy();
 
     const labels = ["High-volume, high-margin", "High-volume, low-margin"];
-    const transportationTotals = [31, 35];
+
+    // Transportation category totals from the waterfall decomposition:
+    // high-margin = 4% + 3% + 4% = 11%
+    // low-margin  = 4% + 9% + 12% = 25%
+    const transportationTotals = [11, 25];
 
     const componentData = {
-      inbound: [6.2, 7.1],
-      outbound: [17.8, 18.4],
-      expedited: [4.3, 6.0],
-      delivery: [2.7, 3.5]
+      inbound: [2.1, 3.1],
+      outbound: [4.8, 5.2],
+      expedited: [2.4, 9.8],
+      delivery: [1.7, 6.9]
     };
 
     // Force perfect reconciliation with waterfall transportation anchors.
@@ -2616,16 +2619,16 @@
           {
             label: "Inbound transportation",
             data: componentData.inbound,
-            backgroundColor: "rgba(132,151,178,.72)",
-            borderColor: "rgba(132,151,178,1)",
+            backgroundColor: "rgba(88,178,255,.62)",
+            borderColor: "rgba(88,178,255,1)",
             borderWidth: 1,
             stack: "transport"
           },
           {
             label: "Outbound freight (standard)",
             data: componentData.outbound,
-            backgroundColor: "rgba(168,187,214,.76)",
-            borderColor: "rgba(168,187,214,1)",
+            backgroundColor: "rgba(69,208,162,.58)",
+            borderColor: "rgba(69,208,162,1)",
             borderWidth: 1,
             stack: "transport"
           },
@@ -2672,9 +2675,15 @@
             stacked: true,
             min: 0,
             max: yMax,
-            title: { display: true, text: "Transportation cost (% of revenue)", color: "#9fb0d3" },
+            title: { display: true, text: "Transportation cost (% of net revenue)", color: "#9fb0d3" },
             ticks: { color: "#9fb0d3", callback: (v) => `${Number(v).toFixed(0)}%`, stepSize: 5 },
             grid: { color: "rgba(159,176,211,.14)", borderDash: [3, 4] }
+          }
+        },
+        datasets: {
+          bar: {
+            categoryPercentage: 0.6,
+            barPercentage: 0.7
           }
         }
       }
