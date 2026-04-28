@@ -110,8 +110,8 @@
       opacity: 1;
       pointer-events: all;
     }
-    #screen-2 {
-      padding-top: .45rem;
+    #screen-3 {
+      overflow-y: auto;
     }
     .screen-title {
       font-size: .78rem;
@@ -607,25 +607,27 @@
     }
     /* full-cost rows — hidden by default */
     .full-cost-rows { display: none; }
-    .std-wrap.full-view .full-cost-rows { display: contents; }
-    /* profit row colors flip in full view */
-    .std-wrap.full-view .profit-amount { color: #ff6d6d !important; }
-    .std-wrap.full-view .profit-per-val { color: #ff6d6d !important; }
-    .std-wrap.full-view .profit-per-note { color: #ffb3a6 !important; }
+    .std-wrap.full-view .full-cost-rows { display: grid; }
     /* section divider inside table */
     .std-section-divider {
       display: none;
-      grid-column: 1 / -1;
       font-size: .72rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: .09em;
       color: var(--muted);
-      padding: .5rem 0 .15rem;
+      padding: .55rem 0 .15rem;
       border-top: 1px dashed rgba(159,176,211,.3);
       margin-top: .2rem;
     }
     .std-wrap.full-view .std-section-divider { display: block; }
+    /* actual margin row — only in full view */
+    .actual-profit { display: none; }
+    .std-wrap.full-view .actual-profit { display: grid; }
+    /* profit row colors flip in full view */
+    .std-wrap.full-view .actual-profit .amount { color: #ff6d6d; }
+    .std-wrap.full-view .actual-profit .std-profit-per { color: #ff6d6d; }
+    .std-wrap.full-view .actual-profit .std-profit-per-note { color: #ffb3a6; }
 
     /* ── Placeholder panels for screens 2-6 ─────────────────── */
     .placeholder {
@@ -813,7 +815,7 @@
             <div class="per neg">$1.87</div>
           </div>
           <!-- Full Cost additional rows -->
-          <div class="std-section-divider full-cost-rows">Hidden Costs</div>
+          <div class="std-section-divider">Hidden Costs</div>
           <div class="std-row full-cost-rows">
             <div class="label cost">Reverse / Rework Freight (2 touches)</div>
             <div class="amount neg">- $108,742</div>
@@ -836,12 +838,22 @@
           </div>
         </div>
 
+        <!-- Standard profit — always visible -->
         <div class="std-profit">
           <div class="label">Planned Incremental Profit</div>
-          <div class="amount profit-amount">+ $1,061,628</div>
+          <div class="amount pos">+ $1,061,628</div>
           <div>
-            <div class="std-profit-per profit-per-val">$23.70</div>
-            <div class="std-profit-per-note profit-per-note">19% operating<br>margin</div>
+            <div class="std-profit-per" style="color:#8ff0cc">$23.70</div>
+            <div class="std-profit-per-note" style="color:#bff8e6">19% operating<br>margin</div>
+          </div>
+        </div>
+        <!-- Actual margin — full view only -->
+        <div class="std-profit actual-profit">
+          <div class="label">Actual Incremental Margin</div>
+          <div class="amount">- $167,000</div>
+          <div>
+            <div class="std-profit-per">-$3.72</div>
+            <div class="std-profit-per-note">-3% operating<br>margin</div>
           </div>
         </div>
       </div>
@@ -899,23 +911,14 @@
     const wrap = document.getElementById('std-wrap');
     const btnStd = document.getElementById('btn-std-view');
     const btnFull = document.getElementById('btn-full-view');
-    const profitAmt = wrap.querySelector('.profit-amount');
-    const profitPer = wrap.querySelector('.profit-per-val');
-    const profitNote = wrap.querySelector('.profit-per-note');
     if (mode === 'full') {
       wrap.classList.add('full-view');
       btnFull.classList.add('active');
       btnStd.classList.remove('active');
-      profitAmt.textContent = '- $167,000';
-      profitPer.textContent = '-$3.72';
-      profitNote.innerHTML = '-3% operating<br>margin';
     } else {
       wrap.classList.remove('full-view');
       btnStd.classList.add('active');
       btnFull.classList.remove('active');
-      profitAmt.textContent = '+ $1,061,628';
-      profitPer.textContent = '$23.70';
-      profitNote.innerHTML = '19% operating<br>margin';
     }
   }
   window.setView = setView;
