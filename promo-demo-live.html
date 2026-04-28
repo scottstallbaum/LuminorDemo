@@ -953,13 +953,19 @@
       padding: .7rem .75rem;
     }
     .cost-panel-title {
-      font-size: .98rem;
-      font-weight: 700;
+      font-size: .9rem;
+      font-weight: 800;
+      letter-spacing: .01em;
       color: #f2f8ff;
-      margin-bottom: .42rem;
+      margin-bottom: .36rem;
     }
     .cost-chart-host {
-      height: 345px;
+      height: 356px;
+    }
+    .cost-chart-host canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
     }
     .cost-chart-svg {
       width: 100%;
@@ -1496,7 +1502,8 @@
     selectedBubbleData: null,
     customerChart: null,
     customerSelectedQuadrants: [],
-    selectedCostSegment: null
+    selectedCostSegment: null,
+    costCharts: {}
   };
 
   document.getElementById("btn-addressable").addEventListener("click", () => showThinking(() => goTo(2), 'Analyzing cost structure\u2026'));
@@ -2088,86 +2095,429 @@
     }
   }
 
-  function renderCostWaterfall(hostId, startValue, series, activeKey) {
-    const host = document.getElementById(hostId);
-    if (!host) return;
+  function parsePct(label) {
+    return Number(String(label || "").replace(/%/g, "").trim()) || 0;
+  }
 
-    const W = 640, H = 300;
-    const M = { top: 28, right: 10, bottom: 42, left: 46 };
-    const pW = W - M.left - M.right;
-    const pH = H - M.top - M.bottom;
+  function formatPct(value) {
+    const rounded = Math.abs(value - Math.round(value)) < 0.05
+      ? Math.round(value)
+      : Number(value.toFixed(1));
+    return `${rounded}%`;
+  }
 
-    let cum = startValue;
-    const steps = series.map((s) => {
-      const from = cum;
-      const to = from + s.delta;
-      cum = to;
-      return { ...s, from, to };
+  function makeCostWaterfallBridge(canvasId, config, activeSegment) {
+    const shortGroupName = {
+      "Gross to Net Sales": "GROSS TO NET SALES",
+      COGS: "COGS",
+      Warehousing: "WAREHOUSING",
+      Transportation: "TRANSPORTATION",
+      Marketing: "MARKETING",
+      "Selling Costs": "SELLING COSTS",
+      "Working Capital": "WORKING CAPITAL",
+      EC: "EC"
+    };
+
+    const abbrevGroupName = {
+      "Gross to Net Sales": "GROSS TO NET",
+      COGS: "COGS",
+      Warehousing: "WHSE",
+      Transportation: "TRANSP",
+      Marketing: "MKTG",
+      "Selling Costs": "SELLING",
+      "Working Capital": "WC",
+      EC: "EC"
+    };
+
+    function wrapLabelLines(ctx, text, maxWidth) {
+      const words = text.split(/\s+/).filter(Boolean);
+      if (!words.length) return [];
+      const lines = [];
+      let line = words[0];
+
+      for (let i = 1; i < words.length; i++) {
+        const next = `${line} ${words[i]}`;
+        if (ctx.measureText(next).width <= maxWidth) {
+          line = next;
+        } else {
+          lines.push(line);
+          line = words[i];
+        }
+      }
+      lines.push(line);
+      return lines;
+    }
+
+    function fitGroupLabel(ctx, groupName, maxWidth) {
+      const full = shortGroupName[groupName] || groupName.toUpperCase();
+      const abbrev = abbrevGroupName[groupName] || full;
+
+      for (let size = 9; size >= 7; size--) {
+        ctx.font = `700 ${size}px Inter`;
+        const fullLines = wrapLabelLines(ctx, full, maxWidth);
+        if (fullLines.length <= 2 && fullLines.every((line) => ctx.measureText(line).width <= maxWidth)) {
+          return { lines: fullLines, size };
+        }
+
+        const abbrevLines = wrapLabelLines(ctx, abbrev, maxWidth);
+        if (abbrevLines.length <= 2 && abbrevLines.every((line) => ctx.measureText(line).width <= maxWidth)) {
+          return { lines: abbrevLines, size };
+        }
+      }
+
+      return { lines: [abbrev], size: 7 };
+    }
+
+    const host = document.getElementById(canvasId);
+    if (!host || typeof Chart === "undefined") return;
+    let canvas = host;
+    if (host.tagName !== "CANVAS") {
+      let nested = host.querySelector("canvas");
+      if (!nested) {
+        host.innerHTML = "<canvas></canvas>";
+        nested = host.querySelector("canvas");
+      }
+      canvas = nested;
+    }
+    if (!canvas) return;
+    const existing = leadState.costCharts[canvasId];
+    if (existing) existing.destroy();
+
+    const groupStyles = {
+      "Gross to Net Sales": { fill: "rgba(58,178,225,.86)", border: "rgba(58,178,225,1)", anchor: "rgba(110,201,237,.28)", header: "#48bcea" },
+      COGS: { fill: "rgba(255,190,92,.78)", border: "rgba(255,190,92,1)", anchor: "rgba(255,214,152,.22)", header: "#f4b24d" },
+      Warehousing: { fill: "rgba(113,204,126,.8)", border: "rgba(113,204,126,1)", anchor: "rgba(113,204,126,.22)", header: "#63c46a" },
+      Transportation: { fill: "rgba(171,156,202,.72)", border: "rgba(171,156,202,1)", anchor: "rgba(171,156,202,.2)", header: "#a596c9" },
+      Marketing: { fill: "rgba(255,191,96,.74)", border: "rgba(255,191,96,1)", anchor: "rgba(255,191,96,.18)", header: "#f0b35e" },
+      "Selling Costs": { fill: "rgba(255,109,109,.76)", border: "rgba(255,109,109,1)", anchor: "rgba(255,109,109,.18)", header: "#ff6d6d" },
+      "Working Capital": { fill: "rgba(65,193,191,.76)", border: "rgba(65,193,191,1)", anchor: "rgba(65,193,191,.2)", header: "#35bab5" },
+      EC: { fill: "rgba(58,178,225,.86)", border: "rgba(58,178,225,1)", anchor: "rgba(58,178,225,.18)", header: "#48bcea" }
+    };
+
+    const labels = [];
+    const bars = [];
+    const backgroundColor = [];
+    const borderColor = [];
+    const modelSteps = [];
+    const groups = [];
+    const netTickIndexes = new Set();
+    let cumulative = 0;
+
+    const getEffectiveGroupName = (steps, idx) => {
+      const step = steps[idx];
+      if (!step) return "COGS";
+      if (step.kind === "anchor" && idx > 0) return steps[idx - 1].group;
+      return step.group;
+    };
+
+    config.steps.forEach((step, index) => {
+      const effectiveGroupName = getEffectiveGroupName(config.steps, index);
+      const style = groupStyles[effectiveGroupName] || groupStyles.COGS;
+      const pctValue = parsePct(step.pct);
+
+      let startValue = cumulative;
+      let endValue = cumulative;
+      if (step.kind === "total") {
+        startValue = 0;
+        endValue = pctValue;
+        cumulative = pctValue;
+      } else if (step.kind === "anchor") {
+        startValue = 0;
+        endValue = cumulative;
+      } else {
+        const deltaValue = step.value < 0 ? -pctValue : pctValue;
+        endValue = cumulative + deltaValue;
+        cumulative = endValue;
+      }
+
+      const low = Math.min(startValue, endValue);
+      const high = Math.max(startValue, endValue);
+
+      labels.push(step.pct);
+      bars.push([low, high]);
+      modelSteps.push({
+        ...step,
+        metricValue: step.kind === "delta" ? (endValue - startValue) : endValue,
+        start: startValue,
+        end: endValue,
+        running: cumulative
+      });
+
+      if (step.kind === "anchor") {
+        backgroundColor.push(style.anchor);
+        borderColor.push("rgba(255,255,255,.04)");
+      } else {
+        backgroundColor.push(style.fill);
+        borderColor.push(style.border);
+      }
     });
 
-    const minY = -20, maxY = 140;
-    const y = (v) => M.top + ((maxY - v) / (maxY - minY)) * pH;
-    const ticks = [-20, 0, 20, 40, 60, 80, 100, 120, 140];
+    const groupRanges = new Map();
+    const groupOrder = [];
+    const lastIndex = modelSteps.length - 1;
 
-    const grid = ticks.map((t) => {
-      const yy = y(t).toFixed(1);
-      return `<line x1="${M.left}" y1="${yy}" x2="${W - M.right}" y2="${yy}" stroke="rgba(159,176,211,.17)" stroke-width="1"/>
-              <text x="${M.left - 8}" y="${(+yy + 4).toFixed(1)}" text-anchor="end" fill="#9fb0d3" font-size="10">${t}%</text>`;
-    }).join("");
+    modelSteps.forEach((step, idx) => {
+      const groupName = getEffectiveGroupName(modelSteps, idx);
+      if (!groupRanges.has(groupName)) {
+        groupRanges.set(groupName, { start: idx, end: idx });
+        groupOrder.push(groupName);
+      } else {
+        groupRanges.get(groupName).end = idx;
+      }
+      if (idx === 0 || step.kind === "anchor" || (step.kind === "total" && idx === lastIndex)) netTickIndexes.add(idx);
+    });
 
-    const slot = pW / (steps.length + 1);
-    const bw = Math.min(46, slot * .75);
-    const bars = steps.map((s, i) => {
-      const cx = M.left + (i + 0.8) * slot;
-      const x = cx - bw / 2;
-      const y1 = y(s.from);
-      const y2 = y(s.to);
-      const ry = Math.min(y1, y2);
-      const rh = Math.max(2, Math.abs(y2 - y1));
-      const isActive = activeKey && s.key === activeKey;
-      const fill = isActive ? s.color : `${s.color}AA`;
-      const stroke = isActive ? "#e8eefc" : s.color;
-      return `<rect x="${x.toFixed(1)}" y="${ry.toFixed(1)}" width="${bw.toFixed(1)}" height="${rh.toFixed(1)}" rx="2"
-                fill="${fill}" stroke="${stroke}" stroke-width="${isActive ? 1.6 : 1}"/>`;
-    }).join("");
+    groupOrder.forEach((groupName) => {
+      const range = groupRanges.get(groupName);
+      groups.push({ name: groupName, color: (groupStyles[groupName] || groupStyles.COGS).header, start: range.start, end: range.end });
+    });
 
-    const labels = steps.map((s, i) => {
-      const cx = M.left + (i + 0.8) * slot;
-      return `<text x="${cx.toFixed(1)}" y="${(H - 12).toFixed(1)}" text-anchor="middle" fill="#a8b9dd" font-size="9">${s.short}</text>`;
-    }).join("");
+    const segmentToGroup = {
+      gtn: "Gross to Net Sales",
+      cogs: "COGS",
+      whse: "Warehousing",
+      transp: "Transportation",
+      mktg: "Marketing",
+      selling: "Selling Costs",
+      wc: "Working Capital",
+      ec: "EC"
+    };
+    const activeGroup = segmentToGroup[activeSegment] || null;
 
-    host.innerHTML = `<svg class="cost-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
-      ${grid}
-      <line x1="${M.left}" y1="${y(0).toFixed(1)}" x2="${W - M.right}" y2="${y(0).toFixed(1)}" stroke="rgba(159,176,211,.35)" stroke-width="1"/>
-      ${bars}
-      ${labels}
-    </svg>`;
+    const bridgePlugin = {
+      id: `waterfallBridgePlugin-${canvasId}`,
+      beforeDatasetsDraw(chart) {
+        const { ctx, chartArea } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta?.data?.length) return;
+        const barsMeta = meta.data;
+        function getBounds(i) {
+          const center = barsMeta[i].x;
+          const left = i === 0 ? chartArea.left : (barsMeta[i - 1].x + center) / 2;
+          const right = i === barsMeta.length - 1 ? chartArea.right : (center + barsMeta[i + 1].x) / 2;
+          return { left, right };
+        }
+        ctx.save();
+        for (let i = 0; i < barsMeta.length; i++) {
+          const b = getBounds(i);
+          ctx.fillStyle = i % 2 === 0 ? "rgba(255,255,255,.035)" : "rgba(255,255,255,.015)";
+          ctx.fillRect(b.left, chartArea.top, b.right - b.left, chartArea.bottom - chartArea.top);
+        }
+        if (activeGroup) {
+          groups.forEach((g) => {
+            if (g.name !== activeGroup) return;
+            const s = getBounds(g.start);
+            const e = getBounds(g.end);
+            ctx.fillStyle = "rgba(69,208,162,.12)";
+            ctx.fillRect(s.left, chartArea.top, e.right - s.left, chartArea.bottom - chartArea.top);
+            ctx.strokeStyle = "rgba(69,208,162,.85)";
+            ctx.lineWidth = 1.4;
+            ctx.strokeRect(s.left + 1, chartArea.top + 1, (e.right - s.left) - 2, (chartArea.bottom - chartArea.top) - 2);
+          });
+        }
+        ctx.restore();
+      },
+      afterDraw(chart) {
+        const { ctx, chartArea, scales: { y } } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta?.data?.length) return;
+        const barsMeta = meta.data;
+        function getBounds(i) {
+          const center = barsMeta[i].x;
+          const left = i === 0 ? chartArea.left : (barsMeta[i - 1].x + center) / 2;
+          const right = i === barsMeta.length - 1 ? chartArea.right : (center + barsMeta[i + 1].x) / 2;
+          return { left, right };
+        }
+        ctx.save();
+        ctx.strokeStyle = "rgba(255,255,255,.18)";
+        ctx.lineWidth = 1;
+        for (let i = 0; i < modelSteps.length - 1; i++) {
+          const current = modelSteps[i];
+          const next = modelSteps[i + 1];
+          if (current.kind === "total" || next.kind === "total") continue;
+          const curr = getBounds(i);
+          const nxt = getBounds(i + 1);
+          const yy = y.getPixelForValue(current.end);
+          ctx.beginPath();
+          ctx.moveTo(curr.right - 2, yy);
+          ctx.lineTo(nxt.left + 2, yy);
+          ctx.stroke();
+        }
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        groups.forEach((g) => {
+          const s = getBounds(g.start);
+          const e = getBounds(g.end);
+          const mid = (s.left + e.right) / 2;
+          const availableWidth = Math.max(28, (e.right - s.left) - 8);
+          const fitted = fitGroupLabel(ctx, g.name, availableWidth);
+          const lineHeight = fitted.size + 1;
+          const startY = (chartArea.top - 10) - (((fitted.lines.length - 1) * lineHeight) / 2);
+
+          ctx.strokeStyle = g.color;
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(s.left + 2, chartArea.top + 2);
+          ctx.lineTo(e.right - 2, chartArea.top + 2);
+          ctx.stroke();
+
+          ctx.fillStyle = g.color;
+          ctx.font = `700 ${fitted.size}px Inter`;
+          fitted.lines.forEach((line, lineIndex) => {
+            ctx.fillText(line, mid, startY + (lineIndex * lineHeight));
+          });
+        });
+        ctx.restore();
+      }
+    };
+
+    leadState.costCharts[canvasId] = new Chart(canvas, {
+      type: "bar",
+      plugins: [bridgePlugin],
+      data: {
+        labels,
+        datasets: [{
+          label: "% of Net Sales",
+          data: bars,
+          borderRadius: 0,
+          borderSkipped: false,
+          backgroundColor,
+          borderColor,
+          borderWidth: 1,
+          barPercentage: .94,
+          categoryPercentage: .98
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        layout: { padding: { top: 44, right: 6, bottom: 0, left: 0 } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (items) => {
+                const step = modelSteps[items[0]?.dataIndex || 0];
+                return step?.group || "";
+              },
+              label: (item) => {
+                const step = modelSteps[item.dataIndex];
+                if (!step) return "";
+                if (step.kind === "total") {
+                  return [
+                    `${step.pct}`,
+                    `Total: ${formatPct(step.end)}`
+                  ];
+                }
+                if (step.kind === "anchor") {
+                  return [
+                    `${step.pct}`,
+                    `Starting point: ${formatPct(step.end)}`
+                  ];
+                }
+                return [
+                  `${step.pct}`,
+                  `Change: ${formatPct(step.metricValue)}`,
+                  `Running total: ${formatPct(step.end)}`
+                ];
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            title: { display: true, text: "As % of Net Sales", color: "#9fb0d3" },
+            ticks: {
+              color: "#9fb0d3",
+              callback: (_v, index) => (netTickIndexes.has(index) ? modelSteps[index].pct : ""),
+              autoSkip: false,
+              maxRotation: 0,
+              minRotation: 0,
+              font: { size: 8 },
+              padding: 2
+            }
+          },
+          y: {
+            min: config.min,
+            max: config.max,
+            title: { display: true, text: "% of Net Sales", color: "#9fb0d3" },
+            ticks: { color: "#9fb0d3", callback: (v) => formatPct(Number(v)), font: { size: 9 }, stepSize: 20 },
+            grid: { color: "rgba(159,176,211,.12)", borderDash: [3, 4] }
+          }
+        }
+      }
+    });
   }
 
   function renderCostStructureComparison() {
-    const seriesUnprofitable = [
-      { key: "gtn", short: "GTN", delta: -32, color: "#3fc2f5" },
-      { key: "cogs", short: "COGS", delta: -68, color: "#f5b84f" },
-      { key: "whse", short: "WHSE", delta: -6, color: "#68d391" },
-      { key: "transp", short: "TRANSP", delta: -24, color: "#9a8cc8" },
-      { key: "mktg", short: "MKTG", delta: -2, color: "#f4b652" },
-      { key: "selling", short: "SELL", delta: -3, color: "#ff6d6d" },
-      { key: "wc", short: "WC", delta: -2, color: "#3bd4d8" },
-      { key: "ec", short: "EC", delta: -2, color: "#4ab8e6" }
-    ];
-    const seriesProfitable = [
-      { key: "gtn", short: "GTN", delta: -26, color: "#3fc2f5" },
-      { key: "cogs", short: "COGS", delta: -45, color: "#f5b84f" },
-      { key: "whse", short: "WHSE", delta: -4, color: "#68d391" },
-      { key: "transp", short: "TRANSP", delta: -10, color: "#9a8cc8" },
-      { key: "mktg", short: "MKTG", delta: -2, color: "#f4b652" },
-      { key: "selling", short: "SELL", delta: -2, color: "#ff6d6d" },
-      { key: "wc", short: "WC", delta: -2, color: "#3bd4d8" },
-      { key: "ec", short: "EC", delta: -3, color: "#4ab8e6" }
-    ];
+    makeCostWaterfallBridge("cost-chart-unprofitable", {
+      min: -20,
+      max: 140,
+      steps: [
+        { group: "Gross to Net Sales", kind: "total", pct: "132%", value: 3.63 },
+        { group: "Gross to Net Sales", kind: "delta", pct: "29%", value: -0.80 },
+        { group: "Gross to Net Sales", kind: "delta", pct: "3%", value: -0.08 },
+        { group: "COGS", kind: "anchor", pct: "100%" },
+        { group: "COGS", kind: "delta", pct: "8%", value: -0.21 },
+        { group: "COGS", kind: "delta", pct: "7%", value: -0.18 },
+        { group: "COGS", kind: "delta", pct: "8%", value: -0.21 },
+        { group: "COGS", kind: "delta", pct: "5%", value: -0.14 },
+        { group: "COGS", kind: "delta", pct: "10%", value: -0.28 },
+        { group: "COGS", kind: "delta", pct: "12%", value: -0.34 },
+        { group: "COGS", kind: "delta", pct: "4%", value: -0.11 },
+        { group: "COGS", kind: "delta", pct: "14%", value: -0.39 },
+        { group: "Warehousing", kind: "anchor", pct: "32%" },
+        { group: "Warehousing", kind: "delta", pct: "4%", value: -0.10 },
+        { group: "Warehousing", kind: "delta", pct: "1%", value: -0.03 },
+        { group: "Transportation", kind: "anchor", pct: "35%" },
+        { group: "Transportation", kind: "delta", pct: "4%", value: -0.10 },
+        { group: "Transportation", kind: "delta", pct: "9%", value: -0.24 },
+        { group: "Transportation", kind: "delta", pct: "12%", value: -0.33 },
+        { group: "Marketing", kind: "anchor", pct: "11%" },
+        { group: "Marketing", kind: "delta", pct: "1%", value: -0.02 },
+        { group: "Selling Costs", kind: "anchor", pct: "10%" },
+        { group: "Selling Costs", kind: "delta", pct: "2%", value: -0.06 },
+        { group: "Working Capital", kind: "anchor", pct: "8%" },
+        { group: "Working Capital", kind: "delta", pct: "4%", value: -0.11 },
+        { group: "EC", kind: "total", pct: "-4%", value: -0.10 }
+      ]
+    }, leadState.selectedCostSegment);
 
-    renderCostWaterfall("cost-chart-unprofitable", 132, seriesUnprofitable, leadState.selectedCostSegment);
-    renderCostWaterfall("cost-chart-profitable", 126, seriesProfitable, leadState.selectedCostSegment);
+    makeCostWaterfallBridge("cost-chart-profitable", {
+      min: -20,
+      max: 140,
+      steps: [
+        { group: "Gross to Net Sales", kind: "total", pct: "126%", value: 3.47 },
+        { group: "Gross to Net Sales", kind: "delta", pct: "23%", value: -0.64 },
+        { group: "Gross to Net Sales", kind: "delta", pct: "3%", value: -0.08 },
+        { group: "COGS", kind: "anchor", pct: "100%" },
+        { group: "COGS", kind: "delta", pct: "8%", value: -0.22 },
+        { group: "COGS", kind: "delta", pct: "7%", value: -0.19 },
+        { group: "COGS", kind: "delta", pct: "8%", value: -0.22 },
+        { group: "COGS", kind: "delta", pct: "5%", value: -0.15 },
+        { group: "COGS", kind: "delta", pct: "11%", value: -0.29 },
+        { group: "COGS", kind: "delta", pct: "13%", value: -0.35 },
+        { group: "COGS", kind: "delta", pct: "4%", value: -0.12 },
+        { group: "COGS", kind: "delta", pct: "15%", value: -0.42 },
+        { group: "Warehousing", kind: "anchor", pct: "29%" },
+        { group: "Warehousing", kind: "delta", pct: "4%", value: -0.10 },
+        { group: "Warehousing", kind: "delta", pct: "1%", value: -0.03 },
+        { group: "Transportation", kind: "anchor", pct: "31%" },
+        { group: "Transportation", kind: "delta", pct: "4%", value: -0.11 },
+        { group: "Transportation", kind: "delta", pct: "3%", value: -0.08 },
+        { group: "Transportation", kind: "delta", pct: "4%", value: -0.10 },
+        { group: "Marketing", kind: "anchor", pct: "21%" },
+        { group: "Marketing", kind: "delta", pct: "1%", value: -0.02 },
+        { group: "Selling Costs", kind: "anchor", pct: "20%" },
+        { group: "Selling Costs", kind: "delta", pct: "2%", value: -0.06 },
+        { group: "Working Capital", kind: "anchor", pct: "18%" },
+        { group: "Working Capital", kind: "delta", pct: "3%", value: -0.08 },
+        { group: "EC", kind: "total", pct: "15%", value: 0.41 }
+      ]
+    }, leadState.selectedCostSegment);
   }
 
   function setSelectedCostSegment(segmentKey) {
