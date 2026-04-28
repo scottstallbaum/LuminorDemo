@@ -897,6 +897,84 @@
       filter: grayscale(.15);
     }
 
+    /* ── Screen 8: Cost comparison ──────────────────────────── */
+    .cost-compare-wrap {
+      max-width: 1240px;
+      width: 100%;
+      align-self: center;
+      display: flex;
+      flex-direction: column;
+      gap: .8rem;
+      border: 1px solid #2a3b5c;
+      border-radius: .85rem;
+      background: linear-gradient(180deg, #111b2d 0%, #0d1628 100%);
+      padding: .85rem .95rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 16px 34px rgba(0,0,0,.22);
+    }
+    .cost-segment-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem;
+      border-top: 1px dashed rgba(159,176,211,.35);
+      border-bottom: 1px dashed rgba(159,176,211,.35);
+      padding: .55rem 0;
+    }
+    .cost-segment {
+      background: rgba(255,255,255,.03);
+      border: 1px solid #314567;
+      border-radius: .38rem;
+      color: #d7e7ff;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      padding: .34rem .52rem;
+      cursor: pointer;
+      transition: border-color .15s, background .15s, color .15s;
+    }
+    .cost-segment:hover {
+      border-color: #4a6190;
+      background: rgba(255,255,255,.06);
+    }
+    .cost-segment.active {
+      border-color: rgba(69,208,162,.9);
+      background: rgba(69,208,162,.14);
+      color: #e9fff7;
+    }
+    .cost-panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .8rem;
+    }
+    .cost-panel {
+      border: 1px solid #24314d;
+      border-radius: .74rem;
+      background: rgba(255,255,255,.02);
+      padding: .7rem .75rem;
+    }
+    .cost-panel-title {
+      font-size: .98rem;
+      font-weight: 700;
+      color: #f2f8ff;
+      margin-bottom: .42rem;
+    }
+    .cost-chart-host {
+      height: 345px;
+    }
+    .cost-chart-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .cost-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      border-top: 1px dashed rgba(159,176,211,.28);
+      padding-top: .65rem;
+    }
+
     /* ── Thinking overlay ─────────────────────────────────────── */
     #thinking-overlay {
       position: fixed;
@@ -1307,26 +1385,70 @@
       </div>
     </div>
 
-    <!-- ── Screen 8: Compare cost structures placeholder ─────── -->
+    <!-- ── Screen 8: Compare cost structures ─────────────────── -->
     <div class="screen" id="screen-8">
       <div class="screen-title">Compare Cost Structures</div>
-      <div class="lead-wrap">
+      <div class="cost-compare-wrap">
         <div class="lead-hero">
           <div class="lead-hero-title">Compare Cost Structures</div>
           <div class="lead-hero-metric" id="lead-compared-quadrants-label">Awaiting two quadrants</div>
         </div>
+
+        <div class="cost-segment-row" id="cost-segment-row">
+          <button class="cost-segment" data-segment="gtn">Gross to Net Sales</button>
+          <button class="cost-segment" data-segment="cogs">COGS</button>
+          <button class="cost-segment" data-segment="whse">WHSE</button>
+          <button class="cost-segment" data-segment="transp">Transp</button>
+          <button class="cost-segment" data-segment="mktg">MKTG</button>
+          <button class="cost-segment" data-segment="selling">Selling Costs</button>
+          <button class="cost-segment" data-segment="wc">WC</button>
+          <button class="cost-segment" data-segment="ec">EC</button>
+        </div>
+
+        <div class="cost-panels">
+          <div class="cost-panel">
+            <div class="cost-panel-title">Group 1 Economic Comparison (unprofitable high-volume)</div>
+            <div class="cost-chart-host" id="cost-chart-unprofitable"></div>
+          </div>
+          <div class="cost-panel">
+            <div class="cost-panel-title">Group 2 Economic Comparison (profitable high-volume)</div>
+            <div class="cost-chart-host" id="cost-chart-profitable"></div>
+          </div>
+        </div>
+
+        <div class="cost-controls">
+          <div class="lead-selection-copy">
+            <div class="eyebrow">Selected Cost Segment</div>
+            <div class="value small" id="lead-cost-segment-copy">Select a segment to continue</div>
+          </div>
+          <div class="lead-controls-actions">
+            <button class="btn-ghost" onclick="goTo(7)">← Back</button>
+            <button class="btn-primary lead-btn" id="btn-cost-segment-details" disabled>Costs Segment Details →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Screen 9: Cost segment details placeholder ────────── -->
+    <div class="screen" id="screen-9">
+      <div class="screen-title">Costs Segment Details</div>
+      <div class="lead-wrap">
+        <div class="lead-hero">
+          <div class="lead-hero-title">Costs Segment Details</div>
+          <div class="lead-hero-metric" id="lead-selected-cost-label">Awaiting cost segment</div>
+        </div>
         <div class="lead-chart-card">
           <div class="lead-chart-head">
             <div>
-              <h4>Next Lead Times Screen</h4>
-              <div class="lead-chart-sub">This placeholder is ready for side-by-side cost structure comparison.</div>
+              <h4>Next Cost Segment Screen</h4>
+              <div class="lead-chart-sub">This placeholder is ready for detailed breakdown of the selected cost segment.</div>
             </div>
           </div>
-          <div class="placeholder">Cost structure comparison — coming next</div>
+          <div class="placeholder">Cost segment drilldown — coming next</div>
         </div>
       </div>
       <div class="action-strip">
-        <button class="btn-ghost" onclick="goTo(7)">← Back</button>
+        <button class="btn-ghost" onclick="goTo(8)">← Back</button>
       </div>
     </div>
 
@@ -1373,7 +1495,8 @@
     selectedBubble: null,
     selectedBubbleData: null,
     customerChart: null,
-    customerSelectedQuadrants: []
+    customerSelectedQuadrants: [],
+    selectedCostSegment: null
   };
 
   document.getElementById("btn-addressable").addEventListener("click", () => showThinking(() => goTo(2), 'Analyzing cost structure\u2026'));
@@ -1965,6 +2088,113 @@
     }
   }
 
+  function renderCostWaterfall(hostId, startValue, series, activeKey) {
+    const host = document.getElementById(hostId);
+    if (!host) return;
+
+    const W = 640, H = 300;
+    const M = { top: 28, right: 10, bottom: 42, left: 46 };
+    const pW = W - M.left - M.right;
+    const pH = H - M.top - M.bottom;
+
+    let cum = startValue;
+    const steps = series.map((s) => {
+      const from = cum;
+      const to = from + s.delta;
+      cum = to;
+      return { ...s, from, to };
+    });
+
+    const minY = -20, maxY = 140;
+    const y = (v) => M.top + ((maxY - v) / (maxY - minY)) * pH;
+    const ticks = [-20, 0, 20, 40, 60, 80, 100, 120, 140];
+
+    const grid = ticks.map((t) => {
+      const yy = y(t).toFixed(1);
+      return `<line x1="${M.left}" y1="${yy}" x2="${W - M.right}" y2="${yy}" stroke="rgba(159,176,211,.17)" stroke-width="1"/>
+              <text x="${M.left - 8}" y="${(+yy + 4).toFixed(1)}" text-anchor="end" fill="#9fb0d3" font-size="10">${t}%</text>`;
+    }).join("");
+
+    const slot = pW / (steps.length + 1);
+    const bw = Math.min(46, slot * .75);
+    const bars = steps.map((s, i) => {
+      const cx = M.left + (i + 0.8) * slot;
+      const x = cx - bw / 2;
+      const y1 = y(s.from);
+      const y2 = y(s.to);
+      const ry = Math.min(y1, y2);
+      const rh = Math.max(2, Math.abs(y2 - y1));
+      const isActive = activeKey && s.key === activeKey;
+      const fill = isActive ? s.color : `${s.color}AA`;
+      const stroke = isActive ? "#e8eefc" : s.color;
+      return `<rect x="${x.toFixed(1)}" y="${ry.toFixed(1)}" width="${bw.toFixed(1)}" height="${rh.toFixed(1)}" rx="2"
+                fill="${fill}" stroke="${stroke}" stroke-width="${isActive ? 1.6 : 1}"/>`;
+    }).join("");
+
+    const labels = steps.map((s, i) => {
+      const cx = M.left + (i + 0.8) * slot;
+      return `<text x="${cx.toFixed(1)}" y="${(H - 12).toFixed(1)}" text-anchor="middle" fill="#a8b9dd" font-size="9">${s.short}</text>`;
+    }).join("");
+
+    host.innerHTML = `<svg class="cost-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+      ${grid}
+      <line x1="${M.left}" y1="${y(0).toFixed(1)}" x2="${W - M.right}" y2="${y(0).toFixed(1)}" stroke="rgba(159,176,211,.35)" stroke-width="1"/>
+      ${bars}
+      ${labels}
+    </svg>`;
+  }
+
+  function renderCostStructureComparison() {
+    const seriesUnprofitable = [
+      { key: "gtn", short: "GTN", delta: -32, color: "#3fc2f5" },
+      { key: "cogs", short: "COGS", delta: -68, color: "#f5b84f" },
+      { key: "whse", short: "WHSE", delta: -6, color: "#68d391" },
+      { key: "transp", short: "TRANSP", delta: -24, color: "#9a8cc8" },
+      { key: "mktg", short: "MKTG", delta: -2, color: "#f4b652" },
+      { key: "selling", short: "SELL", delta: -3, color: "#ff6d6d" },
+      { key: "wc", short: "WC", delta: -2, color: "#3bd4d8" },
+      { key: "ec", short: "EC", delta: -2, color: "#4ab8e6" }
+    ];
+    const seriesProfitable = [
+      { key: "gtn", short: "GTN", delta: -26, color: "#3fc2f5" },
+      { key: "cogs", short: "COGS", delta: -45, color: "#f5b84f" },
+      { key: "whse", short: "WHSE", delta: -4, color: "#68d391" },
+      { key: "transp", short: "TRANSP", delta: -10, color: "#9a8cc8" },
+      { key: "mktg", short: "MKTG", delta: -2, color: "#f4b652" },
+      { key: "selling", short: "SELL", delta: -2, color: "#ff6d6d" },
+      { key: "wc", short: "WC", delta: -2, color: "#3bd4d8" },
+      { key: "ec", short: "EC", delta: -3, color: "#4ab8e6" }
+    ];
+
+    renderCostWaterfall("cost-chart-unprofitable", 132, seriesUnprofitable, leadState.selectedCostSegment);
+    renderCostWaterfall("cost-chart-profitable", 126, seriesProfitable, leadState.selectedCostSegment);
+  }
+
+  function setSelectedCostSegment(segmentKey) {
+    const labelMap = {
+      gtn: "Gross to Net Sales",
+      cogs: "COGS",
+      whse: "WHSE",
+      transp: "Transportation",
+      mktg: "Marketing",
+      selling: "Selling Costs",
+      wc: "Working Capital",
+      ec: "EC"
+    };
+    leadState.selectedCostSegment = segmentKey;
+    document.querySelectorAll(".cost-segment").forEach((el) => {
+      el.classList.toggle("active", el.getAttribute("data-segment") === segmentKey);
+    });
+    const copy = document.getElementById("lead-cost-segment-copy");
+    const btn = document.getElementById("btn-cost-segment-details");
+    const next = document.getElementById("lead-selected-cost-label");
+    const label = labelMap[segmentKey] || "Selected segment";
+    if (copy) copy.textContent = label;
+    if (btn) btn.disabled = !segmentKey;
+    if (next) next.textContent = label;
+    renderCostStructureComparison();
+  }
+
   function setLeadQuadrant(key) {
     const labels = {
       tl: "High-volume, low-margin segment",
@@ -2184,7 +2414,23 @@
   if (compareCostBtn) {
     compareCostBtn.addEventListener("click", () => {
       if ((leadState.customerSelectedQuadrants || []).length !== 2) return;
+      renderCostStructureComparison();
       goTo(8);
+    });
+  }
+
+  document.querySelectorAll(".cost-segment").forEach((el) => {
+    el.addEventListener("click", () => {
+      const seg = el.getAttribute("data-segment");
+      setSelectedCostSegment(seg);
+    });
+  });
+
+  const costDetailsBtn = document.getElementById("btn-cost-segment-details");
+  if (costDetailsBtn) {
+    costDetailsBtn.addEventListener("click", () => {
+      if (!leadState.selectedCostSegment) return;
+      goTo(9);
     });
   }
 
