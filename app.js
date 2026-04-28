@@ -449,12 +449,12 @@ const PRICE_WALK_SEGMENTS = [
 ];
 
 const PRICE_WALK_SEGMENT_COLORS = [
-  "#c4ccd9",
-  "#b2bfd4",
-  "#93a6c3",
-  "#7089ae",
-  "#4f688f",
-  "#314c74"
+  "#c0cce0",
+  "#acbdd8",
+  "#90a8ca",
+  "#738fba",
+  "#5c79a6",
+  "#48648f"
 ];
 
 const PRICE_WALK_COLUMNS = [
@@ -511,7 +511,7 @@ function renderPriceSegmentWalk() {
   const svg = els.priceWalkSvg;
   const rect = svg.getBoundingClientRect();
   const width = Math.max(880, Math.floor(rect.width || svg.clientWidth || 0));
-  const height = 450;
+  const height = 410;
   svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
   svg.innerHTML = "";
 
@@ -530,9 +530,9 @@ function renderPriceSegmentWalk() {
   };
 
   const chartLeft = 146;
-  const chartTop = 72;
+  const chartTop = 70;
   const chartRight = width - 28;
-  const chartBottom = height - 58;
+  const chartBottom = height - 54;
   const chartWidth = chartRight - chartLeft;
   const chartHeight = chartBottom - chartTop;
   const barWidth = Math.max(50, Math.min(78, chartWidth / 11));
@@ -548,7 +548,7 @@ function renderPriceSegmentWalk() {
     y1: baselineY,
     x2: chartRight,
     y2: baselineY,
-    stroke: "rgba(159,176,211,.4)",
+    stroke: "rgba(159,176,211,.32)",
     "stroke-width": 1
   }));
 
@@ -588,8 +588,8 @@ function renderPriceSegmentWalk() {
         width: barWidth,
         height: h,
         fill,
-        stroke: "rgba(255,255,255,.2)",
-        "stroke-width": 0.8,
+        stroke: "rgba(255,255,255,.12)",
+        "stroke-width": 0.7,
         "data-segment": PRICE_WALK_SEGMENTS[segIdx],
         "data-column": column.label,
         "data-pct": val.toFixed(1),
@@ -607,9 +607,9 @@ function renderPriceSegmentWalk() {
       if (Math.abs(val) >= 0.35) {
         const tx = make("text", {
           x,
-          y: y + h / 2 + 4,
-          fill: segIdx >= 4 ? "#f1f6ff" : "#0b1220",
-          "font-size": 12,
+          y: y + h / 2 + 3.5,
+          fill: segIdx >= 4 ? "#edf4ff" : "#0f1b2f",
+          "font-size": 11,
           "text-anchor": "middle",
           "font-weight": 500
         });
@@ -622,15 +622,15 @@ function renderPriceSegmentWalk() {
           y1: (y1 + y2) / 2,
           x2: x + barWidth / 2 + 18,
           y2: labelY - 4,
-          stroke: "rgba(159,176,211,.6)",
-          "stroke-width": 0.9,
+          stroke: "rgba(159,176,211,.45)",
+          "stroke-width": 0.8,
           "stroke-dasharray": "2 2"
         }));
         const tiny = make("text", {
           x: x + barWidth / 2 + 20,
           y: labelY,
-          fill: "#c8d4eb",
-          "font-size": 11,
+          fill: "#aebfdd",
+          "font-size": 10.5,
           "text-anchor": "start"
         });
         tiny.textContent = `${val.toFixed(1)}%`;
@@ -653,10 +653,10 @@ function renderPriceSegmentWalk() {
 
     const topValue = make("text", {
       x,
-      y: chartTop - 26,
-      fill: "#eaf1ff",
-      "font-size": 27,
-      "font-weight": 700,
+      y: chartTop - 23,
+      fill: "#e3edff",
+      "font-size": 21,
+      "font-weight": 650,
       "text-anchor": "middle"
     });
     topValue.textContent = column.totalLabel;
@@ -665,9 +665,9 @@ function renderPriceSegmentWalk() {
     if (column.totalSubLabel) {
       const topSub = make("text", {
         x,
-        y: chartTop - 7,
+        y: chartTop - 8,
         fill: "#9fb0d3",
-        "font-size": 13,
+        "font-size": 12,
         "text-anchor": "middle"
       });
       topSub.textContent = column.totalSubLabel;
@@ -676,9 +676,9 @@ function renderPriceSegmentWalk() {
 
     const bottom = make("text", {
       x,
-      y: chartBottom + 32,
-      fill: "#d9e5fb",
-      "font-size": 14,
+      y: chartBottom + 30,
+      fill: "#cfdcf3",
+      "font-size": 13,
       "font-weight": 600,
       "text-anchor": "middle"
     });
@@ -699,8 +699,8 @@ function renderPriceSegmentWalk() {
         y1: a.centerY,
         x2: columnLayouts[i + 1].x - barWidth / 2,
         y2: b.centerY,
-        stroke: "rgba(159,176,211,.62)",
-        "stroke-width": 1,
+        stroke: "rgba(159,176,211,.46)",
+        "stroke-width": 0.9,
         "stroke-dasharray": "3 3"
       }), svg.firstChild);
     }
@@ -711,9 +711,9 @@ function renderPriceSegmentWalk() {
     if (!layout) return;
     const t = make("text", {
       x: chartLeft - barWidth / 2 - 14,
-      y: layout.centerY + 4,
-      fill: "#e1eaf9",
-      "font-size": 13,
+      y: layout.centerY + 3.5,
+      fill: "#cfdcf3",
+      "font-size": 12,
       "text-anchor": "end"
     });
     t.textContent = PRICE_WALK_SEGMENTS[segIdx];
