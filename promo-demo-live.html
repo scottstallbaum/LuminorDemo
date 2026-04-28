@@ -572,6 +572,61 @@
       letter-spacing: .01em;
     }
 
+    /* ── Screen 3 view toggle ──────────────────────────────── */
+    .view-toggle {
+      display: flex;
+      align-self: flex-start;
+      border: 1px solid #2a3b5c;
+      border-radius: .45rem;
+      overflow: hidden;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .view-toggle button {
+      padding: .38rem .9rem;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      font-size: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      font-family: inherit;
+    }
+    .view-toggle button.active {
+      background: #1e2e4a;
+      color: #e8eefc;
+    }
+    .view-toggle button:hover:not(.active) {
+      background: rgba(255,255,255,.04);
+      color: #c8d8f0;
+    }
+    /* full-cost rows — hidden by default */
+    .full-cost-rows { display: none; }
+    .std-wrap.full-view .full-cost-rows { display: contents; }
+    /* profit row colors flip in full view */
+    .std-wrap.full-view .profit-amount { color: #ff6d6d !important; }
+    .std-wrap.full-view .profit-per-val { color: #ff6d6d !important; }
+    .std-wrap.full-view .profit-per-note { color: #ffb3a6 !important; }
+    /* section divider inside table */
+    .std-section-divider {
+      display: none;
+      grid-column: 1 / -1;
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: var(--muted);
+      padding: .5rem 0 .15rem;
+      border-top: 1px dashed rgba(159,176,211,.3);
+      margin-top: .2rem;
+    }
+    .std-wrap.full-view .std-section-divider { display: block; }
+
     /* ── Placeholder panels for screens 2-6 ─────────────────── */
     .placeholder {
       flex: 1 1 0;
@@ -715,10 +770,15 @@
     <!-- ── Screen 3 placeholder ───────────────────────────────── -->
     <div class="screen" id="screen-3">
       <div class="screen-title">Standard Promotion Costing &amp; Profitability</div>
-      <div class="std-wrap">
+      <div class="std-wrap" id="std-wrap">
         <div class="std-promo-head">
           <div class="std-promo-title">Coors Light – Super Bowl Promotion</div>
           <div class="std-promo-vol">Planned Incremental Volume: 44,818 bbl</div>
+        </div>
+
+        <div class="view-toggle">
+          <button id="btn-std-view" class="active" onclick="setView('standard')">Standard View</button>
+          <button id="btn-full-view" onclick="setView('full')">Full Cost View</button>
         </div>
 
         <div class="std-col-headers">
@@ -752,14 +812,36 @@
             <div class="amount neg">- $83,812</div>
             <div class="per neg">$1.87</div>
           </div>
+          <!-- Full Cost additional rows -->
+          <div class="std-section-divider full-cost-rows">Hidden Costs</div>
+          <div class="std-row full-cost-rows">
+            <div class="label cost">Reverse / Rework Freight (2 touches)</div>
+            <div class="amount neg">- $108,742</div>
+            <div class="per neg">$2.43</div>
+          </div>
+          <div class="std-row full-cost-rows">
+            <div class="label cost">Rework (Labor + Materials)</div>
+            <div class="amount neg">- $165,284</div>
+            <div class="per neg">$3.69</div>
+          </div>
+          <div class="std-row full-cost-rows">
+            <div class="label cost">Return Freight (Expired Product)</div>
+            <div class="amount neg">- $24,916</div>
+            <div class="per neg">$0.56</div>
+          </div>
+          <div class="std-row full-cost-rows">
+            <div class="label cost">Waste / Expired Product</div>
+            <div class="amount neg">- $930,686</div>
+            <div class="per neg">$20.76</div>
+          </div>
         </div>
 
         <div class="std-profit">
           <div class="label">Planned Incremental Profit</div>
-          <div class="amount">+ $1,061,628</div>
+          <div class="amount profit-amount">+ $1,061,628</div>
           <div>
-            <div class="std-profit-per">$23.70</div>
-            <div class="std-profit-per-note">19% operating<br>margin</div>
+            <div class="std-profit-per profit-per-val">$23.70</div>
+            <div class="std-profit-per-note profit-per-note">19% operating<br>margin</div>
           </div>
         </div>
       </div>
@@ -812,6 +894,31 @@
   }
 
   window.goTo = goTo;
+
+  function setView(mode) {
+    const wrap = document.getElementById('std-wrap');
+    const btnStd = document.getElementById('btn-std-view');
+    const btnFull = document.getElementById('btn-full-view');
+    const profitAmt = wrap.querySelector('.profit-amount');
+    const profitPer = wrap.querySelector('.profit-per-val');
+    const profitNote = wrap.querySelector('.profit-per-note');
+    if (mode === 'full') {
+      wrap.classList.add('full-view');
+      btnFull.classList.add('active');
+      btnStd.classList.remove('active');
+      profitAmt.textContent = '- $167,000';
+      profitPer.textContent = '-$3.72';
+      profitNote.innerHTML = '-3% operating<br>margin';
+    } else {
+      wrap.classList.remove('full-view');
+      btnStd.classList.add('active');
+      btnFull.classList.remove('active');
+      profitAmt.textContent = '+ $1,061,628';
+      profitPer.textContent = '$23.70';
+      profitNote.innerHTML = '19% operating<br>margin';
+    }
+  }
+  window.setView = setView;
 
   document.getElementById("btn-addressable").addEventListener("click", () => goTo(2));
 
