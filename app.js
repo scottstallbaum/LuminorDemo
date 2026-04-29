@@ -601,6 +601,8 @@ function renderPriceSegmentWalk() {
       colGroup.appendChild(r);
       segmentLayout[segIdx] = {
         centerY: (y1 + y2) / 2,
+        yTop: y,
+        yBottom: y + h,
         value: val,
         rect: r
       };
@@ -692,24 +694,34 @@ function renderPriceSegmentWalk() {
     columnLayouts.push({ x, segments: segmentLayout });
   });
 
-  PRICE_WALK_SEGMENTS.forEach((segment, segIdx) => {
-    for (let i = 0; i < columnLayouts.length - 1; i += 1) {
-      const a = columnLayouts[i].segments[segIdx];
-      const b = columnLayouts[i + 1].segments[segIdx];
-      if (!a || !b) continue;
-      // Avoid drawing misleading connectors for near-zero segments.
-      if (Math.abs(a.value) < 0.15 || Math.abs(b.value) < 0.15) continue;
+  for (let boundaryIdx = 0; boundaryIdx < PRICE_WALK_SEGMENTS.length - 1; boundaryIdx += 1) {
+    for (let colIdx = 0; colIdx < columnLayouts.length - 1; colIdx += 1) {
+      const leftUpper = columnLayouts[colIdx].segments[boundaryIdx];
+      const leftLower = columnLayouts[colIdx].segments[boundaryIdx + 1];
+      const rightUpper = columnLayouts[colIdx + 1].segments[boundaryIdx];
+      const rightLower = columnLayouts[colIdx + 1].segments[boundaryIdx + 1];
+
+      if (!leftUpper || !leftLower || !rightUpper || !rightLower) continue;
+
+      // Draw connectors only when the boundary is meaningful in both columns.
+      const leftBoundaryWeight = Math.max(Math.abs(leftUpper.value), Math.abs(leftLower.value));
+      const rightBoundaryWeight = Math.max(Math.abs(rightUpper.value), Math.abs(rightLower.value));
+      if (leftBoundaryWeight < 0.15 || rightBoundaryWeight < 0.15) continue;
+
+      const yLeft = (leftUpper.yBottom + leftLower.yTop) / 2;
+      const yRight = (rightUpper.yBottom + rightLower.yTop) / 2;
+
       svg.insertBefore(make("line", {
-        x1: columnLayouts[i].x + barWidth / 2,
-        y1: a.centerY,
-        x2: columnLayouts[i + 1].x - barWidth / 2,
-        y2: b.centerY,
+        x1: columnLayouts[colIdx].x + barWidth / 2,
+        y1: yLeft,
+        x2: columnLayouts[colIdx + 1].x - barWidth / 2,
+        y2: yRight,
         stroke: "rgba(126,159,208,.52)",
         "stroke-width": 0.9,
         "stroke-dasharray": "3 3"
       }), svg.firstChild);
     }
-  });
+  }
 
   const firstCol = columnLayouts[0]?.segments || [];
   firstCol.forEach((layout, segIdx) => {
