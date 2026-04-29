@@ -449,12 +449,12 @@ const PRICE_WALK_SEGMENTS = [
 ];
 
 const PRICE_WALK_SEGMENT_COLORS = [
-  "#c0cce0",
-  "#acbdd8",
-  "#90a8ca",
-  "#738fba",
-  "#5c79a6",
-  "#48648f"
+  "#79c6d6",
+  "#5fa6d6",
+  "#6f8fce",
+  "#5479bb",
+  "#3f63a1",
+  "#304f84"
 ];
 
 const PRICE_WALK_COLUMNS = [
@@ -558,6 +558,7 @@ function renderPriceSegmentWalk() {
     const x = chartLeft + colIdx * colGap;
     const values = PRICE_WALK_PCT[column.key];
     const colGroup = make("g");
+    let tinyLabelOffset = 0;
     let pos = 0;
     let neg = 0;
     const segmentLayout = Array(PRICE_WALK_SEGMENTS.length).fill(null);
@@ -604,7 +605,7 @@ function renderPriceSegmentWalk() {
         rect: r
       };
 
-      if (Math.abs(val) >= 0.35) {
+      if (h >= 16 && Math.abs(val) >= 0.9) {
         const tx = make("text", {
           x,
           y: y + h / 2 + 3.5,
@@ -615,8 +616,10 @@ function renderPriceSegmentWalk() {
         });
         tx.textContent = `${val.toFixed(1)}%`;
         colGroup.appendChild(tx);
-      } else if (Math.abs(val) > 0.001) {
-        const labelY = val >= 0 ? y - 8 : y + h + 16;
+      } else {
+        const baseY = val >= 0 ? y - 7 : y + h + 14;
+        const labelY = baseY + tinyLabelOffset;
+        tinyLabelOffset += 11;
         colGroup.appendChild(make("line", {
           x1: x + barWidth / 2,
           y1: (y1 + y2) / 2,
@@ -694,12 +697,14 @@ function renderPriceSegmentWalk() {
       const a = columnLayouts[i].segments[segIdx];
       const b = columnLayouts[i + 1].segments[segIdx];
       if (!a || !b) continue;
+      // Avoid drawing misleading connectors for near-zero segments.
+      if (Math.abs(a.value) < 0.15 || Math.abs(b.value) < 0.15) continue;
       svg.insertBefore(make("line", {
         x1: columnLayouts[i].x + barWidth / 2,
         y1: a.centerY,
         x2: columnLayouts[i + 1].x - barWidth / 2,
         y2: b.centerY,
-        stroke: "rgba(159,176,211,.46)",
+        stroke: "rgba(126,159,208,.52)",
         "stroke-width": 0.9,
         "stroke-dasharray": "3 3"
       }), svg.firstChild);
