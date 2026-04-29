@@ -538,7 +538,9 @@ function renderPriceSegmentWalk() {
   const barWidth = Math.max(50, Math.min(78, chartWidth / 11));
   const valueMin = -2;
   const valueMax = 100;
-  const colGap = chartWidth / (PRICE_WALK_COLUMNS.length - 1);
+  const usedWidth = chartWidth * 0.82;
+  const colStart = chartLeft + ((chartWidth - usedWidth) / 2);
+  const colGap = usedWidth / (PRICE_WALK_COLUMNS.length - 1);
 
   const yOf = (val) => chartTop + ((valueMax - val) / (valueMax - valueMin)) * chartHeight;
   const baselineY = yOf(0);
@@ -555,7 +557,7 @@ function renderPriceSegmentWalk() {
   const columnLayouts = [];
 
   PRICE_WALK_COLUMNS.forEach((column, colIdx) => {
-    const x = chartLeft + colIdx * colGap;
+    const x = colStart + colIdx * colGap;
     const values = PRICE_WALK_PCT[column.key];
     const colGroup = make("g");
     let tinyLabelOffset = 0;
@@ -622,17 +624,42 @@ function renderPriceSegmentWalk() {
         const baseY = val >= 0 ? y - 7 : y + h + 14;
         const labelY = baseY + tinyLabelOffset;
         tinyLabelOffset += 11;
+        const anchorX = x + barWidth / 2;
+        const anchorY = (y1 + y2) / 2;
+        const labelX = anchorX + 22;
+
         colGroup.appendChild(make("line", {
-          x1: x + barWidth / 2,
-          y1: (y1 + y2) / 2,
-          x2: x + barWidth / 2 + 18,
-          y2: labelY - 4,
+          x1: labelX,
+          y1: labelY - 2,
+          x2: anchorX,
+          y2: anchorY,
           stroke: "rgba(159,176,211,.45)",
           "stroke-width": 0.8,
           "stroke-dasharray": "2 2"
         }));
+
+        const dx = labelX - anchorX;
+        const dy = (labelY - 2) - anchorY;
+        const len = Math.sqrt((dx * dx) + (dy * dy)) || 1;
+        const ux = dx / len;
+        const uy = dy / len;
+        const nx = -uy;
+        const ny = ux;
+        const ah = 5;
+        const aw = 2.5;
+        const p1x = anchorX;
+        const p1y = anchorY;
+        const p2x = anchorX + (ux * ah) + (nx * aw);
+        const p2y = anchorY + (uy * ah) + (ny * aw);
+        const p3x = anchorX + (ux * ah) - (nx * aw);
+        const p3y = anchorY + (uy * ah) - (ny * aw);
+        colGroup.appendChild(make("polygon", {
+          points: `${p1x},${p1y} ${p2x},${p2y} ${p3x},${p3y}`,
+          fill: "rgba(159,176,211,.62)"
+        }));
+
         const tiny = make("text", {
-          x: x + barWidth / 2 + 20,
+          x: labelX,
           y: labelY,
           fill: "#aebfdd",
           "font-size": 10.5,
