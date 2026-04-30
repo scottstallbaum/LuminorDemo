@@ -101,7 +101,7 @@
       inset: 0;
       display: flex;
       flex-direction: column;
-      padding: 1rem 1.25rem 1rem;
+      padding: 1.35rem 1.25rem 1rem;
       opacity: 0;
       pointer-events: none;
       transition: opacity .35s ease;
@@ -124,7 +124,7 @@
       text-transform: uppercase;
       letter-spacing: .09em;
       color: var(--muted);
-      margin-bottom: .55rem;
+      margin-bottom: .7rem;
     }
 
     /* ── Waterfall chart host ────────────────────────────────── */
@@ -1489,7 +1489,7 @@
         </div>
       </div>
       <div class="action-strip">
-        <button class="btn-ghost" onclick="goTo(1)">← Back</button>
+        <button class="btn-ghost" onclick="goToWithThinking(1)">← Back</button>
       </div>
     </div>
 
@@ -1586,7 +1586,7 @@
         </div>
       </div>
       <div class="action-strip">
-        <button class="btn-ghost" onclick="goTo(2)">← Back</button>
+        <button class="btn-ghost" onclick="goToWithThinking(2)">← Back</button>
         <button class="btn-primary btn-optimize" onclick="showThinking(() => goTo(4), 'Optimizing promotion volumes\u2026')">Optimize Promotion Volumes →</button>
       </div>
     </div>
@@ -1638,7 +1638,7 @@
         </div>
       </div>
       <div class="action-strip">
-        <button class="btn-ghost" onclick="goTo(3)">← Back</button>
+        <button class="btn-ghost" onclick="goToWithThinking(3)">← Back</button>
       </div>
     </div>
 
@@ -1667,7 +1667,7 @@
             <div class="value" id="lead-selection-copy">Choose a quadrant to continue</div>
           </div>
           <div class="lead-controls-actions">
-            <button class="btn-ghost" onclick="goTo(2)">← Back</button>
+            <button class="btn-ghost" onclick="goToWithThinking(2)">← Back</button>
             <button class="btn-primary lead-btn" id="btn-lead-segmentation" disabled>Customer Segmentation Analysis →</button>
           </div>
         </div>
@@ -1695,7 +1695,7 @@
           </div>
         </div>
         <div class="action-strip">
-          <button class="btn-ghost" onclick="goTo(5)">← Back</button>
+          <button class="btn-ghost" onclick="goToWithThinking(5)">← Back</button>
           <button class="btn-primary lead-btn" id="btn-lead-profitability" disabled>Customer Profitability Analysis →</button>
         </div>
       </div>
@@ -1728,7 +1728,7 @@
             <div class="value small" id="lead-customer-quadrants-copy">Choose two quadrants to compare</div>
           </div>
           <div class="lead-controls-actions">
-            <button class="btn-ghost" onclick="goTo(6)">← Back</button>
+            <button class="btn-ghost" onclick="goToWithThinking(6)">← Back</button>
             <button class="btn-primary lead-btn" id="btn-compare-cost-structures" disabled>Customer Segment Cost Comparison →</button>
           </div>
         </div>
@@ -1772,7 +1772,7 @@
             <div class="value small" id="lead-cost-segment-copy">Select a segment to continue</div>
           </div>
           <div class="lead-controls-actions">
-            <button class="btn-ghost" onclick="goTo(7)">← Back</button>
+            <button class="btn-ghost" onclick="goToWithThinking(7)">← Back</button>
             <button class="btn-primary lead-btn" id="btn-cost-segment-details" disabled>Transportation Cost Comparison →</button>
           </div>
         </div>
@@ -1808,7 +1808,7 @@
         </div>
       </div>
       <div class="action-strip">
-        <button class="btn-ghost" onclick="goTo(8)">← Back</button>
+        <button class="btn-ghost" onclick="goToWithThinking(8)">← Back</button>
       </div>
     </div>
 
@@ -1855,8 +1855,8 @@
         </div>
       </div>
       <div class="action-strip">
-        <button class="btn-ghost" onclick="goTo(9)">← Back</button>
-        <button class="btn-primary" onclick="goTo(11)">Quantify Lead Time Constraint →</button>
+        <button class="btn-ghost" onclick="goToWithThinking(9)">← Back</button>
+        <button class="btn-primary" onclick="goToWithThinking(11)">Quantify Lead Time Constraint →</button>
       </div>
     </div>
 
@@ -1944,7 +1944,7 @@
         </table>
       </div>
       <div class="action-strip">
-        <button class="btn-ghost" onclick="goTo(10)">← Back</button>
+        <button class="btn-ghost" onclick="goToWithThinking(10)">← Back</button>
       </div>
     </div>
 
@@ -1965,7 +1965,12 @@
     if (indicator) indicator.textContent = current + " / 6";
   }
 
+  function goToWithThinking(n, label) {
+    showThinking(() => goTo(n), label || "Thinking\u2026", 2000);
+  }
+
   window.goTo = goTo;
+  window.goToWithThinking = goToWithThinking;
 
   function setView(mode) {
     const wrap = document.getElementById('std-wrap');
@@ -2002,7 +2007,7 @@
   document.getElementById("btn-addressable").addEventListener("click", () => showThinking(() => goTo(2), 'Analyzing cost structure\u2026'));
 
   // ── Thinking network animation ────────────────────────────────
-  function showThinking(onDone, label) {
+  function showThinking(onDone, label, durationMs) {
     document.querySelector('.thinking-label').textContent = label || 'Analyzing\u2026';
     const overlay = document.getElementById('thinking-overlay');
     const canvas  = document.getElementById('thinking-canvas');
@@ -2038,7 +2043,7 @@
 
     let raf;
     const start = performance.now();
-    const DURATION = 5200;
+    const DURATION = Number(durationMs) > 0 ? Number(durationMs) : 5200;
 
     function draw(now) {
       const t = (now - start) / 1000;
@@ -3269,7 +3274,7 @@
 
   function openLeadTimeComparison() {
     buildLeadTimeComparisonCharts();
-    goTo(10);
+    goToWithThinking(10, 'Analyzing lead time requirements\u2026');
   }
   window.openLeadTimeComparison = openLeadTimeComparison;
 
@@ -3496,7 +3501,7 @@
     host.querySelectorAll("[data-key]").forEach((el) => {
       el.addEventListener("click", (e) => {
         const key = e.currentTarget.getAttribute("data-key");
-        if (key === "freight") goTo(2);
+        if (key === "freight") goToWithThinking(2);
       });
     });
   }
@@ -3529,12 +3534,12 @@
   }
 
   const coorsPromo = document.getElementById("promo-coors-superbowl");
-  if (coorsPromo) coorsPromo.addEventListener("click", () => goTo(3));
+  if (coorsPromo) coorsPromo.addEventListener("click", () => goToWithThinking(3));
 
   const leadTimesDriver = document.getElementById("lead-times-driver");
   if (leadTimesDriver) {
     leadTimesDriver.addEventListener("click", () => {
-      goTo(5);
+      goToWithThinking(5);
     });
   }
 
@@ -3542,7 +3547,7 @@
   if (leadSegBtn) {
     leadSegBtn.addEventListener("click", () => {
       if (!leadState.selectedQuadrant) return;
-      goTo(6);
+      goToWithThinking(6);
     });
   }
 
@@ -3551,7 +3556,7 @@
     leadProfitBtn.addEventListener("click", () => {
       if (leadState.selectedBubble == null) return;
       buildLeadCustomerScatterChart();
-      goTo(7);
+      goToWithThinking(7);
     });
   }
 
@@ -3560,7 +3565,7 @@
     compareCostBtn.addEventListener("click", () => {
       if ((leadState.customerSelectedQuadrants || []).length !== 2) return;
       renderCostStructureComparison();
-      goTo(8);
+      goToWithThinking(8);
     });
   }
 
@@ -3576,7 +3581,7 @@
     costDetailsBtn.addEventListener("click", () => {
       if (!leadState.selectedCostSegment) return;
       renderTransportationCostComparison();
-      goTo(9);
+      goToWithThinking(9);
     });
   }
 
