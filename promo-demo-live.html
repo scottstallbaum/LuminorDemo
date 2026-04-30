@@ -38,6 +38,7 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
+      padding-top: clamp(10px, 1.4vh, 18px);
     }
 
     /* ── Top identity bar ────────────────────────────────────── */
@@ -1966,7 +1967,19 @@
   }
 
   function goToWithThinking(n, label) {
-    showThinking(() => goTo(n), label || "Thinking\u2026", 2000);
+    const navThinkingDurations = {
+      1: 2200,
+      2: 2600,
+      3: 2400,
+      5: 3000,
+      6: 2800,
+      7: 3200,
+      8: 3400,
+      9: 3000,
+      10: 2800,
+      11: 3600
+    };
+    showThinking(() => goTo(n), label || "Thinking\u2026", navThinkingDurations[n] || 2400);
   }
 
   window.goTo = goTo;
