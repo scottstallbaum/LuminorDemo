@@ -21,6 +21,7 @@
       --accent:  #45d0a2;
       --warn:    #ffae57;
       --danger:  #ff6d6d;
+      --top-breathing-room: clamp(14px, 2.2vh, 24px);
     }
 
     /* ── Reset ───────────────────────────────────────────────── */
@@ -37,8 +38,8 @@
     #app {
       display: flex;
       flex-direction: column;
-      height: 100vh;
-      padding-top: clamp(10px, 1.4vh, 18px);
+      height: calc(100vh - var(--top-breathing-room));
+      margin-top: var(--top-breathing-room);
     }
 
     /* ── Top identity bar ────────────────────────────────────── */
