@@ -2198,7 +2198,7 @@
     if (indicator) indicator.textContent = current + " / " + totalScreens;
   }
 
-  function goToWithThinking(n, label) {
+  function goToWithThinking(n, label, prepareFn) {
     const navThinkingDurations = {
       1: 1200,
       2: 1400,
@@ -2213,6 +2213,11 @@
       12: 1300
     };
     showThinking(() => goTo(n), label || "Thinking\u2026", navThinkingDurations[n] || 1300);
+    if (typeof prepareFn === "function") {
+      setTimeout(() => {
+        try { prepareFn(); } catch (_) {}
+      }, 50);
+    }
   }
 
   window.goTo = goTo;
@@ -3520,8 +3525,7 @@
   }
 
   function openLeadTimeComparison() {
-    buildLeadTimeComparisonCharts();
-    goToWithThinking(10, 'Analyzing lead time requirements\u2026');
+    goToWithThinking(10, 'Analyzing lead time requirements\u2026', buildLeadTimeComparisonCharts);
   }
   window.openLeadTimeComparison = openLeadTimeComparison;
 
@@ -3853,8 +3857,7 @@
   if (leadProfitBtn) {
     leadProfitBtn.addEventListener("click", () => {
       if (leadState.selectedBubble == null) return;
-      buildLeadCustomerScatterChart();
-      goToWithThinking(7);
+      goToWithThinking(7, null, buildLeadCustomerScatterChart);
     });
   }
 
@@ -3862,8 +3865,7 @@
   if (compareCostBtn) {
     compareCostBtn.addEventListener("click", () => {
       if ((leadState.customerSelectedQuadrants || []).length !== 2) return;
-      renderCostStructureComparison();
-      goToWithThinking(8);
+      goToWithThinking(8, null, renderCostStructureComparison);
     });
   }
 
@@ -3878,8 +3880,7 @@
   if (costDetailsBtn) {
     costDetailsBtn.addEventListener("click", () => {
       if (!leadState.selectedCostSegment) return;
-      renderTransportationCostComparison();
-      goToWithThinking(9);
+      goToWithThinking(9, null, renderTransportationCostComparison);
     });
   }
 
