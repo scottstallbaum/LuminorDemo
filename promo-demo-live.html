@@ -2212,7 +2212,12 @@
       11: 700,
       12: 750
     };
-    showThinking(() => goTo(n), label || "Thinking\u2026", navThinkingDurations[n] || 700, prepareFn);
+    showThinking(() => goTo(n), label || "Thinking\u2026", navThinkingDurations[n] || 700);
+    if (typeof prepareFn === "function") {
+      setTimeout(() => {
+        try { prepareFn(); } catch (_) {}
+      }, 50);
+    }
   }
 
   window.goTo = goTo;
@@ -2254,7 +2259,7 @@
   document.getElementById("btn-addressable").addEventListener("click", () => showThinking(() => goTo(2), 'Analyzing cost structure\u2026'));
 
   // ── Thinking network animation ────────────────────────────────
-  function showThinking(onDone, label, durationMs, prepareFn) {
+  function showThinking(onDone, label, durationMs) {
     document.querySelector('.thinking-label').textContent = label || 'Analyzing\u2026';
     const overlay = document.getElementById('thinking-overlay');
     const canvas  = document.getElementById('thinking-canvas');
@@ -2291,13 +2296,6 @@
     let raf;
     const start = performance.now();
     const DURATION = Number(durationMs) > 0 ? Number(durationMs) : 5200;
-    let prepComplete = typeof prepareFn !== "function";
-
-    if (!prepComplete) {
-      setTimeout(() => {
-        try { prepareFn(); } finally { prepComplete = true; }
-      }, 50);
-    }
 
     function draw(now) {
       const t = (now - start) / 1000;
@@ -2335,7 +2333,7 @@
         ctx.fill();
       });
 
-      if (now - start < DURATION || !prepComplete) {
+      if (now - start < DURATION) {
         raf = requestAnimationFrame(draw);
       } else {
         clearInterval(waveInterval);
