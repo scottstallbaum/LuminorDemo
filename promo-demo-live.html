@@ -2184,10 +2184,21 @@
   let current = 1;
   const totalScreens = document.querySelectorAll(".screen").length;
 
+  function handleScreenReveal(screenNumber) {
+    if (screenNumber === 6) {
+      if (!leadState.segChart) buildLeadSegBubbleChart();
+      if (leadState.segChart) {
+        leadState.segChart.resize();
+        leadState.segChart.update("none");
+      }
+    }
+  }
+
   function goTo(n) {
     document.getElementById("screen-" + current).classList.remove("active");
     current = n;
     document.getElementById("screen-" + current).classList.add("active");
+    handleScreenReveal(current);
     const indicator = document.getElementById("screen-indicator");
     if (indicator) indicator.textContent = current + " / " + totalScreens;
   }
@@ -3884,7 +3895,6 @@
   initAddressableBars();
   updateLeadCriteriaUI();
   buildLeadScatterChart();
-  buildLeadSegBubbleChart();
 })();
 </script>
 </body>
