@@ -2235,19 +2235,19 @@
 
   function goToWithThinking(n, label) {
     const navThinkingDurations = {
-      1: 700,
-      2: 800,
-      3: 750,
-      5: 800,
-      6: 750,
-      7: 650,
-      8: 650,
-      9: 650,
-      10: 650,
-      11: 700,
-      12: 750
+        1: 2200,
+        2: 2600,
+        3: 2400,
+        5: 2600,
+        6: 2400,
+        7: 2200,
+        8: 2200,
+        9: 2200,
+        10: 2200,
+        11: 2300,
+        12: 2400
     };
-    showThinking(() => goTo(n), label || "Thinking\u2026", navThinkingDurations[n] || 700);
+      showThinking(() => goTo(n), label || "Thinking\u2026", navThinkingDurations[n] || 2200);
   }
 
   window.goTo = goTo;
