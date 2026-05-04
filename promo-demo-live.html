@@ -2188,6 +2188,12 @@
     document.getElementById("screen-" + current).classList.remove("active");
     current = n;
     document.getElementById("screen-" + current).classList.add("active");
+    if (current === 6 && leadState.segChart) {
+      requestAnimationFrame(() => {
+        leadState.segChart.resize();
+        leadState.segChart.update("none");
+      });
+    }
     const indicator = document.getElementById("screen-indicator");
     if (indicator) indicator.textContent = current + " / " + totalScreens;
   }
