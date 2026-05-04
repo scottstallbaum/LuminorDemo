@@ -2193,12 +2193,44 @@
         leadState.segChart.resize();
         leadState.segChart.update("none");
       });
+    } else if (current === 7 && leadState.customerChart) {
+      requestAnimationFrame(() => {
+        leadState.customerChart.resize();
+        leadState.customerChart.update("none");
+      });
+    } else if (current === 8) {
+      requestAnimationFrame(() => {
+        if (leadState.costCharts["cost-chart-unprofitable"]) {
+          leadState.costCharts["cost-chart-unprofitable"].resize();
+          leadState.costCharts["cost-chart-unprofitable"].update("none");
+        }
+        if (leadState.costCharts["cost-chart-profitable"]) {
+          leadState.costCharts["cost-chart-profitable"].resize();
+          leadState.costCharts["cost-chart-profitable"].update("none");
+        }
+      });
+    } else if (current === 9 && leadState.transportCompareChart) {
+      requestAnimationFrame(() => {
+        leadState.transportCompareChart.resize();
+        leadState.transportCompareChart.update("none");
+      });
+    } else if (current === 10) {
+      requestAnimationFrame(() => {
+        if (leadState.leadTimeHighMarginChart) {
+          leadState.leadTimeHighMarginChart.resize();
+          leadState.leadTimeHighMarginChart.update("none");
+        }
+        if (leadState.leadTimeLowMarginChart) {
+          leadState.leadTimeLowMarginChart.resize();
+          leadState.leadTimeLowMarginChart.update("none");
+        }
+      });
     }
     const indicator = document.getElementById("screen-indicator");
     if (indicator) indicator.textContent = current + " / " + totalScreens;
   }
 
-  function goToWithThinking(n, label, prepareFn) {
+  function goToWithThinking(n, label) {
     const navThinkingDurations = {
       1: 700,
       2: 800,
@@ -2212,44 +2244,7 @@
       11: 700,
       12: 750
     };
-    const duration = navThinkingDurations[n] || 700;
-    let thinkingDone = false;
-    let prepDone = typeof prepareFn !== "function";
-    let navigated = false;
-
-    function maybeGo() {
-      if (!navigated && thinkingDone && prepDone) {
-        navigated = true;
-        goTo(n);
-      }
-    }
-
-    showThinking(() => {
-      thinkingDone = true;
-      maybeGo();
-    }, label || "Thinking\u2026", duration);
-
-    if (typeof prepareFn === "function") {
-      // Let the overlay paint first, then do screen prep while thinking runs.
-      setTimeout(() => {
-        try {
-          prepareFn();
-        } catch (_) {
-          // Ignore prep errors and continue navigation flow.
-        } finally {
-          prepDone = true;
-          maybeGo();
-        }
-      }, 60);
-
-      // Fail-safe: never block transition indefinitely on prep.
-      setTimeout(() => {
-        if (!prepDone) {
-          prepDone = true;
-          maybeGo();
-        }
-      }, Math.max(3500, duration + 1200));
-    }
+    showThinking(() => goTo(n), label || "Thinking\u2026", navThinkingDurations[n] || 700);
   }
 
   window.goTo = goTo;
@@ -2277,8 +2272,8 @@
     selectedCriteria: [],
     chart: null,
     segChart: null,
-    selectedBubble: null,
-    selectedBubbleData: null,
+    selectedBubble: 1,
+    selectedBubbleData: { count: 160 },
     customerChart: null,
     customerSelectedQuadrants: [],
     selectedCostSegment: null,
@@ -3557,7 +3552,7 @@
   }
 
   function openLeadTimeComparison() {
-    goToWithThinking(10, 'Analyzing lead time requirements\u2026', buildLeadTimeComparisonCharts);
+    goToWithThinking(10, 'Analyzing lead time requirements\u2026');
   }
   window.openLeadTimeComparison = openLeadTimeComparison;
 
@@ -3889,7 +3884,7 @@
   if (leadProfitBtn) {
     leadProfitBtn.addEventListener("click", () => {
       if (leadState.selectedBubble == null) return;
-      goToWithThinking(7, null, buildLeadCustomerScatterChart);
+      goToWithThinking(7);
     });
   }
 
@@ -3897,7 +3892,7 @@
   if (compareCostBtn) {
     compareCostBtn.addEventListener("click", () => {
       if ((leadState.customerSelectedQuadrants || []).length !== 2) return;
-      goToWithThinking(8, null, renderCostStructureComparison);
+      goToWithThinking(8);
     });
   }
 
@@ -3912,7 +3907,7 @@
   if (costDetailsBtn) {
     costDetailsBtn.addEventListener("click", () => {
       if (!leadState.selectedCostSegment) return;
-      goToWithThinking(9, null, renderTransportationCostComparison);
+      goToWithThinking(9);
     });
   }
 
@@ -3924,6 +3919,10 @@
   updateLeadCriteriaUI();
   buildLeadScatterChart();
   buildLeadSegBubbleChart();
+  buildLeadCustomerScatterChart();
+  renderCostStructureComparison();
+  renderTransportationCostComparison();
+  buildLeadTimeComparisonCharts();
 })();
 </script>
 </body>
