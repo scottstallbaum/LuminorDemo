@@ -2212,11 +2212,43 @@
       11: 700,
       12: 750
     };
-    showThinking(() => goTo(n), label || "Thinking\u2026", navThinkingDurations[n] || 700);
+    const duration = navThinkingDurations[n] || 700;
+    let thinkingDone = false;
+    let prepDone = typeof prepareFn !== "function";
+    let navigated = false;
+
+    function maybeGo() {
+      if (!navigated && thinkingDone && prepDone) {
+        navigated = true;
+        goTo(n);
+      }
+    }
+
+    showThinking(() => {
+      thinkingDone = true;
+      maybeGo();
+    }, label || "Thinking\u2026", duration);
+
     if (typeof prepareFn === "function") {
+      // Let the overlay paint first, then do screen prep while thinking runs.
       setTimeout(() => {
-        try { prepareFn(); } catch (_) {}
-      }, 50);
+        try {
+          prepareFn();
+        } catch (_) {
+          // Ignore prep errors and continue navigation flow.
+        } finally {
+          prepDone = true;
+          maybeGo();
+        }
+      }, 60);
+
+      // Fail-safe: never block transition indefinitely on prep.
+      setTimeout(() => {
+        if (!prepDone) {
+          prepDone = true;
+          maybeGo();
+        }
+      }, Math.max(3500, duration + 1200));
     }
   }
 
