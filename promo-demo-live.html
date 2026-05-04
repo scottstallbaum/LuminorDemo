@@ -874,6 +874,101 @@
       gap: .6rem;
       margin-left: auto;
     }
+    .lead-criteria-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .8rem;
+      border-top: 1px dashed rgba(159,176,211,.28);
+      border-bottom: 1px dashed rgba(159,176,211,.28);
+      padding: .75rem 0;
+    }
+    .lead-criteria-col {
+      display: flex;
+      flex-direction: column;
+      gap: .45rem;
+      min-width: 0;
+    }
+    .lead-criteria-head {
+      font-size: .72rem;
+      color: #9fb8de;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin: 0;
+    }
+    .lead-criteria-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      border: 1px solid #2f4468;
+      border-radius: .5rem;
+      background: rgba(255,255,255,.03);
+      color: #bdd1ee;
+      padding: .5rem .58rem;
+      cursor: pointer;
+      transition: border-color .16s, background .16s, color .16s;
+      text-align: left;
+      font: inherit;
+    }
+    .lead-criteria-row:hover {
+      border-color: #48618e;
+      background: rgba(255,255,255,.05);
+    }
+    .lead-criteria-row.active {
+      border-color: rgba(69,208,162,.9);
+      background: rgba(69,208,162,.12);
+    }
+    .lead-criteria-label {
+      font-size: .83rem;
+      line-height: 1.2;
+      font-weight: 600;
+      color: #afc6e8;
+      transition: color .16s;
+    }
+    .lead-criteria-row.active .lead-criteria-label {
+      color: #ecfff7;
+    }
+    .lead-toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      border: 1px solid #4a6088;
+      background: #1a2740;
+      transition: border-color .16s, background .16s;
+    }
+    .lead-toggle::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #d5dfef;
+      transition: transform .16s ease;
+      box-shadow: 0 1px 4px rgba(0,0,0,.35);
+    }
+    .lead-criteria-row.active .lead-toggle {
+      border-color: rgba(69,208,162,.92);
+      background: rgba(69,208,162,.5);
+    }
+    .lead-criteria-row.active .lead-toggle::after {
+      transform: translateX(18px);
+      background: #f6fffc;
+    }
+    .lead-criteria-selection {
+      font-size: .82rem;
+      color: #b8cce9;
+      font-weight: 600;
+    }
+    .lead-criteria-selection strong {
+      color: #f1f7ff;
+      font-weight: 700;
+    }
     .lead-selection-copy {
       display: flex;
       flex-direction: column;
@@ -1322,6 +1417,9 @@
       .leadtime-grid {
         grid-template-columns: 1fr;
       }
+      .lead-criteria-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* ── Thinking overlay ─────────────────────────────────────── */
@@ -1673,6 +1771,99 @@
       </div>
     </div>
 
+    <!-- ── Screen 12: Segmentation criteria selection ────────── -->
+    <div class="screen" id="screen-12">
+      <div class="screen-title">Segmentation Criteria Selection</div>
+      <div class="lead-wrap">
+        <div class="lead-hero">
+          <div class="lead-hero-title">Select Segmentation Criteria</div>
+          <div class="lead-hero-metric" id="lead-selected-segment-criteria-label">Awaiting criteria selection</div>
+        </div>
+        <div class="lead-chart-card">
+          <div class="lead-chart-head">
+            <div>
+              <h4>Segmentation Criteria</h4>
+              <div class="lead-chart-sub">Select one or more criteria to run segmentation analysis.</div>
+            </div>
+          </div>
+
+          <div class="lead-criteria-grid">
+            <div class="lead-criteria-col">
+              <p class="lead-criteria-head">Commercial</p>
+              <button class="lead-criteria-row" data-criteria-id="commercial-order-size" type="button">
+                <span class="lead-criteria-label">Order Size Profile</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="commercial-promo-intensity" type="button">
+                <span class="lead-criteria-label">Promotion Intensity</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="commercial-margin-band" type="button">
+                <span class="lead-criteria-label">Margin Band</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <div class="lead-criteria-col">
+              <p class="lead-criteria-head">Service</p>
+              <button class="lead-criteria-row" data-criteria-id="service-fill-rate" type="button">
+                <span class="lead-criteria-label">Fill Rate Target</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="service-delivery-frequency" type="button">
+                <span class="lead-criteria-label">Delivery Frequency</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="service-lead-time" type="button">
+                <span class="lead-criteria-label">Lead-Time SLA</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <div class="lead-criteria-col">
+              <p class="lead-criteria-head">Operating</p>
+              <button class="lead-criteria-row" data-criteria-id="operating-forecast-accuracy" type="button">
+                <span class="lead-criteria-label">Forecast Accuracy</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="operating-order-variability" type="button">
+                <span class="lead-criteria-label">Order Variability</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="operating-sku-complexity" type="button">
+                <span class="lead-criteria-label">SKU Complexity</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <div class="lead-criteria-col">
+              <p class="lead-criteria-head">Logistics</p>
+              <button class="lead-criteria-row" data-criteria-id="logistics-drop-size" type="button">
+                <span class="lead-criteria-label">Drop Size</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="logistics-delivery-window" type="button">
+                <span class="lead-criteria-label">Delivery Window Strictness</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="logistics-route-density" type="button">
+                <span class="lead-criteria-label">Route Density</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="lead-controls">
+            <div class="lead-criteria-selection" id="lead-criteria-selection-copy"><strong>0</strong> criteria selected</div>
+            <div class="lead-controls-actions">
+              <button class="btn-ghost" onclick="goTo(5)">← Back</button>
+              <button class="btn-primary lead-btn" id="btn-lead-criteria-next" disabled>Segmentation Analysis →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── Screen 6: Lead Times next step ─────────────────────── -->
     <div class="screen" id="screen-6">
       <div class="screen-title">Customer Segmentation Analysis</div>
@@ -1694,7 +1885,7 @@
           </div>
         </div>
         <div class="action-strip">
-          <button class="btn-ghost" onclick="goTo(5)">← Back</button>
+          <button class="btn-ghost" onclick="goTo(12)">← Back</button>
           <button class="btn-primary lead-btn" id="btn-lead-profitability" disabled>Customer Profitability Analysis →</button>
         </div>
       </div>
@@ -1955,13 +2146,14 @@
 (function () {
   // ── Navigation ────────────────────────────────────────────────
   let current = 1;
+  const totalScreens = document.querySelectorAll(".screen").length;
 
   function goTo(n) {
     document.getElementById("screen-" + current).classList.remove("active");
     current = n;
     document.getElementById("screen-" + current).classList.add("active");
     const indicator = document.getElementById("screen-indicator");
-    if (indicator) indicator.textContent = current + " / 6";
+    if (indicator) indicator.textContent = current + " / " + totalScreens;
   }
 
   function goToWithThinking(n, label) {
@@ -1970,6 +2162,7 @@
       2: 2600,
       3: 2400,
       5: 3000,
+      12: 2600,
       6: 2800,
       7: 3200,
       8: 3400,
@@ -2002,6 +2195,7 @@
 
   const leadState = {
     selectedQuadrant: null,
+    selectedCriteria: [],
     chart: null,
     segChart: null,
     selectedBubble: null,
@@ -3373,6 +3567,42 @@
     if (leadState.chart) leadState.chart.update();
   }
 
+  function toggleLeadCriteria(criteriaId) {
+    if (!criteriaId) return;
+    const selected = new Set(leadState.selectedCriteria || []);
+    if (selected.has(criteriaId)) selected.delete(criteriaId);
+    else selected.add(criteriaId);
+    leadState.selectedCriteria = Array.from(selected);
+    updateLeadCriteriaUI();
+  }
+
+  function updateLeadCriteriaUI() {
+    const selectedSet = new Set(leadState.selectedCriteria || []);
+    document.querySelectorAll(".lead-criteria-row").forEach((row) => {
+      const id = row.getAttribute("data-criteria-id");
+      const isActive = selectedSet.has(id);
+      row.classList.toggle("active", isActive);
+      row.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+
+    const selectedCount = selectedSet.size;
+    const selectionCopy = document.getElementById("lead-criteria-selection-copy");
+    if (selectionCopy) {
+      const word = selectedCount === 1 ? "criterion" : "criteria";
+      selectionCopy.innerHTML = `<strong>${selectedCount}</strong> ${word} selected`;
+    }
+
+    const criteriaLabel = document.getElementById("lead-selected-segment-criteria-label");
+    if (criteriaLabel) {
+      criteriaLabel.textContent = selectedCount > 0
+        ? `${selectedCount} criteria selected`
+        : "Awaiting criteria selection";
+    }
+
+    const nextButton = document.getElementById("btn-lead-criteria-next");
+    if (nextButton) nextButton.disabled = selectedCount === 0;
+  }
+
   // ── Static waterfall data (matches dashboard full-portfolio) ──
   // Values in dollars — all bars sum from Revenue → Operating Income.
   const STEPS = [
@@ -3558,6 +3788,21 @@
   if (leadSegBtn) {
     leadSegBtn.addEventListener("click", () => {
       if (!leadState.selectedQuadrant) return;
+      goToWithThinking(12);
+    });
+  }
+
+  document.querySelectorAll(".lead-criteria-row").forEach((row) => {
+    row.addEventListener("click", () => {
+      const criteriaId = row.getAttribute("data-criteria-id");
+      toggleLeadCriteria(criteriaId);
+    });
+  });
+
+  const leadCriteriaNextBtn = document.getElementById("btn-lead-criteria-next");
+  if (leadCriteriaNextBtn) {
+    leadCriteriaNextBtn.addEventListener("click", () => {
+      if ((leadState.selectedCriteria || []).length === 0) return;
       goToWithThinking(6);
     });
   }
@@ -3601,6 +3846,7 @@
   }
 
   initAddressableBars();
+  updateLeadCriteriaUI();
   buildLeadScatterChart();
   buildLeadSegBubbleChart();
 })();
