@@ -2193,10 +2193,13 @@
         leadState.segChart.resize();
         leadState.segChart.update("none");
       });
-    } else if (current === 7 && leadState.customerChart) {
+    } else if (current === 7) {
       requestAnimationFrame(() => {
-        leadState.customerChart.resize();
-        leadState.customerChart.update("none");
+        buildLeadCustomerScatterChart();
+        if (leadState.customerChart) {
+          leadState.customerChart.resize();
+          leadState.customerChart.update("none");
+        }
       });
     } else if (current === 8) {
       requestAnimationFrame(() => {
