@@ -1789,65 +1789,101 @@
 
           <div class="lead-criteria-grid">
             <div class="lead-criteria-col">
-              <p class="lead-criteria-head">Commercial</p>
+              <p class="lead-criteria-head">Commercial (what they buy / how they buy)</p>
+              <button class="lead-criteria-row" data-criteria-id="commercial-product-sku-mix" type="button">
+                <span class="lead-criteria-label">Product / SKU mix</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
               <button class="lead-criteria-row" data-criteria-id="commercial-order-size" type="button">
-                <span class="lead-criteria-label">Order Size Profile</span>
+                <span class="lead-criteria-label">Order size</span>
                 <span class="lead-toggle" aria-hidden="true"></span>
               </button>
-              <button class="lead-criteria-row" data-criteria-id="commercial-promo-intensity" type="button">
-                <span class="lead-criteria-label">Promotion Intensity</span>
+              <button class="lead-criteria-row" data-criteria-id="commercial-order-frequency" type="button">
+                <span class="lead-criteria-label">Order frequency</span>
                 <span class="lead-toggle" aria-hidden="true"></span>
               </button>
-              <button class="lead-criteria-row" data-criteria-id="commercial-margin-band" type="button">
-                <span class="lead-criteria-label">Margin Band</span>
+              <button class="lead-criteria-row" data-criteria-id="commercial-revenue-level" type="button">
+                <span class="lead-criteria-label">Revenue level</span>
                 <span class="lead-toggle" aria-hidden="true"></span>
               </button>
-            </div>
-
-            <div class="lead-criteria-col">
-              <p class="lead-criteria-head">Service</p>
-              <button class="lead-criteria-row" data-criteria-id="service-fill-rate" type="button">
-                <span class="lead-criteria-label">Fill Rate Target</span>
+              <button class="lead-criteria-row" data-criteria-id="commercial-margin-reported" type="button">
+                <span class="lead-criteria-label">Margin (reported)</span>
                 <span class="lead-toggle" aria-hidden="true"></span>
               </button>
-              <button class="lead-criteria-row" data-criteria-id="service-delivery-frequency" type="button">
-                <span class="lead-criteria-label">Delivery Frequency</span>
-                <span class="lead-toggle" aria-hidden="true"></span>
-              </button>
-              <button class="lead-criteria-row" data-criteria-id="service-lead-time" type="button">
-                <span class="lead-criteria-label">Lead-Time SLA</span>
+              <button class="lead-criteria-row" data-criteria-id="commercial-customer-tenure" type="button">
+                <span class="lead-criteria-label">Customer tenure</span>
                 <span class="lead-toggle" aria-hidden="true"></span>
               </button>
             </div>
 
             <div class="lead-criteria-col">
-              <p class="lead-criteria-head">Operating</p>
-              <button class="lead-criteria-row" data-criteria-id="operating-forecast-accuracy" type="button">
-                <span class="lead-criteria-label">Forecast Accuracy</span>
+              <p class="lead-criteria-head">Service (how we serve them) ← this is your lane</p>
+              <button class="lead-criteria-row" data-criteria-id="service-lead-time-delivery-window" type="button">
+                <span class="lead-criteria-label">Lead time / delivery window</span>
                 <span class="lead-toggle" aria-hidden="true"></span>
               </button>
-              <button class="lead-criteria-row" data-criteria-id="operating-order-variability" type="button">
-                <span class="lead-criteria-label">Order Variability</span>
+              <button class="lead-criteria-row" data-criteria-id="service-level-standard-vs-expedited" type="button">
+                <span class="lead-criteria-label">Service level (standard vs expedited)</span>
                 <span class="lead-toggle" aria-hidden="true"></span>
               </button>
-              <button class="lead-criteria-row" data-criteria-id="operating-sku-complexity" type="button">
-                <span class="lead-criteria-label">SKU Complexity</span>
+              <button class="lead-criteria-row" data-criteria-id="service-order-variability" type="button">
+                <span class="lead-criteria-label">Order variability</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="service-returns-rework" type="button">
+                <span class="lead-criteria-label">Returns / rework</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="service-customization-special-handling" type="button">
+                <span class="lead-criteria-label">Customization / special handling</span>
                 <span class="lead-toggle" aria-hidden="true"></span>
               </button>
             </div>
 
             <div class="lead-criteria-col">
-              <p class="lead-criteria-head">Logistics</p>
-              <button class="lead-criteria-row" data-criteria-id="logistics-drop-size" type="button">
-                <span class="lead-criteria-label">Drop Size</span>
+              <p class="lead-criteria-head">Operating (what it takes to fulfill)</p>
+              <button class="lead-criteria-row" data-criteria-id="operating-production-complexity" type="button">
+                <span class="lead-criteria-label">Production complexity</span>
                 <span class="lead-toggle" aria-hidden="true"></span>
               </button>
-              <button class="lead-criteria-row" data-criteria-id="logistics-delivery-window" type="button">
-                <span class="lead-criteria-label">Delivery Window Strictness</span>
+              <button class="lead-criteria-row" data-criteria-id="operating-batch-size-run-type" type="button">
+                <span class="lead-criteria-label">Batch size / run type</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="operating-changeover-intensity" type="button">
+                <span class="lead-criteria-label">Changeover intensity</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="operating-inventory-requirements" type="button">
+                <span class="lead-criteria-label">Inventory requirements</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="operating-planning-stability" type="button">
+                <span class="lead-criteria-label">Planning stability</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <div class="lead-criteria-col">
+              <p class="lead-criteria-head">Logistics (how it moves)</p>
+              <button class="lead-criteria-row" data-criteria-id="logistics-geography-distance" type="button">
+                <span class="lead-criteria-label">Geography / distance</span>
                 <span class="lead-toggle" aria-hidden="true"></span>
               </button>
               <button class="lead-criteria-row" data-criteria-id="logistics-route-density" type="button">
-                <span class="lead-criteria-label">Route Density</span>
+                <span class="lead-criteria-label">Route density</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="logistics-shipment-size-consolidation" type="button">
+                <span class="lead-criteria-label">Shipment size / consolidation</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="logistics-mode-mix" type="button">
+                <span class="lead-criteria-label">Mode mix</span>
+                <span class="lead-toggle" aria-hidden="true"></span>
+              </button>
+              <button class="lead-criteria-row" data-criteria-id="logistics-delivery-constraints" type="button">
+                <span class="lead-criteria-label">Delivery constraints</span>
                 <span class="lead-toggle" aria-hidden="true"></span>
               </button>
             </div>
