@@ -2200,24 +2200,19 @@
 
   function goToWithThinking(n, label, prepareFn) {
     const navThinkingDurations = {
-      1: 1200,
-      2: 1400,
-      3: 1300,
-      5: 1400,
-      6: 1300,
-      7: 1400,
-      8: 1400,
-      9: 1400,
-      10: 1400,
-      11: 1500,
-      12: 1300
+      1: 700,
+      2: 800,
+      3: 750,
+      5: 800,
+      6: 750,
+      7: 650,
+      8: 650,
+      9: 650,
+      10: 650,
+      11: 700,
+      12: 750
     };
-    showThinking(() => goTo(n), label || "Thinking\u2026", navThinkingDurations[n] || 1300);
-    if (typeof prepareFn === "function") {
-      setTimeout(() => {
-        try { prepareFn(); } catch (_) {}
-      }, 50);
-    }
+    showThinking(() => goTo(n), label || "Thinking\u2026", navThinkingDurations[n] || 700, prepareFn);
   }
 
   window.goTo = goTo;
@@ -2259,7 +2254,7 @@
   document.getElementById("btn-addressable").addEventListener("click", () => showThinking(() => goTo(2), 'Analyzing cost structure\u2026'));
 
   // ── Thinking network animation ────────────────────────────────
-  function showThinking(onDone, label, durationMs) {
+  function showThinking(onDone, label, durationMs, prepareFn) {
     document.querySelector('.thinking-label').textContent = label || 'Analyzing\u2026';
     const overlay = document.getElementById('thinking-overlay');
     const canvas  = document.getElementById('thinking-canvas');
@@ -2296,6 +2291,13 @@
     let raf;
     const start = performance.now();
     const DURATION = Number(durationMs) > 0 ? Number(durationMs) : 5200;
+    let prepComplete = typeof prepareFn !== "function";
+
+    if (!prepComplete) {
+      setTimeout(() => {
+        try { prepareFn(); } finally { prepComplete = true; }
+      }, 50);
+    }
 
     function draw(now) {
       const t = (now - start) / 1000;
@@ -2333,7 +2335,7 @@
         ctx.fill();
       });
 
-      if (now - start < DURATION) {
+      if (now - start < DURATION || !prepComplete) {
         raf = requestAnimationFrame(draw);
       } else {
         clearInterval(waveInterval);
