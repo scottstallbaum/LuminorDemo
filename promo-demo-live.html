@@ -2199,7 +2199,20 @@
   }
 
   function goToWithThinking(n, label) {
-    goTo(n);
+    const navThinkingDurations = {
+      1: 1200,
+      2: 1400,
+      3: 1300,
+      5: 1400,
+      6: 1300,
+      7: 1400,
+      8: 1400,
+      9: 1400,
+      10: 1400,
+      11: 1500,
+      12: 1300
+    };
+    showThinking(() => goTo(n), label || "Thinking\u2026", navThinkingDurations[n] || 1300);
   }
 
   window.goTo = goTo;
@@ -3809,7 +3822,7 @@
   const leadTimesDriver = document.getElementById("lead-times-driver");
   if (leadTimesDriver) {
     leadTimesDriver.addEventListener("click", () => {
-      goTo(5);
+      goToWithThinking(5);
     });
   }
 
@@ -3817,7 +3830,7 @@
   if (leadSegBtn) {
     leadSegBtn.addEventListener("click", () => {
       if (!leadState.selectedQuadrant) return;
-      goTo(12);
+      goToWithThinking(12);
     });
   }
 
@@ -3832,7 +3845,7 @@
   if (leadCriteriaNextBtn) {
     leadCriteriaNextBtn.addEventListener("click", () => {
       if ((leadState.selectedCriteria || []).length === 0) return;
-      goTo(6);
+      goToWithThinking(6);
     });
   }
 
