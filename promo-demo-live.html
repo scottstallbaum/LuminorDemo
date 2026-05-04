@@ -2549,25 +2549,19 @@
           data: pts,
           backgroundColor: "rgba(176,194,212,.58)",
           borderColor: "rgba(176,194,212,.22)",
-          borderWidth: 1,
-          parsing: false,
-          normalized: true
+          borderWidth: 1
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         animation: false,
-        devicePixelRatio: 1,
-        events: ["click"],
-        interaction: { mode: "nearest", axis: "xy", intersect: true },
         layout: {
           padding: { top: 2, right: 4, bottom: 2, left: 2 }
         },
         plugins: {
           legend: { display: false },
           tooltip: {
-            enabled: false,
             backgroundColor: "rgba(15,26,45,.95)",
             borderColor: "rgba(159,176,211,.2)",
             borderWidth: 1,
@@ -3822,7 +3816,7 @@
   const leadTimesDriver = document.getElementById("lead-times-driver");
   if (leadTimesDriver) {
     leadTimesDriver.addEventListener("click", () => {
-      goToWithThinking(5);
+      goTo(5);
     });
   }
 
@@ -3830,7 +3824,7 @@
   if (leadSegBtn) {
     leadSegBtn.addEventListener("click", () => {
       if (!leadState.selectedQuadrant) return;
-      goToWithThinking(12);
+      goTo(12);
     });
   }
 
