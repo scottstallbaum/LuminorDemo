@@ -1,0 +1,17 @@
+<svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="320" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10203A"/>
+      <stop offset="1" stop-color="#0A1527"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" rx="12" fill="url(#bg)"/>
+  <path d="M28 136H294" stroke="#2D4167" stroke-width="2"/>
+  <path d="M28 48L52 52L78 58L104 65L132 76L160 87L188 102L218 118L248 132L294 146" stroke="#45D0A2" stroke-width="3" fill="none"/>
+  <path d="M28 60L52 63L78 69L104 77L132 89L160 101L188 114L218 126L248 137L294 149" stroke="#4F9FFF" stroke-width="3" fill="none" opacity="0.8"/>
+  <circle cx="132" cy="76" r="4" fill="#45D0A2"/>
+  <circle cx="218" cy="118" r="4" fill="#45D0A2"/>
+  <rect x="228" y="36" width="64" height="18" rx="9" fill="#162744" stroke="#304A74"/>
+  <text x="242" y="48" fill="#CFE0FF" font-size="10" font-family="Inter, Arial">Range</text>
+  <text x="24" y="24" fill="#DCE7FF" font-size="13" font-family="Inter, Arial" font-weight="600">Whale Curve</text>
+</svg>

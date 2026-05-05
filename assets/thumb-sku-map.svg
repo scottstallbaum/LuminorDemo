@@ -1,0 +1,18 @@
+<svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="320" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10203A"/>
+      <stop offset="1" stop-color="#0A1527"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" rx="12" fill="url(#bg)"/>
+  <path d="M38 132H292" stroke="#2D4167" stroke-width="2"/>
+  <path d="M38 132V38" stroke="#2D4167" stroke-width="2"/>
+  <circle cx="84" cy="104" r="11" fill="#45D0A2" fill-opacity="0.8"/>
+  <circle cx="128" cy="92" r="9" fill="#4F9FFF" fill-opacity="0.8"/>
+  <circle cx="160" cy="76" r="14" fill="#FFAE57" fill-opacity="0.82"/>
+  <circle cx="202" cy="86" r="10" fill="#B28CFF" fill-opacity="0.82"/>
+  <circle cx="236" cy="64" r="16" fill="#FF8C7A" fill-opacity="0.82"/>
+  <circle cx="266" cy="96" r="8" fill="#7CD3FF" fill-opacity="0.82"/>
+  <text x="24" y="24" fill="#DCE7FF" font-size="13" font-family="Inter, Arial" font-weight="600">SKU Map</text>
+</svg>

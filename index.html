@@ -24,7 +24,7 @@
 
   <main class="layout">
     <section class="panel controls controls-full compact-controls">
-      <h2>Waterfall Filters</h2>
+      <h2>Global Filters</h2>
       <div class="grid-two compact-grid">
         <label>
           Plant
@@ -33,6 +33,10 @@
         <label>
           Price Segment
           <select id="filter-price-segment"></select>
+        </label>
+        <label>
+          Brand
+          <select id="filter-brand"></select>
         </label>
         <label>
           Packaging
@@ -48,47 +52,7 @@
         </label>
       </div>
       <div class="control-actions">
-        <button id="btn-comparison" class="ghost" type="button">Enter Comparison</button>
         <button id="btn-reset" class="ghost" type="button">Reset Filters</button>
-      </div>
-      <div id="comparison-setup" class="comparison-setup is-hidden">
-        <p id="comparison-status" class="small">Comparison mode is on. Set matching filters for the base case and the comparison case.</p>
-        <div class="comparison-filter-groups">
-          <section class="comparison-filter-group">
-            <h3>Base Case</h3>
-            <div class="grid-two comparison-grid">
-              <label>
-                Plant
-                <select id="base-plant"></select>
-              </label>
-              <label>
-                Price Segment
-                <select id="base-price-segment"></select>
-              </label>
-              <label>
-                Packaging
-                <select id="base-packaging"></select>
-              </label>
-            </div>
-          </section>
-          <section class="comparison-filter-group">
-            <h3>Comparison Case</h3>
-            <div class="grid-two comparison-grid">
-              <label>
-                Plant
-                <select id="compare-plant"></select>
-              </label>
-              <label>
-                Price Segment
-                <select id="compare-price-segment"></select>
-              </label>
-              <label>
-                Packaging
-                <select id="compare-packaging"></select>
-              </label>
-            </div>
-          </section>
-        </div>
       </div>
     </section>
 
@@ -115,7 +79,7 @@
       </article>
     </section>
 
-    <section id="single-waterfall-panel" class="panel panel-wide">
+    <section id="single-waterfall-panel" class="panel panel-wide module-panel" data-module="waterfall">
       <h2>Revenue to Operating Income Waterfall</h2>
       <div class="waterfall-shell">
         <div id="waterfall" class="waterfall"></div>
@@ -134,7 +98,7 @@
       </div>
     </section>
 
-    <section id="segment-reality-panel" class="panel panel-wide">
+    <section id="segment-reality-panel" class="panel panel-wide module-panel" data-module="std-adj">
       <div class="panel-head panel-head-inline">
         <div>
           <h2>Adjusted v. Standard Cost Comparison</h2>
@@ -175,7 +139,7 @@
       <div id="segment-reality-footer" class="segment-reality-footer"></div>
     </section>
 
-    <section id="price-walk-panel" class="panel panel-wide">
+    <section id="price-walk-panel" class="panel panel-wide module-panel" data-module="profit-walk">
       <div class="panel-head">
         <h2>SKU Volume to Operating Profit Walk (by segment)</h2>
       </div>
@@ -186,7 +150,7 @@
       </div>
     </section>
 
-    <section id="insight-strip-panel" class="panel panel-wide">
+    <section id="insight-strip-panel" class="panel panel-wide is-hidden">
       <div class="panel-head">
         <h2>Portfolio Insights</h2>
         <p id="insight-strip-subtitle" class="small"></p>
@@ -253,7 +217,7 @@
       </div>
     </section>
 
-    <section id="sku-ranking-panel" class="panel panel-wide">
+    <section id="sku-ranking-panel" class="panel panel-wide is-hidden">
       <div class="panel-head panel-head-inline sku-ranking-head">
         <div>
           <h2>Top / Bottom 10 SKUs</h2>
@@ -281,7 +245,7 @@
       </div>
     </section>
 
-    <section id="whale-curve-panel" class="panel panel-wide">
+    <section id="whale-curve-panel" class="panel panel-wide module-panel" data-module="whale-curve">
       <div class="panel-head panel-head-inline">
         <div>
           <h2>Profit Concentration (Whale Curve)</h2>
@@ -299,7 +263,7 @@
       </div>
     </section>
 
-    <section id="om-mix-panel" class="panel panel-wide">
+    <section id="om-mix-panel" class="panel panel-wide module-panel" data-module="margin-mix">
       <div class="panel-head panel-head-inline">
         <div>
           <h2>Operating Margin Mix by Segment</h2>
@@ -313,7 +277,7 @@
       <div id="om-mix-chart" class="om-mix-chart"></div>
     </section>
 
-    <section id="bubble-chart-panel" class="panel panel-wide">
+    <section id="bubble-chart-panel" class="panel panel-wide module-panel" data-module="sku-map">
       <div class="panel-head panel-head-inline">
         <div>
           <h2>SKU Portfolio Map</h2>
@@ -329,6 +293,36 @@
         <canvas id="bubble-chart"></canvas>
       </div>
     </section>
+
+    <aside id="module-rail" class="panel module-rail">
+      <h2>Views</h2>
+      <div class="module-rail-list" role="tablist" aria-label="Dashboard views">
+        <button class="module-thumb" type="button" data-module="waterfall" role="tab" aria-label="Waterfall">
+          <img src="assets/thumb-waterfall.svg" alt="Waterfall preview" loading="lazy" />
+          <span>Waterfall</span>
+        </button>
+        <button class="module-thumb" type="button" data-module="std-adj" role="tab" aria-label="Std vs Adj">
+          <img src="assets/thumb-std-adj.svg" alt="Standard vs adjusted preview" loading="lazy" />
+          <span>Std vs Adj</span>
+        </button>
+        <button class="module-thumb" type="button" data-module="whale-curve" role="tab" aria-label="Whale Curve">
+          <img src="assets/thumb-whale-curve.svg" alt="Whale curve preview" loading="lazy" />
+          <span>Whale Curve</span>
+        </button>
+        <button class="module-thumb" type="button" data-module="profit-walk" role="tab" aria-label="Profit Walk">
+          <img src="assets/thumb-profit-walk.svg" alt="Profit walk preview" loading="lazy" />
+          <span>Profit Walk</span>
+        </button>
+        <button class="module-thumb" type="button" data-module="margin-mix" role="tab" aria-label="Margin Mix">
+          <img src="assets/thumb-margin-mix.svg" alt="Margin mix preview" loading="lazy" />
+          <span>Margin Mix</span>
+        </button>
+        <button class="module-thumb" type="button" data-module="sku-map" role="tab" aria-label="SKU Map">
+          <img src="assets/thumb-sku-map.svg" alt="SKU map preview" loading="lazy" />
+          <span>SKU Map</span>
+        </button>
+      </div>
+    </aside>
 
   </main>
 

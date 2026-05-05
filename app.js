@@ -295,6 +295,7 @@ const els = {
   filters: {
     plant: document.getElementById("filter-plant"),
     priceSegment: document.getElementById("filter-price-segment"),
+    brand: document.getElementById("filter-brand"),
     packaging: document.getElementById("filter-packaging")
   },
   comparisonBaseFilters: {
@@ -356,6 +357,7 @@ const els = {
   whaleCurvePanel: document.getElementById("whale-curve-panel"),
   whaleCurveReport: document.getElementById("whale-curve-report"),
   whaleCurveClear: document.getElementById("whale-curve-clear"),
+  bubbleChartPanel: document.getElementById("bubble-chart-panel"),
   bubbleChart: document.getElementById("bubble-chart"),
   bubbleChartSubtitle: document.getElementById("bubble-chart-subtitle"),
   bubbleChartBack: document.getElementById("bubble-chart-back"),
@@ -373,7 +375,9 @@ const els = {
   breakdownContent: document.getElementById("breakdown-content"),
   breakdownChart: document.getElementById("breakdown-chart"),
   breakdownLegend: document.getElementById("breakdown-legend"),
-  breakdownClose: document.getElementById("breakdown-close")
+  breakdownClose: document.getElementById("breakdown-close"),
+  moduleRail: document.getElementById("module-rail"),
+  moduleButtons: document.querySelectorAll(".module-thumb")
 };
 
 const state = {
@@ -385,16 +389,19 @@ const state = {
   filters: {
     plant: "All",
     priceSegment: "All",
+    brand: "All",
     packaging: "All"
   },
   comparisonBaseFilters: {
     plant: "All",
     priceSegment: "All",
+    brand: "All",
     packaging: "All"
   },
   comparisonFilters: {
     plant: "All",
     priceSegment: "All",
+    brand: "All",
     packaging: "All"
   },
   drill: {
@@ -423,7 +430,8 @@ const state = {
     stepKey: null,
     totals: null,
     expandOther: false
-  }
+  },
+  activeModule: "waterfall"
 };
 
 window.__LUMINOR_BOOT_OK = false;
@@ -913,6 +921,15 @@ const OM_MIX_DIMENSIONS = [
   { value: "plant", label: "Plant" },
   { value: "packaging", label: "Package Type" },
   { value: "brandFamily", label: "Product Family" }
+];
+
+const MODULE_IDS = [
+  "waterfall",
+  "std-adj",
+  "whale-curve",
+  "profit-walk",
+  "margin-mix",
+  "sku-map"
 ];
 
 function toMoney(value) {
@@ -1490,6 +1507,48 @@ function bindFilterEvents() {
       render();
     });
   }
+}
+
+function renderModuleWorkspace() {
+  const modulePanels = Array.from(document.querySelectorAll(".module-panel"));
+  modulePanels.forEach((panel) => {
+    const moduleId = panel.getAttribute("data-module");
+    const isActive = moduleId === state.activeModule;
+    panel.classList.toggle("is-hidden", !isActive);
+    panel.classList.toggle("module-panel-active", isActive);
+  });
+
+  if (els.comparisonPanel) {
+    els.comparisonPanel.classList.add("is-hidden");
+  }
+
+  if (els.insightStripPanel) {
+    els.insightStripPanel.classList.add("is-hidden");
+  }
+
+  const skuRankingPanel = document.getElementById("sku-ranking-panel");
+  if (skuRankingPanel) {
+    skuRankingPanel.classList.add("is-hidden");
+  }
+
+  Array.from(els.moduleButtons || []).forEach((button) => {
+    const moduleId = button.getAttribute("data-module");
+    const isActive = moduleId === state.activeModule;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", isActive ? "true" : "false");
+    button.disabled = isActive;
+  });
+}
+
+function bindModuleRailEvents() {
+  Array.from(els.moduleButtons || []).forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextModule = button.getAttribute("data-module") || "";
+      if (!MODULE_IDS.includes(nextModule) || nextModule === state.activeModule) return;
+      state.activeModule = nextModule;
+      render();
+    });
+  });
 }
 
 function bindOmMixEvents() {
@@ -2372,6 +2431,7 @@ function summarizeFilters(filters) {
   const labels = {
     plant: "Plant",
     priceSegment: "Price Segment",
+    brand: "Brand",
     packaging: "Packaging"
   };
 
@@ -2409,9 +2469,9 @@ function renderComparisonMode(primaryTotals, comparisonTotals) {
 function renderSingleMode(totals) {
   els.summaryKpis?.classList.remove("is-hidden");
   els.singleWaterfallPanel?.classList.remove("is-hidden");
-  els.insightStripPanel?.classList.remove("is-hidden");
   els.comparisonPanel?.classList.add("is-hidden");
-  document.getElementById("sku-ranking-panel")?.classList.remove("is-hidden");
+  els.insightStripPanel?.classList.add("is-hidden");
+  document.getElementById("sku-ranking-panel")?.classList.add("is-hidden");
   renderOverallWaterfall(totals);
 }
 
@@ -4234,6 +4294,7 @@ function render() {
   safeRenderSection("omMix", () => renderOmMixChart(focusedRows));
   safeRenderSection("bubbleChart", () => renderBubbleChart(focusedRows));
   safeRenderSection("breakdown", () => renderBreakdownPanel(totals));
+  safeRenderSection("moduleWorkspace", () => renderModuleWorkspace());
 }
 
 let initFailed = false;
@@ -4260,5 +4321,6 @@ runInitStep("bindBreakdownEvents", bindBreakdownEvents);
 runInitStep("bindSkuDetailDismiss", bindSkuDetailDismiss);
 runInitStep("bindWhaleCurveEvents", bindWhaleCurveEvents);
 runInitStep("bindBubbleChartEvents", bindBubbleChartEvents);
+runInitStep("bindModuleRailEvents", bindModuleRailEvents);
 runInitStep("render", render);
 window.__LUMINOR_BOOT_OK = !initFailed;

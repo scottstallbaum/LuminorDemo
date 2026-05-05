@@ -45,6 +45,7 @@ h1 { margin: 0; font-size: 1.55rem; }
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: .75rem;
+  align-items: start;
 }
 .panel {
   background: var(--panel);
@@ -54,6 +55,12 @@ h1 { margin: 0; font-size: 1.55rem; }
 }
 .panel h2 { margin: 0 0 .75rem; font-size: .95rem; }
 .controls-full { grid-column: span 12; }
+.controls {
+  order: 20;
+  position: sticky;
+  top: 112px;
+  z-index: 14;
+}
 
 .grid-two {
   display: grid;
@@ -120,21 +127,25 @@ textarea {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: .7rem;
+  order: 10;
+  position: sticky;
+  top: 0;
+  z-index: 15;
 }
 .kpi {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: .75rem;
-  padding: .8rem .95rem;
+  padding: .6rem .85rem;
   box-shadow: 0 12px 26px rgba(0, 0, 0, .12);
 }
 .kpi p { margin: 0; color: var(--muted); font-size: .78rem; }
-.kpi h3 { margin: .35rem 0 .15rem; font-size: 1.45rem; line-height: 1.15; }
+.kpi h3 { margin: .28rem 0 .1rem; font-size: 1.15rem; line-height: 1.15; }
 .kpi h3.is-positive { color: var(--accent); }
 .kpi h3.is-negative { color: var(--danger); }
 .kpi-subvalue {
   margin-top: .1rem;
-  font-size: .74rem;
+  font-size: .71rem;
   color: rgba(159,176,211,.92);
   font-weight: 500;
   letter-spacing: .01em;
@@ -146,6 +157,88 @@ textarea {
 .table-panel { grid-column: span 8; overflow-x: auto; }
 .panel-side { grid-column: span 4; }
 .panel-wide { grid-column: span 12; }
+
+.module-panel {
+  grid-column: span 9;
+  order: 40;
+  min-height: calc(100vh - 270px);
+}
+
+.module-panel-active {
+  animation: module-fade-in .22s ease both;
+}
+
+@keyframes module-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.module-rail {
+  grid-column: span 3;
+  order: 40;
+  position: sticky;
+  top: 206px;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+}
+
+.module-rail h2 {
+  margin-bottom: .6rem;
+}
+
+.module-rail-list {
+  display: grid;
+  gap: .55rem;
+}
+
+.module-thumb {
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  border-radius: .6rem;
+  padding: .45rem;
+  display: grid;
+  gap: .35rem;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+  transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.module-thumb:hover {
+  border-color: rgba(79,159,255,.68);
+  transform: translateX(-2px);
+}
+
+.module-thumb img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: .4rem;
+  border: 1px solid rgba(159,176,211,.24);
+}
+
+.module-thumb span {
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+
+.module-thumb.is-active {
+  border-color: rgba(69,208,162,.72);
+  box-shadow: 0 0 0 1px rgba(69,208,162,.25) inset;
+  transform: none;
+}
+
+.module-thumb:disabled {
+  opacity: 1;
+  cursor: default;
+}
 
 /* Keep panel order stable when toggling comparison mode */
 #single-waterfall-panel,
@@ -336,7 +429,7 @@ textarea {
   padding-bottom: .45rem;
 }
 .compact-grid {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
 .compact-controls .ghost {

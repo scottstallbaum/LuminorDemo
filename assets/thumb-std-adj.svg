@@ -1,0 +1,21 @@
+<svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="320" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10203A"/>
+      <stop offset="1" stop-color="#0A1527"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" rx="12" fill="url(#bg)"/>
+  <path d="M36 124H286" stroke="#2D4167" stroke-width="2"/>
+  <rect x="44" y="74" width="20" height="50" rx="3" fill="#4F9FFF"/>
+  <rect x="68" y="84" width="20" height="40" rx="3" fill="#45D0A2"/>
+  <rect x="98" y="62" width="20" height="62" rx="3" fill="#4F9FFF"/>
+  <rect x="122" y="77" width="20" height="47" rx="3" fill="#45D0A2"/>
+  <rect x="152" y="70" width="20" height="54" rx="3" fill="#4F9FFF"/>
+  <rect x="176" y="80" width="20" height="44" rx="3" fill="#45D0A2"/>
+  <rect x="206" y="56" width="20" height="68" rx="3" fill="#4F9FFF"/>
+  <rect x="230" y="69" width="20" height="55" rx="3" fill="#45D0A2"/>
+  <circle cx="270" cy="52" r="6" fill="#FFAE57"/>
+  <circle cx="270" cy="92" r="6" fill="#FF8C7A"/>
+  <text x="24" y="24" fill="#DCE7FF" font-size="13" font-family="Inter, Arial" font-weight="600">Std vs Adj</text>
+</svg>
