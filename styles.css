@@ -159,7 +159,7 @@ textarea {
 .panel-wide { grid-column: span 12; }
 
 .module-panel {
-  grid-column: 1 / 10;
+  grid-column: 1 / 11;
   order: 40;
   min-height: calc(100vh - 270px);
 }
@@ -180,7 +180,7 @@ textarea {
 }
 
 .module-rail {
-  grid-column: 10 / 13;
+  grid-column: 11 / 13;
   order: 40;
   position: sticky;
   top: 138px;
@@ -223,9 +223,9 @@ textarea {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  border-radius: .32rem;
+  border-radius: .28rem;
   border: 1px solid rgba(159,176,211,.22);
-  max-height: 44px;
+  max-height: 36px;
   filter: grayscale(.55) saturate(.65) contrast(1.02);
   opacity: .88;
 }
@@ -255,20 +255,20 @@ textarea {
 
 /* Keep panel order stable when toggling comparison mode */
 #single-waterfall-panel,
-#comparison-panel {
-  order: 30;
-}
-
-#segment-reality-panel {
+#segment-reality-panel,
+#price-walk-panel,
+#whale-curve-panel,
+#om-mix-panel,
+#bubble-chart-panel {
   order: 40;
+  grid-column: 1 / 11;
 }
 
-#price-walk-panel {
-  order: 45;
-}
-
-#insight-strip-panel {
-  order: 50;
+#comparison-panel,
+#insight-strip-panel,
+#sku-ranking-panel {
+  order: 40;
+  grid-column: 1 / 11;
 }
 
 .price-walk-legend {
@@ -350,7 +350,7 @@ textarea {
 #om-mix-panel,
 #bubble-chart-panel,
 #scenario-panel {
-  order: 60;
+  order: 40;
 }
 
 .insight-strip {
@@ -2894,12 +2894,12 @@ th { color: var(--muted); font-weight: 600; }
   }
 }
 
-/* Keep dashboard module workspace in 9/3 split on desktop.
+/* Keep dashboard module workspace in 10/2 split on desktop.
    This guards against later generic .panel-wide declarations. */
 .layout > .module-panel {
-  grid-column: 1 / 10;
+  grid-column: 1 / 11;
 }
 
 .layout > .module-rail {
-  grid-column: 10 / 13;
+  grid-column: 11 / 13;
 }
