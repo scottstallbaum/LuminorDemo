@@ -1,17 +1,22 @@
 <svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="320" y2="180" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#10203A"/>
-      <stop offset="1" stop-color="#0A1527"/>
-    </linearGradient>
-  </defs>
-  <rect width="320" height="180" rx="12" fill="url(#bg)"/>
-  <rect x="26" y="36" width="34" height="84" rx="4" fill="#4F9FFF"/>
-  <rect x="70" y="58" width="34" height="62" rx="4" fill="#FF8C7A"/>
-  <rect x="114" y="50" width="34" height="70" rx="4" fill="#45D0A2"/>
-  <rect x="158" y="64" width="34" height="56" rx="4" fill="#FFAE57"/>
-  <rect x="202" y="76" width="34" height="44" rx="4" fill="#A3B6DA"/>
-  <rect x="246" y="44" width="46" height="76" rx="4" fill="#6D8BBD"/>
-  <path d="M24 132H298" stroke="#2D4167" stroke-width="2"/>
-  <text x="24" y="24" fill="#DCE7FF" font-size="13" font-family="Inter, Arial" font-weight="600">Waterfall</text>
+  <rect width="320" height="180" rx="4" fill="#0d1528"/>
+  <line x1="28" y1="28" x2="28" y2="148" stroke="#1e2e48" stroke-width="1"/>
+  <line x1="28" y1="148" x2="304" y2="148" stroke="#1e2e48" stroke-width="1"/>
+  <line x1="28" y1="108" x2="304" y2="108" stroke="#1e2e48" stroke-width="0.5" stroke-dasharray="3 3"/>
+  <line x1="28" y1="68" x2="304" y2="68" stroke="#1e2e48" stroke-width="0.5" stroke-dasharray="3 3"/>
+  <rect x="34" y="38" width="30" height="110" fill="#4f9fff" rx="1"/>
+  <line x1="64" y1="38" x2="72" y2="38" stroke="#2d4167" stroke-width="1"/>
+  <rect x="72" y="38" width="26" height="32" fill="#ff6d6d" rx="1" opacity=".85"/>
+  <line x1="98" y1="70" x2="104" y2="70" stroke="#2d4167" stroke-width="1"/>
+  <rect x="104" y="70" width="26" height="20" fill="#ff6d6d" rx="1" opacity=".75"/>
+  <line x1="130" y1="90" x2="136" y2="90" stroke="#2d4167" stroke-width="1"/>
+  <rect x="136" y="90" width="22" height="12" fill="#ffae57" rx="1" opacity=".85"/>
+  <line x1="158" y1="102" x2="164" y2="102" stroke="#2d4167" stroke-width="1"/>
+  <rect x="164" y="102" width="26" height="18" fill="#ff6d6d" rx="1" opacity=".7"/>
+  <line x1="190" y1="120" x2="196" y2="120" stroke="#2d4167" stroke-width="1"/>
+  <rect x="196" y="120" width="22" height="14" fill="#b28cff" rx="1" opacity=".85"/>
+  <line x1="218" y1="120" x2="244" y2="120" stroke="#2d4167" stroke-width="1"/>
+  <rect x="244" y="120" width="34" height="28" fill="#45d0a2" rx="1"/>
+  <text x="32" y="162" fill="#3d5270" font-size="6.5" font-family="Inter,Arial">Rev</text>
+  <text x="246" y="162" fill="#3d5270" font-size="6.5" font-family="Inter,Arial">Op Inc</text>
 </svg>

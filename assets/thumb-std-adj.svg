@@ -1,21 +1,27 @@
 <svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="320" y2="180" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#10203A"/>
-      <stop offset="1" stop-color="#0A1527"/>
-    </linearGradient>
-  </defs>
-  <rect width="320" height="180" rx="12" fill="url(#bg)"/>
-  <path d="M36 124H286" stroke="#2D4167" stroke-width="2"/>
-  <rect x="44" y="74" width="20" height="50" rx="3" fill="#4F9FFF"/>
-  <rect x="68" y="84" width="20" height="40" rx="3" fill="#45D0A2"/>
-  <rect x="98" y="62" width="20" height="62" rx="3" fill="#4F9FFF"/>
-  <rect x="122" y="77" width="20" height="47" rx="3" fill="#45D0A2"/>
-  <rect x="152" y="70" width="20" height="54" rx="3" fill="#4F9FFF"/>
-  <rect x="176" y="80" width="20" height="44" rx="3" fill="#45D0A2"/>
-  <rect x="206" y="56" width="20" height="68" rx="3" fill="#4F9FFF"/>
-  <rect x="230" y="69" width="20" height="55" rx="3" fill="#45D0A2"/>
-  <circle cx="270" cy="52" r="6" fill="#FFAE57"/>
-  <circle cx="270" cy="92" r="6" fill="#FF8C7A"/>
-  <text x="24" y="24" fill="#DCE7FF" font-size="13" font-family="Inter, Arial" font-weight="600">Std vs Adj</text>
+  <rect width="320" height="180" rx="4" fill="#0d1528"/>
+  <!-- axes -->
+  <line x1="28" y1="148" x2="298" y2="148" stroke="#1e2e48" stroke-width="1"/>
+  <line x1="28" y1="30" x2="28" y2="148" stroke="#1e2e48" stroke-width="1"/>
+  <line x1="28" y1="108" x2="298" y2="108" stroke="#1e2e48" stroke-width="0.5" stroke-dasharray="3 3"/>
+  <!-- Group 1: Premium - Adj (blue) taller than Std (teal) = overstatement -->
+  <rect x="36" y="62" width="16" height="86" fill="#4f9fff" rx="1" opacity=".9"/>
+  <rect x="54" y="75" width="16" height="73" fill="#45d0a2" rx="1" opacity=".85"/>
+  <!-- Group 2: Budget -->
+  <rect x="82" y="55" width="16" height="93" fill="#4f9fff" rx="1" opacity=".9"/>
+  <rect x="100" y="68" width="16" height="80" fill="#45d0a2" rx="1" opacity=".85"/>
+  <!-- Group 3: Near Prem -->
+  <rect x="128" y="78" width="16" height="70" fill="#4f9fff" rx="1" opacity=".9"/>
+  <rect x="146" y="88" width="16" height="60" fill="#45d0a2" rx="1" opacity=".85"/>
+  <!-- Group 4: Above Prem -->
+  <rect x="174" y="68" width="16" height="80" fill="#4f9fff" rx="1" opacity=".9"/>
+  <rect x="192" y="80" width="16" height="68" fill="#45d0a2" rx="1" opacity=".85"/>
+  <!-- Group 5: Unknown - reversed, std taller (understatement) -->
+  <rect x="220" y="92" width="16" height="56" fill="#4f9fff" rx="1" opacity=".9"/>
+  <rect x="238" y="82" width="16" height="66" fill="#45d0a2" rx="1" opacity=".9"/>
+  <!-- legend dots -->
+  <rect x="258" y="32" width="6" height="6" rx="1" fill="#4f9fff"/>
+  <text x="266" y="38" fill="#6a88aa" font-size="6" font-family="Inter,Arial">Adj</text>
+  <rect x="258" y="44" width="6" height="6" rx="1" fill="#45d0a2"/>
+  <text x="266" y="50" fill="#6a88aa" font-size="6" font-family="Inter,Arial">Std</text>
 </svg>

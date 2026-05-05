@@ -1,18 +1,28 @@
 <svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="320" y2="180" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#10203A"/>
-      <stop offset="1" stop-color="#0A1527"/>
-    </linearGradient>
-  </defs>
-  <rect width="320" height="180" rx="12" fill="url(#bg)"/>
-  <path d="M38 132H292" stroke="#2D4167" stroke-width="2"/>
-  <path d="M38 132V38" stroke="#2D4167" stroke-width="2"/>
-  <circle cx="84" cy="104" r="11" fill="#45D0A2" fill-opacity="0.8"/>
-  <circle cx="128" cy="92" r="9" fill="#4F9FFF" fill-opacity="0.8"/>
-  <circle cx="160" cy="76" r="14" fill="#FFAE57" fill-opacity="0.82"/>
-  <circle cx="202" cy="86" r="10" fill="#B28CFF" fill-opacity="0.82"/>
-  <circle cx="236" cy="64" r="16" fill="#FF8C7A" fill-opacity="0.82"/>
-  <circle cx="266" cy="96" r="8" fill="#7CD3FF" fill-opacity="0.82"/>
-  <text x="24" y="24" fill="#DCE7FF" font-size="13" font-family="Inter, Arial" font-weight="600">SKU Map</text>
+  <rect width="320" height="180" rx="4" fill="#0d1528"/>
+  <!-- axes -->
+  <line x1="28" y1="152" x2="302" y2="152" stroke="#1e2e48" stroke-width="1"/>
+  <line x1="28" y1="18"  x2="28" y2="152" stroke="#1e2e48" stroke-width="1"/>
+  <!-- zero OM line (horizontal) -->
+  <line x1="28" y1="100" x2="302" y2="100" stroke="#1e2e48" stroke-width="0.6" stroke-dasharray="3 3"/>
+  <!-- gridlines -->
+  <line x1="28" y1="60" x2="302" y2="60" stroke="#1e2e48" stroke-width="0.4" stroke-dasharray="2 4"/>
+  <line x1="28" y1="130" x2="302" y2="130" stroke="#1e2e48" stroke-width="0.4" stroke-dasharray="2 4"/>
+  <!-- Bubbles: x=gross margin%, y=op margin%, size=revenue -->
+  <!-- Premium family: high GM, high OM, large -->
+  <circle cx="210" cy="48" r="20" fill="#45d0a2" fill-opacity="0.7" stroke="#45d0a2" stroke-width="0.5" stroke-opacity=".4"/>
+  <!-- Core Lager: mid GM, mid OM, very large -->
+  <circle cx="140" cy="72" r="26" fill="#4f9fff" fill-opacity="0.6" stroke="#4f9fff" stroke-width="0.5" stroke-opacity=".4"/>
+  <!-- IPA: high GM, slightly above zero -->
+  <circle cx="240" cy="86" r="14" fill="#ffae57" fill-opacity="0.7" stroke="#ffae57" stroke-width="0.5" stroke-opacity=".4"/>
+  <!-- Seasonal: v.high GM, high OM, small -->
+  <circle cx="268" cy="44" r="9" fill="#b28cff" fill-opacity="0.75" stroke="#b28cff" stroke-width="0.5" stroke-opacity=".4"/>
+  <!-- Non-Alc: low GM, negative OM -->
+  <circle cx="60" cy="118" r="10" fill="#ff6d6d" fill-opacity="0.7" stroke="#ff6d6d" stroke-width="0.5" stroke-opacity=".4"/>
+  <!-- Malt: negative OM, very low GM -->
+  <circle cx="46" cy="134" r="7" fill="#ff8c7a" fill-opacity="0.65" stroke="#ff8c7a" stroke-width="0.5" stroke-opacity=".4"/>
+  <!-- axis labels -->
+  <text x="28" y="164" fill="#3d5270" font-size="6" font-family="Inter,Arial">Low GM%</text>
+  <text x="272" y="164" fill="#3d5270" font-size="6" font-family="Inter,Arial">High</text>
+  <text x="30" y="98" fill="#3d5270" font-size="5.5" font-family="Inter,Arial">0%</text>
 </svg>
