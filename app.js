@@ -2493,13 +2493,7 @@ function renderSummaryKpis(totals, rows = []) {
   if (els.kpiGrossMarginPerSku) els.kpiGrossMarginPerSku.textContent = `${toMoneyDec(grossMarginPerSku)} / SKU`;
   if (els.kpiOperatingIncomePerSku) els.kpiOperatingIncomePerSku.textContent = `${toMoneyDec(operatingIncomePerSku)} / SKU`;
   if (els.kpiVolumePerSku) {
-    const baseVolumeText = `${Math.round(volumePerSku).toLocaleString()} bbl / SKU`;
-    if (totals.clientStdConversionCoverageVolume > 0) {
-      const gapText = `${toSignedMoneyDec(totals.clientStdConversionDeltaCpu || 0)} / bbl vs Standard Conversion Cost/bbl`;
-      els.kpiVolumePerSku.textContent = `${baseVolumeText} · ${gapText}`;
-    } else {
-      els.kpiVolumePerSku.textContent = baseVolumeText;
-    }
+    els.kpiVolumePerSku.textContent = `${Math.round(volumePerSku).toLocaleString()} bbl / SKU`;
   }
 
   els.kpiGrossMargin.className = getMetricToneClass(totals.grossMargin || 0);
