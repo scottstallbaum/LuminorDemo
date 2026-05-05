@@ -2879,3 +2879,26 @@ th { color: var(--muted); font-weight: 600; }
     grid-column: span 1;
   }
 }
+
+/* Keep dashboard module workspace in 9/3 split on desktop.
+   This guards against later generic .panel-wide declarations. */
+.layout > .module-panel {
+  grid-column: span 9;
+}
+
+.layout > .module-rail {
+  grid-column: span 3;
+}
+
+@media (max-width: 1080px) {
+  .layout > .module-panel,
+  .layout > .module-rail {
+    grid-column: span 12;
+  }
+
+  .layout > .module-rail {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+}
