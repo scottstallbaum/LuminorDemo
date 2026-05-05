@@ -22,13 +22,13 @@ body {
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
-  gap: .65rem 1rem;
-  padding: .85rem 1.25rem;
+  gap: .4rem .75rem;
+  padding: .45rem 1rem;
   border-bottom: 1px solid var(--line);
 }
 
-.eyebrow { text-transform: uppercase; color: var(--accent); letter-spacing: .08em; font-size: .75rem; margin: 0 0 .35rem; }
-h1 { margin: 0; font-size: 1.55rem; }
+.eyebrow { text-transform: uppercase; color: var(--accent); letter-spacing: .08em; font-size: .66rem; margin: 0 0 .16rem; }
+h1 { margin: 0; font-size: 1.14rem; line-height: 1.1; }
 .subtitle { margin: .4rem 0 0; color: var(--muted); }
 .pill {
   background: rgba(69, 208, 162, .14);
@@ -41,10 +41,10 @@ h1 { margin: 0; font-size: 1.55rem; }
 }
 
 .layout {
-  padding: .75rem 1.1rem 1rem;
+  padding: .45rem .95rem .8rem;
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: .75rem;
+  gap: .55rem;
   align-items: start;
 }
 .panel {
@@ -58,7 +58,7 @@ h1 { margin: 0; font-size: 1.55rem; }
 .controls {
   order: 20;
   position: sticky;
-  top: 112px;
+  top: 78px;
   z-index: 14;
 }
 
@@ -126,7 +126,7 @@ textarea {
   grid-column: span 12;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: .7rem;
+  gap: .45rem;
   order: 10;
   position: sticky;
   top: 0;
@@ -136,16 +136,16 @@ textarea {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: .75rem;
-  padding: .6rem .85rem;
+  padding: .45rem .65rem;
   box-shadow: 0 12px 26px rgba(0, 0, 0, .12);
 }
-.kpi p { margin: 0; color: var(--muted); font-size: .78rem; }
-.kpi h3 { margin: .28rem 0 .1rem; font-size: 1.15rem; line-height: 1.15; }
+.kpi p { margin: 0; color: var(--muted); font-size: .72rem; }
+.kpi h3 { margin: .2rem 0 .06rem; font-size: 1rem; line-height: 1.1; }
 .kpi h3.is-positive { color: var(--accent); }
 .kpi h3.is-negative { color: var(--danger); }
 .kpi-subvalue {
   margin-top: .1rem;
-  font-size: .71rem;
+  font-size: .66rem;
   color: rgba(159,176,211,.92);
   font-weight: 500;
   letter-spacing: .01em;
@@ -159,7 +159,7 @@ textarea {
 .panel-wide { grid-column: span 12; }
 
 .module-panel {
-  grid-column: span 9;
+  grid-column: 1 / 10;
   order: 40;
   min-height: calc(100vh - 270px);
 }
@@ -180,34 +180,38 @@ textarea {
 }
 
 .module-rail {
-  grid-column: span 3;
+  grid-column: 10 / 13;
   order: 40;
   position: sticky;
-  top: 206px;
-  max-height: calc(100vh - 220px);
+  top: 138px;
+  max-height: calc(100vh - 146px);
   overflow-y: auto;
 }
 
 .module-rail h2 {
-  margin-bottom: .6rem;
+  margin-bottom: .4rem;
+  font-size: .78rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .module-rail-list {
   display: grid;
-  gap: .55rem;
+  gap: .34rem;
 }
 
 .module-thumb {
   border: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-  border-radius: .6rem;
-  padding: .45rem;
+  background: #0f182a;
+  border-radius: .44rem;
+  padding: .24rem;
   display: grid;
-  gap: .35rem;
+  gap: .14rem;
   cursor: pointer;
   text-align: left;
   color: var(--text);
-  transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+  transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
 }
 
 .module-thumb:hover {
@@ -219,20 +223,29 @@ textarea {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  border-radius: .4rem;
-  border: 1px solid rgba(159,176,211,.24);
+  border-radius: .32rem;
+  border: 1px solid rgba(159,176,211,.22);
+  max-height: 44px;
+  filter: grayscale(.55) saturate(.65) contrast(1.02);
+  opacity: .88;
 }
 
 .module-thumb span {
-  font-size: .78rem;
+  font-size: .64rem;
   font-weight: 600;
   letter-spacing: .01em;
+  color: #d3deef;
 }
 
 .module-thumb.is-active {
   border-color: rgba(69,208,162,.72);
-  box-shadow: 0 0 0 1px rgba(69,208,162,.25) inset;
+  box-shadow: 0 0 0 1px rgba(69,208,162,.18) inset;
   transform: none;
+}
+
+.module-thumb.is-active img {
+  filter: grayscale(.18) saturate(.9) contrast(1.04);
+  opacity: .96;
 }
 
 .module-thumb:disabled {
@@ -2041,6 +2054,7 @@ th { color: var(--muted); font-weight: 600; }
 
 .topbar-back {
   align-self: center;
+  margin-top: 0;
   text-decoration: none;
   border: 1px solid var(--line);
   background: #0c1527;
@@ -2883,9 +2897,9 @@ th { color: var(--muted); font-weight: 600; }
 /* Keep dashboard module workspace in 9/3 split on desktop.
    This guards against later generic .panel-wide declarations. */
 .layout > .module-panel {
-  grid-column: span 9;
+  grid-column: 1 / 10;
 }
 
 .layout > .module-rail {
-  grid-column: span 3;
+  grid-column: 10 / 13;
 }
