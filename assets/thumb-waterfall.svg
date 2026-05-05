@@ -1,22 +1,30 @@
 <svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="320" height="180" rx="4" fill="#0d1528"/>
-  <line x1="28" y1="28" x2="28" y2="148" stroke="#1e2e48" stroke-width="1"/>
-  <line x1="28" y1="148" x2="304" y2="148" stroke="#1e2e48" stroke-width="1"/>
-  <line x1="28" y1="108" x2="304" y2="108" stroke="#1e2e48" stroke-width="0.5" stroke-dasharray="3 3"/>
-  <line x1="28" y1="68" x2="304" y2="68" stroke="#1e2e48" stroke-width="0.5" stroke-dasharray="3 3"/>
-  <rect x="34" y="38" width="30" height="110" fill="#4f9fff" rx="1"/>
-  <line x1="64" y1="38" x2="72" y2="38" stroke="#2d4167" stroke-width="1"/>
-  <rect x="72" y="38" width="26" height="32" fill="#ff6d6d" rx="1" opacity=".85"/>
-  <line x1="98" y1="70" x2="104" y2="70" stroke="#2d4167" stroke-width="1"/>
-  <rect x="104" y="70" width="26" height="20" fill="#ff6d6d" rx="1" opacity=".75"/>
-  <line x1="130" y1="90" x2="136" y2="90" stroke="#2d4167" stroke-width="1"/>
-  <rect x="136" y="90" width="22" height="12" fill="#ffae57" rx="1" opacity=".85"/>
-  <line x1="158" y1="102" x2="164" y2="102" stroke="#2d4167" stroke-width="1"/>
-  <rect x="164" y="102" width="26" height="18" fill="#ff6d6d" rx="1" opacity=".7"/>
-  <line x1="190" y1="120" x2="196" y2="120" stroke="#2d4167" stroke-width="1"/>
-  <rect x="196" y="120" width="22" height="14" fill="#b28cff" rx="1" opacity=".85"/>
-  <line x1="218" y1="120" x2="244" y2="120" stroke="#2d4167" stroke-width="1"/>
-  <rect x="244" y="120" width="34" height="28" fill="#45d0a2" rx="1"/>
-  <text x="32" y="162" fill="#3d5270" font-size="6.5" font-family="Inter,Arial">Rev</text>
-  <text x="246" y="162" fill="#3d5270" font-size="6.5" font-family="Inter,Arial">Op Inc</text>
+  <!-- axes -->
+  <line x1="26" y1="20" x2="26" y2="152" stroke="rgba(159,176,211,.25)" stroke-width="1"/>
+  <line x1="26" y1="152" x2="306" y2="152" stroke="rgba(159,176,211,.25)" stroke-width="1"/>
+  <!-- gridlines -->
+  <line x1="26" y1="100" x2="306" y2="100" stroke="rgba(159,176,211,.12)" stroke-width="0.5" stroke-dasharray="3 3"/>
+  <line x1="26" y1="60"  x2="306" y2="60"  stroke="rgba(159,176,211,.12)" stroke-width="0.5" stroke-dasharray="3 3"/>
+  <!-- Revenue bar -->
+  <rect x="32"  y="30"  width="32" height="122" fill="#5da8ff" rx="2"/>
+  <!-- connector Rev → Cost1 -->
+  <line x1="64" y1="30" x2="72" y2="30" stroke="rgba(159,176,211,.55)" stroke-width="1" stroke-dasharray="3 3"/>
+  <!-- Cost 1: COGS (largest) -->
+  <rect x="72"  y="30"  width="28" height="44" fill="#ff8c7a" rx="2"/>
+  <!-- connector Cost1 → Cost2 -->
+  <line x1="100" y1="74" x2="108" y2="74" stroke="rgba(159,176,211,.55)" stroke-width="1" stroke-dasharray="3 3"/>
+  <!-- Cost 2: SGA -->
+  <rect x="108" y="74"  width="26" height="26" fill="#ff8c7a" rx="2"/>
+  <!-- connector Cost2 → Cost3 -->
+  <line x1="134" y1="100" x2="142" y2="100" stroke="rgba(159,176,211,.55)" stroke-width="1" stroke-dasharray="3 3"/>
+  <!-- Cost 3: Other -->
+  <rect x="142" y="100" width="22" height="18" fill="#ff8c7a" rx="2"/>
+  <!-- connector Cost3 → Result (long jump) -->
+  <line x1="164" y1="118" x2="240" y2="118" stroke="rgba(159,176,211,.55)" stroke-width="1" stroke-dasharray="3 3"/>
+  <!-- Result: Op Income bar from baseline -->
+  <rect x="240" y="118" width="38" height="34" fill="#43c99a" rx="2"/>
+  <!-- labels -->
+  <text x="48"  y="168" fill="#9fb0d3" font-size="7" font-family="Inter,Arial" text-anchor="middle">Revenue</text>
+  <text x="259" y="168" fill="#9fb0d3" font-size="7" font-family="Inter,Arial" text-anchor="middle">Op Inc</text>
 </svg>
