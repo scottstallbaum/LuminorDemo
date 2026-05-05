@@ -2889,16 +2889,3 @@ th { color: var(--muted); font-weight: 600; }
 .layout > .module-rail {
   grid-column: span 3;
 }
-
-@media (max-width: 1080px) {
-  .layout > .module-panel,
-  .layout > .module-rail {
-    grid-column: span 12;
-  }
-
-  .layout > .module-rail {
-    position: static;
-    max-height: none;
-    overflow-y: visible;
-  }
-}
