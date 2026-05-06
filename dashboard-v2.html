@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260506-v10" />
+  <link rel="stylesheet" href="styles.css?v=20260506-v11" />
 </head>
 <body>
   <header class="topbar">
@@ -24,7 +24,10 @@
 
   <main class="layout">
     <section class="panel controls controls-full compact-controls">
-      <h2>Global Filters</h2>
+      <div class="compact-controls-head">
+        <h2>Global Filters</h2>
+        <button id="btn-reset" class="ghost controls-reset-btn" type="button">Reset Filters</button>
+      </div>
       <div class="grid-two compact-grid">
         <label>
           Plant
@@ -50,9 +53,6 @@
           Drill Value
           <select id="drill-value"></select>
         </label>
-      </div>
-      <div class="control-actions">
-        <button id="btn-reset" class="ghost" type="button">Reset Filters</button>
       </div>
     </section>
 
@@ -217,7 +217,7 @@
       </div>
     </section>
 
-    <section id="sku-ranking-panel" class="panel panel-wide is-hidden">
+    <section id="sku-ranking-panel" class="panel panel-wide module-panel is-hidden" data-module="top-bottom-10">
       <div class="panel-head panel-head-inline sku-ranking-head">
         <div>
           <h2>Top / Bottom 10 SKUs</h2>
@@ -298,28 +298,32 @@
       <h2>Views</h2>
       <div class="module-rail-list" role="tablist" aria-label="Dashboard views">
         <button class="module-thumb" type="button" data-module="waterfall" role="tab" aria-label="Waterfall">
-          <img src="assets/thumb-waterfall.svg?v=20260506-v10" alt="Waterfall preview" loading="lazy" />
+          <img src="assets/thumb-waterfall.svg?v=20260506-v11" alt="Waterfall preview" loading="lazy" />
           <span>Waterfall</span>
         </button>
         <button class="module-thumb" type="button" data-module="std-adj" role="tab" aria-label="Std vs Adj">
-          <img src="assets/thumb-std-adj.svg?v=20260506-v10" alt="Standard vs adjusted preview" loading="lazy" />
+          <img src="assets/thumb-std-adj.svg?v=20260506-v11" alt="Standard vs adjusted preview" loading="lazy" />
           <span>Std vs Adj</span>
         </button>
         <button class="module-thumb" type="button" data-module="whale-curve" role="tab" aria-label="Whale Curve">
-          <img src="assets/thumb-whale-curve.svg?v=20260506-v10" alt="Whale curve preview" loading="lazy" />
+          <img src="assets/thumb-whale-curve.svg?v=20260506-v11" alt="Whale curve preview" loading="lazy" />
           <span>Whale Curve</span>
         </button>
         <button class="module-thumb" type="button" data-module="profit-walk" role="tab" aria-label="Profit Walk">
-          <img src="assets/thumb-profit-walk.svg?v=20260506-v10" alt="Profit walk preview" loading="lazy" />
+          <img src="assets/thumb-profit-walk.svg?v=20260506-v11" alt="Profit walk preview" loading="lazy" />
           <span>Profit Walk</span>
         </button>
         <button class="module-thumb" type="button" data-module="margin-mix" role="tab" aria-label="Margin Mix">
-          <img src="assets/thumb-margin-mix.svg?v=20260506-v10" alt="Margin mix preview" loading="lazy" />
+          <img src="assets/thumb-margin-mix.svg?v=20260506-v11" alt="Margin mix preview" loading="lazy" />
           <span>Margin Mix</span>
         </button>
         <button class="module-thumb" type="button" data-module="sku-map" role="tab" aria-label="SKU Map">
-          <img src="assets/thumb-sku-map.svg?v=20260506-v10" alt="SKU map preview" loading="lazy" />
+          <img src="assets/thumb-sku-map.svg?v=20260506-v11" alt="SKU map preview" loading="lazy" />
           <span>SKU Map</span>
+        </button>
+        <button class="module-thumb" type="button" data-module="top-bottom-10" role="tab" aria-label="Top / Bottom 10">
+          <img src="assets/thumb-top-bottom-10.svg?v=20260506-v11" alt="Top and bottom ten preview" loading="lazy" />
+          <span>Top/Bottom 10</span>
         </button>
       </div>
     </aside>
@@ -340,6 +344,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="scripts/chart-fallback.js?v=20260505-rail1"></script>
   <script src="scripts/startup-guard.js?v=20260505-rail1"></script>
-  <script src="app.js?v=20260505-rail2"></script>
+  <script src="app.js?v=20260506-v11"></script>
 </body>
 </html>

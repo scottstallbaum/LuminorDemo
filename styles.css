@@ -187,16 +187,16 @@ textarea {
   order: 40;
   position: sticky;
   top: 138px;
-  width: 196px;
+  width: 162px;
   justify-self: end;
-  padding: .55rem .5rem .6rem;
-  max-height: calc(100vh - 146px);
-  overflow-y: auto;
+  padding: .34rem .3rem .36rem;
+  max-height: none;
+  overflow: visible;
 }
 
 .module-rail h2 {
-  margin-bottom: .4rem;
-  font-size: .78rem;
+  margin-bottom: .24rem;
+  font-size: .71rem;
   letter-spacing: .04em;
   text-transform: uppercase;
   color: var(--muted);
@@ -204,15 +204,15 @@ textarea {
 
 .module-rail-list {
   display: grid;
-  gap: .42rem;
+  gap: .22rem;
 }
 
 .module-thumb {
   position: relative;
   border: 1px solid rgba(79,159,255,.28);
   background: linear-gradient(180deg, #12203a 0%, #0f1a2e 100%);
-  border-radius: .55rem;
-  padding: .2rem;
+  border-radius: .44rem;
+  padding: .12rem;
   display: block;
   overflow: hidden;
   cursor: pointer;
@@ -230,9 +230,9 @@ textarea {
 
 .module-thumb img {
   width: 100%;
-  height: 64px;
+  height: 42px;
   object-fit: cover;
-  border-radius: .38rem;
+  border-radius: .28rem;
   border: 1px solid rgba(159,176,211,.32);
   max-height: none;
   filter: none;
@@ -241,14 +241,14 @@ textarea {
 
 .module-thumb span {
   position: absolute;
-  left: .42rem;
-  bottom: .34rem;
+  left: .22rem;
+  bottom: .18rem;
   z-index: 2;
-  font-size: .76rem;
+  font-size: .62rem;
   font-weight: 700;
   letter-spacing: .015em;
   color: #eef4ff;
-  padding: .08rem .3rem;
+  padding: .05rem .2rem;
   border-radius: .3rem;
   border: 1px solid rgba(159,176,211,.38);
   background: rgba(11,18,32,.74);
@@ -277,6 +277,33 @@ textarea {
 .module-thumb:disabled {
   opacity: 1;
   cursor: default;
+}
+
+/* Enforce consistent chart header typography/placement across all dashboard modules. */
+.module-panel > h2,
+.module-panel .panel-head h2 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.18;
+  font-weight: 700;
+  letter-spacing: .01em;
+  color: var(--text);
+}
+
+.module-panel > .small,
+.module-panel .panel-head .small {
+  margin: .22rem 0 0;
+  font-size: .8rem;
+  line-height: 1.25;
+  color: var(--muted);
+}
+
+.module-panel .panel-head {
+  margin: 0 0 .58rem;
+}
+
+.module-panel .panel-head-inline {
+  align-items: flex-start;
 }
 
 /* Keep panel order stable when toggling comparison mode */
@@ -467,12 +494,35 @@ textarea {
 .compact-controls {
   padding-bottom: .45rem;
 }
+
+.compact-controls-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  margin-bottom: .4rem;
+}
+
+.compact-controls-head h2 {
+  margin: 0;
+}
+
+.controls-reset-btn {
+  margin: 0;
+  padding: .34rem .62rem;
+  font-size: .78rem;
+}
+
 .compact-grid {
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
 .compact-controls .ghost {
   margin-top: .4rem;
+}
+
+.compact-controls .controls-reset-btn {
+  margin-top: 0;
 }
 
 .control-actions {

@@ -1,11 +1,11 @@
 <svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="320" height="180" rx="4" fill="#0d1528"/>
-  <line x1="24" y1="148" x2="304" y2="148" stroke="rgba(159,176,211,.3)" stroke-width="1"/>
-  <line x1="24" y1="20" x2="24" y2="148" stroke="rgba(159,176,211,.24)" stroke-width="1"/>
-  <line x1="24" y1="102" x2="304" y2="102" stroke="rgba(159,176,211,.22)" stroke-width="0.8" stroke-dasharray="4 3"/>
-  <path d="M24 102 C48 96 70 68 106 42 C136 22 166 28 196 56 C224 82 248 106 304 126" stroke="#45d0a2" stroke-width="2.4" fill="none"/>
-  <path d="M24 102 C48 98 72 78 112 54 C144 36 172 44 202 70 C230 94 252 116 304 136" stroke="#ffae57" stroke-width="2" fill="none" stroke-dasharray="5 3"/>
-  <circle cx="136" cy="22" r="3.2" fill="#45d0a2"/>
-  <circle cx="144" cy="36" r="3" fill="#ffae57"/>
-  <circle cx="252" cy="116" r="3" fill="#ff8c7a"/>
+  <line x1="24" y1="150" x2="304" y2="150" stroke="rgba(159,176,211,.3)" stroke-width="1"/>
+  <line x1="24" y1="20" x2="24" y2="150" stroke="rgba(159,176,211,.24)" stroke-width="1"/>
+  <line x1="24" y1="96" x2="304" y2="96" stroke="rgba(159,176,211,.3)" stroke-width="1" stroke-dasharray="4 3"/>
+  <path d="M24 96 C58 96 82 64 112 42 C140 24 166 22 192 52 C216 78 240 106 304 130" stroke="#45d0a2" stroke-width="2.6" fill="none"/>
+  <path d="M24 96 C56 96 84 74 116 56 C144 40 170 40 196 66 C220 90 244 114 304 140" stroke="#ffae57" stroke-width="2" fill="none" stroke-dasharray="5 3"/>
+  <circle cx="156" cy="24" r="3.2" fill="#45d0a2"/>
+  <circle cx="170" cy="40" r="3" fill="#ffae57"/>
+  <circle cx="248" cy="112" r="3" fill="#ff8c7a"/>
 </svg>

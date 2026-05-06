@@ -929,7 +929,8 @@ const MODULE_IDS = [
   "whale-curve",
   "profit-walk",
   "margin-mix",
-  "sku-map"
+  "sku-map",
+  "top-bottom-10"
 ];
 
 function toMoney(value) {
@@ -1524,11 +1525,6 @@ function renderModuleWorkspace() {
 
   if (els.insightStripPanel) {
     els.insightStripPanel.classList.add("is-hidden");
-  }
-
-  const skuRankingPanel = document.getElementById("sku-ranking-panel");
-  if (skuRankingPanel) {
-    skuRankingPanel.classList.add("is-hidden");
   }
 
   Array.from(els.moduleButtons || []).forEach((button) => {
