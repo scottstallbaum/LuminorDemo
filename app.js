@@ -726,14 +726,14 @@ function renderPriceSegmentWalk() {
     });
     if (column.key === "adjGp") {
       const line1 = make("tspan", { x, dy: 0 });
-      line1.textContent = "Adj Gross";
+      line1.textContent = "Adjusted Gross";
       const line2 = make("tspan", { x, dy: 14 });
       line2.textContent = "Margin";
       bottom.appendChild(line1);
       bottom.appendChild(line2);
     } else if (column.key === "adjOp") {
       const line1 = make("tspan", { x, dy: 0 });
-      line1.textContent = "Adj. Operating";
+      line1.textContent = "Adjusted Operating";
       const line2 = make("tspan", { x, dy: 14 });
       line2.textContent = "Profit";
       bottom.appendChild(line1);
