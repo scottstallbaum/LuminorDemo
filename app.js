@@ -497,12 +497,14 @@ function formatPriceWalkAbsolute(unit, value) {
 
 function setPriceWalkTooltipPosition(event) {
   const tip = els.priceWalkTooltip;
-  if (!tip || tip.classList.contains("is-hidden")) return;
-  const pad = 12;
-  const x = event.clientX + 14;
-  const y = event.clientY + 12;
-  const maxLeft = window.innerWidth - tip.offsetWidth - pad;
-  const maxTop = window.innerHeight - tip.offsetHeight - pad;
+  const wrap = els.priceWalkSvg?.closest(".price-walk-chart-wrap");
+  if (!tip || !wrap || tip.classList.contains("is-hidden")) return;
+  const wrapRect = wrap.getBoundingClientRect();
+  const pad = 10;
+  const x = (event.clientX - wrapRect.left) + 14;
+  const y = (event.clientY - wrapRect.top) - 8;
+  const maxLeft = wrapRect.width - tip.offsetWidth - pad;
+  const maxTop = wrapRect.height - tip.offsetHeight - pad;
   tip.style.left = `${Math.max(pad, Math.min(x, maxLeft))}px`;
   tip.style.top = `${Math.max(pad, Math.min(y, maxTop))}px`;
 }
@@ -538,7 +540,7 @@ function renderPriceSegmentWalk() {
   };
 
   const chartLeft = 146;
-  const chartTop = 70;
+  const chartTop = 62;
   const chartRight = width - 28;
   const chartBottom = height - 54;
   const chartWidth = chartRight - chartLeft;
@@ -722,7 +724,23 @@ function renderPriceSegmentWalk() {
       "font-weight": 600,
       "text-anchor": "middle"
     });
-    bottom.textContent = column.label;
+    if (column.key === "adjGp") {
+      const line1 = make("tspan", { x, dy: 0 });
+      line1.textContent = "Adj Gross";
+      const line2 = make("tspan", { x, dy: 14 });
+      line2.textContent = "Margin";
+      bottom.appendChild(line1);
+      bottom.appendChild(line2);
+    } else if (column.key === "adjOp") {
+      const line1 = make("tspan", { x, dy: 0 });
+      line1.textContent = "Adj. Operating";
+      const line2 = make("tspan", { x, dy: 14 });
+      line2.textContent = "Profit";
+      bottom.appendChild(line1);
+      bottom.appendChild(line2);
+    } else {
+      bottom.textContent = column.label;
+    }
     svg.appendChild(bottom);
 
     svg.appendChild(colGroup);
