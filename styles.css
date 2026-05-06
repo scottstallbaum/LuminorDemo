@@ -1262,7 +1262,9 @@ th { color: var(--muted); font-weight: 600; }
 .breakdown-legend {
   margin-top: .55rem;
   display: grid;
-  gap: .35rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: .55rem;
+  row-gap: .35rem;
   max-height: 230px;
   overflow-y: auto;
   padding-right: .25rem;
@@ -1282,6 +1284,7 @@ th { color: var(--muted); font-weight: 600; }
 }
 .breakdown-item-toggle {
   cursor: pointer;
+  grid-column: 1 / -1;
   border: 1px dashed rgba(159, 176, 211, .35);
   border-radius: .45rem;
   padding: .3rem .35rem;

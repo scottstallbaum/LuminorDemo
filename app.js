@@ -950,6 +950,18 @@ function toMoneyDec(value) {
   }).format(value || 0);
 }
 
+function toMoneyCompact(value) {
+  const n = value || 0;
+  const abs = Math.abs(n);
+  if (abs < 1000000) return toMoney(n);
+
+  const sign = n < 0 ? "-" : "";
+  if (abs >= 1000000000) {
+    return `${sign}$${(abs / 1000000000).toFixed(1)}B`;
+  }
+  return `${sign}$${(abs / 1000000).toFixed(1)}M`;
+}
+
 function toPct(value) {
   return `${(value * 100).toFixed(1)}%`;
 }
@@ -2339,7 +2351,7 @@ function renderWaterfall(target, totals, options = {}) {
   const tickValues = [maxVal, (maxVal + minVal) / 2, 0].filter((v, i, arr) => arr.findIndex((x) => Math.abs(x - v) < 0.0001) === i);
   const grid = tickValues.map((tick) => {
     const yTick = y(tick);
-    const axisLabel = percentMode ? toPct(tick) : toMoney(tick);
+    const axisLabel = percentMode ? toPct(tick) : toMoneyCompact(tick);
     return `
       <line class="wf-grid" x1="${margin.left}" y1="${yTick.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${yTick.toFixed(2)}" />
       <text class="wf-axis" x="${(margin.left - 10).toFixed(2)}" y="${(yTick + 4).toFixed(2)}" text-anchor="end">${axisLabel}</text>
