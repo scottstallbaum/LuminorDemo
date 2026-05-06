@@ -31,7 +31,13 @@ body {
 }
 
 .eyebrow { text-transform: uppercase; color: var(--accent); letter-spacing: .08em; font-size: .66rem; margin: 0 0 .16rem; }
-h1 { margin: 0; font-size: 1.14rem; line-height: 1.1; }
+h1 {
+  margin: 0;
+  font-size: 1.14rem;
+  line-height: 1.1;
+  color: var(--accent);
+  white-space: nowrap;
+}
 .subtitle { margin: .4rem 0 0; color: var(--muted); }
 .pill {
   background: rgba(69, 208, 162, .14);
