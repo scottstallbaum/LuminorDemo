@@ -8,11 +8,13 @@
   --accent: #45d0a2;
   --warn: #ffae57;
   --danger: #ff6d6d;
+  --app-top-gap: 18px;
 }
 
 * { box-sizing: border-box; }
 body {
   margin: 0;
+  padding-top: var(--app-top-gap);
   font-family: Inter, system-ui, sans-serif;
   background: radial-gradient(circle at top right, #17233b, var(--bg) 35%);
   color: var(--text);
@@ -69,7 +71,7 @@ h1 {
 .controls {
   order: 20;
   position: sticky;
-  top: 78px;
+  top: calc(78px + var(--app-top-gap));
   z-index: 14;
 }
 
@@ -140,7 +142,7 @@ textarea {
   gap: .45rem;
   order: 10;
   position: sticky;
-  top: 0;
+  top: var(--app-top-gap);
   z-index: 15;
 }
 .kpi {
@@ -194,7 +196,7 @@ textarea {
   grid-column: 12 / 13;
   order: 40;
   position: sticky;
-  top: 138px;
+  top: calc(138px + var(--app-top-gap));
   width: 100%;
   max-width: 162px;
   justify-self: stretch;
