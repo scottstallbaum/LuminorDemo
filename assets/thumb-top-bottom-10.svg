@@ -6,40 +6,40 @@
     </filter>
   </defs>
 
-  <line x1="160" y1="24" x2="160" y2="156" stroke="rgba(159,176,211,.18)" stroke-width="1"/>
+  <line x1="156" y1="24" x2="156" y2="156" stroke="rgba(159,176,211,.18)" stroke-width="1"/>
   <line x1="18" y1="24" x2="302" y2="24" stroke="rgba(159,176,211,.2)" stroke-width="1"/>
 
   <g filter="url(#blurSoft)">
-    <!-- Left column: blurred label + green numbers -->
-    <text x="28" y="44" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">BRAND A</text>
-    <text x="108" y="44" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$9.8M</text>
+    <!-- Left pair: product name (col 1) + green % (col 2) -->
+    <text x="24" y="44" fill="rgba(159,176,211,.86)" font-size="6.8" font-family="Inter,Arial">PREMIUM LIGHT LAGER 24PK CANS</text>
+    <text x="146" y="44" fill="rgba(69,208,162,1)" font-size="6.8" font-family="Inter,Arial" text-anchor="end">+18.4%</text>
 
-    <text x="28" y="64" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">BRAND B</text>
-    <text x="108" y="64" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$8.3M</text>
+    <text x="24" y="64" fill="rgba(159,176,211,.86)" font-size="6.8" font-family="Inter,Arial">CRAFT SESSION ALE VARIETY 12PK</text>
+    <text x="146" y="64" fill="rgba(69,208,162,1)" font-size="6.8" font-family="Inter,Arial" text-anchor="end">+14.2%</text>
 
-    <text x="28" y="84" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">BRAND C</text>
-    <text x="108" y="84" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$7.2M</text>
+    <text x="24" y="84" fill="rgba(159,176,211,.86)" font-size="6.8" font-family="Inter,Arial">NON-ALC MALT BEVERAGE LEMON</text>
+    <text x="146" y="84" fill="rgba(69,208,162,1)" font-size="6.8" font-family="Inter,Arial" text-anchor="end">+11.7%</text>
 
-    <text x="28" y="104" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">BRAND D</text>
-    <text x="108" y="104" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$6.0M</text>
+    <text x="24" y="104" fill="rgba(159,176,211,.86)" font-size="6.8" font-family="Inter,Arial">SEASONAL WHEAT CITRUS LIMITED</text>
+    <text x="146" y="104" fill="rgba(69,208,162,1)" font-size="6.8" font-family="Inter,Arial" text-anchor="end">+9.6%</text>
 
-    <text x="28" y="124" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">BRAND E</text>
-    <text x="108" y="124" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$5.4M</text>
+    <text x="24" y="124" fill="rgba(159,176,211,.86)" font-size="6.8" font-family="Inter,Arial">IMPORTED PILSNER RESERVE 6PK</text>
+    <text x="146" y="124" fill="rgba(69,208,162,1)" font-size="6.8" font-family="Inter,Arial" text-anchor="end">+8.1%</text>
 
-    <!-- Right column: blurred label + green numbers -->
-    <text x="172" y="44" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">SKU 1192</text>
-    <text x="292" y="44" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$4.9M</text>
+    <!-- Right pair: product name (col 3) + red % (col 4) -->
+    <text x="164" y="44" fill="rgba(159,176,211,.86)" font-size="6.8" font-family="Inter,Arial">VALUE LAGER 30PK BOTTLES REG</text>
+    <text x="296" y="44" fill="rgba(255,109,109,1)" font-size="6.8" font-family="Inter,Arial" text-anchor="end">-6.5%</text>
 
-    <text x="172" y="64" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">SKU 0473</text>
-    <text x="292" y="64" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$4.1M</text>
+    <text x="164" y="64" fill="rgba(159,176,211,.86)" font-size="6.8" font-family="Inter,Arial">MALT LIQUOR HIGH GRAVITY 22OZ</text>
+    <text x="296" y="64" fill="rgba(255,109,109,1)" font-size="6.8" font-family="Inter,Arial" text-anchor="end">-8.9%</text>
 
-    <text x="172" y="84" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">SKU 8841</text>
-    <text x="292" y="84" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$3.8M</text>
+    <text x="164" y="84" fill="rgba(159,176,211,.86)" font-size="6.8" font-family="Inter,Arial">LIGHT BEER SLIM CAN 16OZ CASE</text>
+    <text x="296" y="84" fill="rgba(255,109,109,1)" font-size="6.8" font-family="Inter,Arial" text-anchor="end">-10.4%</text>
 
-    <text x="172" y="104" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">SKU 5510</text>
-    <text x="292" y="104" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$3.2M</text>
+    <text x="164" y="104" fill="rgba(159,176,211,.86)" font-size="6.8" font-family="Inter,Arial">FRUIT COOLER VARIETY 8PK GLASS</text>
+    <text x="296" y="104" fill="rgba(255,109,109,1)" font-size="6.8" font-family="Inter,Arial" text-anchor="end">-12.8%</text>
 
-    <text x="172" y="124" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">SKU 3028</text>
-    <text x="292" y="124" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$2.7M</text>
+    <text x="164" y="124" fill="rgba(159,176,211,.86)" font-size="6.8" font-family="Inter,Arial">CLASSIC ALE RETURNABLE 12PK</text>
+    <text x="296" y="124" fill="rgba(255,109,109,1)" font-size="6.8" font-family="Inter,Arial" text-anchor="end">-15.3%</text>
   </g>
 </svg>
