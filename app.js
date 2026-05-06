@@ -3192,29 +3192,36 @@ function renderSegmentRealityFooter(groups) {
 
   els.segmentRealityFooter.innerHTML = `
     <table class="segment-reality-table">
+      <thead>
+        <tr class="srt-row-head">
+          <th></th>
+          ${groups.map((g) => `<th class="${g.isSystemAverage ? "segment-reality-system-col" : ""}">${g.label}</th>`).join("")}
+        </tr>
+      </thead>
       <tbody>
-        <tr>
-          <td>Rev/bbl</td>
+        <tr class="srt-row-rev">
+          <td class="srt-row-label">Rev/bbl</td>
           ${groups.map((g) => {
             const revPerBbl = g.coveredVolume ? g.revenue / g.coveredVolume : 0;
-            return `<td class="${g.isSystemAverage ? "segment-reality-system-col" : ""}">${toMoneyDec(revPerBbl)}</td>`;
+            return `<td class="${g.isSystemAverage ? "segment-reality-system-col" : ""} srt-val">${toMoneyDec(revPerBbl)}</td>`;
           }).join("")}
         </tr>
-        <tr>
-          <td>Cost/bbl</td>
+        <tr class="srt-row-cost">
+          <td class="srt-row-label">Cost/bbl</td>
           ${groups.map((g) => {
             const revPerBbl = g.coveredVolume ? g.revenue / g.coveredVolume : 0;
             const stdCostPerBbl = revPerBbl - (g.standardOpPerBbl || 0);
             const adjCostPerBbl = revPerBbl - (g.complexityAdjOpPerBbl || 0);
-            return `<td class="${g.isSystemAverage ? "segment-reality-system-col" : ""}">Std ${toMoneyDec(stdCostPerBbl)}<br>Adj ${toMoneyDec(adjCostPerBbl)}</td>`;
+            return `<td class="${g.isSystemAverage ? "segment-reality-system-col" : ""} srt-val"><span class="srt-std">Std ${toMoneyDec(stdCostPerBbl)}</span><br><span class="srt-adj">Adj ${toMoneyDec(adjCostPerBbl)}</span></td>`;
           }).join("")}
         </tr>
-        <tr>
-          <td>OM/bbl</td>
+        <tr class="srt-row-om">
+          <td class="srt-row-label">OM/bbl</td>
           ${groups.map((g) => {
             const opGap = g.complexityAdjOpPerBbl - g.standardOpPerBbl;
-            const classes = `${g.isSystemAverage ? "segment-reality-system-col " : ""}${getMetricToneClass(opGap)}`;
-            return `<td class="${classes}">Std ${toMoneyDec(g.standardOpPerBbl)}<br>Adj ${toMoneyDec(g.complexityAdjOpPerBbl)}</td>`;
+            const toneClass = getMetricToneClass(opGap);
+            const sysClass = g.isSystemAverage ? "segment-reality-system-col " : "";
+            return `<td class="${sysClass}srt-val srt-om-cell ${toneClass}"><span class="srt-std">Std ${toMoneyDec(g.standardOpPerBbl)}</span><br><span class="srt-adj srt-adj-em">Adj ${toMoneyDec(g.complexityAdjOpPerBbl)}</span></td>`;
           }).join("")}
         </tr>
       </tbody>
@@ -3232,16 +3239,7 @@ function renderSegmentRealityCheck(rows) {
   const groupsWithAverage = averageGroup ? [...groups, averageGroup] : groups;
   const dimensionLabel = getDimensionLabel(state.segmentReality.dimension);
 
-  if (els.segmentRealitySubtitle) {
-    const coverageRows = rows.filter((r) => r.hasClientStdConversionCpu);
-    const coveredVolume = coverageRows.reduce((sum, r) => sum + (r.volume || 0), 0);
-    const totalVolume = rows.reduce((sum, r) => sum + (r.volume || 0), 0);
-    const coveragePct = totalVolume ? coveredVolume / totalVolume : 0;
-    const groupedNote = state.segmentReality.dimension === "brandFamily"
-      ? " · top 12 by revenue + Other"
-      : "";
-    els.segmentRealitySubtitle.textContent = `${dimensionLabel} view${groupedNote} · click any bar/column to drill dashboard · standard coverage ${toPct(coveragePct)} of filtered volume`;
-  }
+
 
   if (!groupsWithAverage.length || !els.segmentRealityChart) {
     if (segmentRealityChart) {
