@@ -2174,6 +2174,14 @@ function renderBreakdownPanel(totals) {
   const data = entries.map((entry) => entry.value);
   const colors = entries.map((_, i) => PIE_COLORS[i % PIE_COLORS.length]);
 
+  const setBreakdownLegendHover = (activeIndex) => {
+    const legendNodes = Array.from(els.breakdownLegend.querySelectorAll(".breakdown-item[data-entry-index]"));
+    legendNodes.forEach((node) => {
+      const nodeIndex = Number(node.getAttribute("data-entry-index"));
+      node.classList.toggle("is-chart-hover", Number.isFinite(activeIndex) && nodeIndex === activeIndex);
+    });
+  };
+
   if (breakdownChart) breakdownChart.destroy();
   breakdownChart = new Chart(els.breakdownChart, {
     type: "pie",
@@ -2182,7 +2190,12 @@ function renderBreakdownPanel(totals) {
       datasets: [{ data, backgroundColor: colors, borderColor: "#0f1a2d", borderWidth: 1 }]
     },
     options: {
-      plugins: { legend: { display: false } }
+      radius: "75%",
+      plugins: { legend: { display: false } },
+      onHover: (_event, activeElements) => {
+        const activeIndex = activeElements.length ? activeElements[0].index : null;
+        setBreakdownLegendHover(activeIndex);
+      }
     }
   });
 
@@ -2190,7 +2203,7 @@ function renderBreakdownPanel(totals) {
     const pctOfClicked = clickedTotal ? entry.value / clickedTotal : 0;
     const isOtherToggle = Boolean(entry.isOtherToggle && hasOther);
     return `
-      <div class="breakdown-item${entry.fromOther ? " breakdown-item-other" : ""}${isOtherToggle ? " breakdown-item-toggle" : ""}" ${isOtherToggle ? "data-other-toggle=\"true\"" : ""}>
+      <div class="breakdown-item${entry.fromOther ? " breakdown-item-other" : ""}${isOtherToggle ? " breakdown-item-toggle" : ""}" data-entry-index="${index}" ${isOtherToggle ? "data-other-toggle=\"true\"" : ""}>
         <span class="breakdown-dot" style="background:${colors[index]}"></span>
         <div class="breakdown-text">
           <div class="breakdown-name">${entry.label}</div>

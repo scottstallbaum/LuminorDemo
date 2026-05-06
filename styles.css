@@ -1281,6 +1281,12 @@ th { color: var(--muted); font-weight: 600; }
   grid-template-columns: 10px 1fr;
   gap: .45rem;
   align-items: start;
+  border-radius: .38rem;
+  transition: background .12s ease, box-shadow .12s ease;
+}
+.breakdown-item.is-chart-hover {
+  background: rgba(79, 159, 255, .12);
+  box-shadow: 0 0 0 1px rgba(79, 159, 255, .28) inset;
 }
 .breakdown-item-toggle {
   cursor: pointer;
