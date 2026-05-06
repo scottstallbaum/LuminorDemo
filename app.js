@@ -3492,9 +3492,8 @@ function renderWhaleCurve(rows) {
       els.whaleCurveSubtitle.textContent = "No data for current filters.";
     } else {
       const profitablePct = skuCount > 0 ? Math.round((points.filter((p, i) => i > 0 && (p.y - (points[i - 1]?.y || 0)) > 0).length / skuCount) * 100) : 0;
-      const activeLineLabel = activeLine === "standard" ? "As-Reported OM" : "Adjusted OM";
       els.whaleCurveSubtitle.textContent =
-        `Peak adjusted OM ${toMoney(peakValue)} at ${peakPct}% of SKUs — ${100 - profitablePct}% of SKUs reduce total profit. Active line: ${activeLineLabel}. Click a curve to switch.`;
+        `Peak adjusted OM ${toMoneyCompact(peakValue)} at ${peakPct}% of SKUs — ${100 - profitablePct}% of SKUs reduce total profit · click a curve to switch`;
     }
   }
 
@@ -3659,7 +3658,7 @@ function renderWhaleCurve(rows) {
         },
         y: {
           title: { display: true, text: "Cumulative Operating Income", color: "#9fb0d3", font: { size: 11 } },
-          ticks: { color: "#9fb0d3", callback: (v) => toMoney(v) },
+          ticks: { color: "#9fb0d3", callback: (v) => toMoneyCompact(v) },
           grid: { color: "rgba(159,176,211,.1)" }
         }
       }
