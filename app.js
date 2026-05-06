@@ -332,6 +332,7 @@ const els = {
   segmentRealityDimension: document.getElementById("segment-reality-dimension"),
   segmentRealitySort: document.getElementById("segment-reality-sort"),
   segmentRealityTopN: document.getElementById("segment-reality-topn"),
+  segmentRealityClear: document.getElementById("segment-reality-clear"),
   segmentRealitySubtitle: document.getElementById("segment-reality-subtitle"),
   segmentRealityEmpty: document.getElementById("segment-reality-empty"),
   segmentRealityChart: document.getElementById("segment-reality-chart"),
@@ -1618,6 +1619,17 @@ function bindSegmentRealityEvents() {
     });
   }
 
+  if (els.segmentRealityClear) {
+    els.segmentRealityClear.addEventListener("click", () => {
+      state.segmentReality.selectedGroup = "";
+      if (state.drill.dimension === state.segmentReality.dimension) {
+        state.drill.value = "All";
+      }
+      updateDrillValueOptions();
+      render();
+    });
+  }
+
   if (els.segmentRealitySort) {
     els.segmentRealitySort.value = state.segmentReality.sort;
     els.segmentRealitySort.addEventListener("change", () => {
@@ -2836,10 +2848,17 @@ function getRankedSkuRows(rows) {
       return String(a.sku).localeCompare(String(b.sku));
     });
 
+  const top = aggregatedRows.slice(0, 10);
+  const topSkuSet = new Set(top.map((row) => row.sku));
+  const bottom = [...aggregatedRows]
+    .reverse()
+    .filter((row) => !topSkuSet.has(row.sku))
+    .slice(0, 10);
+
   return {
     metric,
-    top: aggregatedRows.slice(0, 10),
-    bottom: [...aggregatedRows].reverse().slice(0, 10)
+    top,
+    bottom
   };
 }
 
@@ -3277,6 +3296,11 @@ function renderSegmentRealityCheck(rows) {
   const groups = buildSegmentRealityGroups(rows);
   const averageGroup = buildSegmentRealitySystemAverage(rows);
   const groupsWithAverage = averageGroup ? [...groups, averageGroup] : groups;
+  if (els.segmentRealityClear) {
+    const hasSelection = Boolean(state.segmentReality.selectedGroup)
+      || (state.drill.dimension === state.segmentReality.dimension && state.drill.value !== "All");
+    els.segmentRealityClear.classList.toggle("is-hidden", !hasSelection);
+  }
   const dimensionLabel = getDimensionLabel(state.segmentReality.dimension);
 
 
