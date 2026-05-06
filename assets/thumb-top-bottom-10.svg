@@ -1,33 +1,45 @@
 <svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="320" height="180" rx="4" fill="#0d1528"/>
-  <line x1="20" y1="88" x2="300" y2="88" stroke="rgba(159,176,211,.32)" stroke-width="1"/>
-  <line x1="20" y1="22" x2="20" y2="156" stroke="rgba(159,176,211,.24)" stroke-width="1"/>
-  <line x1="20" y1="22" x2="300" y2="22" stroke="rgba(159,176,211,.2)" stroke-width="1"/>
+  <defs>
+    <filter id="blurSoft" x="0" y="0" width="320" height="180" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="0.7"/>
+    </filter>
+  </defs>
 
-  <text x="30" y="34" fill="#45d0a2" font-size="9" font-family="Inter,Arial" font-weight="700">Top 10</text>
-  <text x="30" y="102" fill="#ff8c7a" font-size="9" font-family="Inter,Arial" font-weight="700">Bottom 10</text>
+  <line x1="160" y1="24" x2="160" y2="156" stroke="rgba(159,176,211,.18)" stroke-width="1"/>
+  <line x1="18" y1="24" x2="302" y2="24" stroke="rgba(159,176,211,.2)" stroke-width="1"/>
 
-  <!-- top list rows (rank + value bar) -->
-  <text x="26" y="48" fill="#9fb0d3" font-size="7" font-family="Inter,Arial">1</text>
-  <rect x="36" y="42" width="96" height="8" rx="2" fill="#45d0a2"/>
-  <text x="26" y="61" fill="#9fb0d3" font-size="7" font-family="Inter,Arial">2</text>
-  <rect x="36" y="55" width="78" height="8" rx="2" fill="#45d0a2"/>
-  <text x="26" y="74" fill="#9fb0d3" font-size="7" font-family="Inter,Arial">3</text>
-  <rect x="36" y="68" width="62" height="8" rx="2" fill="#45d0a2"/>
+  <g filter="url(#blurSoft)">
+    <!-- Left column: blurred label + green numbers -->
+    <text x="28" y="44" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">BRAND A</text>
+    <text x="108" y="44" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$9.8M</text>
 
-  <!-- bottom list rows (rank + value bar) -->
-  <text x="26" y="116" fill="#9fb0d3" font-size="7" font-family="Inter,Arial">1</text>
-  <rect x="36" y="110" width="92" height="8" rx="2" fill="#ff8c7a"/>
-  <text x="26" y="129" fill="#9fb0d3" font-size="7" font-family="Inter,Arial">2</text>
-  <rect x="36" y="123" width="72" height="8" rx="2" fill="#ff8c7a"/>
-  <text x="26" y="142" fill="#9fb0d3" font-size="7" font-family="Inter,Arial">3</text>
-  <rect x="36" y="136" width="56" height="8" rx="2" fill="#ff8c7a"/>
+    <text x="28" y="64" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">BRAND B</text>
+    <text x="108" y="64" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$8.3M</text>
 
-  <!-- right-side value columns to suggest table layout -->
-  <text x="214" y="48" fill="#9fb0d3" font-size="7" font-family="Inter,Arial">$12.4M</text>
-  <text x="214" y="61" fill="#9fb0d3" font-size="7" font-family="Inter,Arial">$10.1M</text>
-  <text x="214" y="74" fill="#9fb0d3" font-size="7" font-family="Inter,Arial">$8.6M</text>
-  <text x="214" y="116" fill="#9fb0d3" font-size="7" font-family="Inter,Arial">-$3.8M</text>
-  <text x="214" y="129" fill="#9fb0d3" font-size="7" font-family="Inter,Arial">-$4.9M</text>
-  <text x="214" y="142" fill="#9fb0d3" font-size="7" font-family="Inter,Arial">-$6.2M</text>
+    <text x="28" y="84" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">BRAND C</text>
+    <text x="108" y="84" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$7.2M</text>
+
+    <text x="28" y="104" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">BRAND D</text>
+    <text x="108" y="104" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$6.0M</text>
+
+    <text x="28" y="124" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">BRAND E</text>
+    <text x="108" y="124" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$5.4M</text>
+
+    <!-- Right column: blurred label + green numbers -->
+    <text x="172" y="44" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">SKU 1192</text>
+    <text x="292" y="44" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$4.9M</text>
+
+    <text x="172" y="64" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">SKU 0473</text>
+    <text x="292" y="64" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$4.1M</text>
+
+    <text x="172" y="84" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">SKU 8841</text>
+    <text x="292" y="84" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$3.8M</text>
+
+    <text x="172" y="104" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">SKU 5510</text>
+    <text x="292" y="104" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$3.2M</text>
+
+    <text x="172" y="124" fill="rgba(159,176,211,.86)" font-size="7" font-family="Inter,Arial">SKU 3028</text>
+    <text x="292" y="124" fill="rgba(69,208,162,.95)" font-size="7" font-family="Inter,Arial" text-anchor="end">$2.7M</text>
+  </g>
 </svg>
