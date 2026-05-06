@@ -2,10 +2,13 @@
   <rect width="320" height="180" rx="4" fill="#0d1528"/>
   <line x1="24" y1="150" x2="304" y2="150" stroke="rgba(159,176,211,.3)" stroke-width="1"/>
   <line x1="24" y1="20" x2="24" y2="150" stroke="rgba(159,176,211,.24)" stroke-width="1"/>
-  <line x1="24" y1="96" x2="304" y2="96" stroke="rgba(159,176,211,.3)" stroke-width="1" stroke-dasharray="4 3"/>
-  <path d="M24 96 C58 96 82 64 112 42 C140 24 166 22 192 52 C216 78 240 106 304 130" stroke="#45d0a2" stroke-width="2.6" fill="none"/>
-  <path d="M24 96 C56 96 84 74 116 56 C144 40 170 40 196 66 C220 90 244 114 304 140" stroke="#ffae57" stroke-width="2" fill="none" stroke-dasharray="5 3"/>
-  <circle cx="156" cy="24" r="3.2" fill="#45d0a2"/>
-  <circle cx="170" cy="40" r="3" fill="#ffae57"/>
-  <circle cx="248" cy="112" r="3" fill="#ff8c7a"/>
+  <!-- zero-profit line -->
+  <line x1="24" y1="96" x2="304" y2="96" stroke="rgba(159,176,211,.34)" stroke-width="1" stroke-dasharray="4 3"/>
+  <!-- adjusted cumulative profit: rises to peak then drops below zero with long tail -->
+  <path d="M24 96 C50 94 72 70 102 46 C130 24 160 22 188 56 C210 84 232 108 252 126 C270 142 286 150 304 156" stroke="#45d0a2" stroke-width="2.8" fill="none"/>
+  <!-- standard cumulative profit: lower peak and earlier decline -->
+  <path d="M24 96 C52 95 78 78 110 58 C138 44 166 46 194 72 C216 94 238 114 258 132 C276 146 290 154 304 160" stroke="#ffae57" stroke-width="2.1" fill="none" stroke-dasharray="5 3"/>
+  <circle cx="152" cy="24" r="3.2" fill="#45d0a2"/>
+  <circle cx="164" cy="44" r="3" fill="#ffae57"/>
+  <circle cx="266" cy="144" r="3.2" fill="#ff8c7a"/>
 </svg>
