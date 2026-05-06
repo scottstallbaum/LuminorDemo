@@ -3291,7 +3291,7 @@ function renderSegmentRealityCheck(rows) {
       maintainAspectRatio: false,
       layout: {
         // Keep chart plot area aligned with table value columns (first table column is row labels).
-        padding: { left: 80, right: 10 }
+        padding: { top: 10, left: 80, right: 10 }
       },
       onClick: (_, elements) => {
         if (!elements.length) return;
