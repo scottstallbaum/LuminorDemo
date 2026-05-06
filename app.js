@@ -1780,7 +1780,6 @@ function renderOmMixChart(rows) {
   const totals = aggregate(rows);
   const totalRevenue = groups.reduce((sum, g) => sum + (g.revenue || 0), 0);
   const portfolioOmPct = totals.revenue ? ((totals.operatingIncome || 0) / totals.revenue) * 100 : 0;
-  const dimensionLabel = OM_MIX_DIMENSIONS.find((d) => d.value === state.omMixDimension)?.label || "Segment";
   const hasOmMixDrill = state.omMixDimension !== "priceSegment" || state.drill.dimension !== "plant" || state.drill.value !== "All";
 
   if (els.omMixClear) {
@@ -1788,7 +1787,7 @@ function renderOmMixChart(rows) {
   }
 
   if (els.omMixSubtitle) {
-    els.omMixSubtitle.textContent = `${dimensionLabel} · Bar width is revenue, bar height is margin %, bar area is margin $`;
+    els.omMixSubtitle.textContent = "Bar width is revenue, bar height is margin %, bar area is margin $";
   }
 
   if (!groups.length || totalRevenue <= 0) {
@@ -3754,10 +3753,8 @@ function bindWhaleCurveEvents() {
     const totals = aggregate(rows);
     const totalRevenue = groups.reduce((sum, g) => sum + (g.revenue || 0), 0);
     const portfolioOmPct = totals.revenue ? ((totals.operatingIncome || 0) / totals.revenue) * 100 : 0;
-    const dimensionLabel = OM_MIX_DIMENSIONS.find((d) => d.value === state.omMixDimension)?.label || "Segment";
-
     if (els.omMixSubtitle) {
-      els.omMixSubtitle.textContent = `${dimensionLabel} · Bar width is revenue, bar height is margin %, bar area is margin $`;
+      els.omMixSubtitle.textContent = "Bar width is revenue, bar height is margin %, bar area is margin $";
     }
 
     if (!groups.length || totalRevenue <= 0) {
