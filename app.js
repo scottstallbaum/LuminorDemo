@@ -3308,7 +3308,9 @@ function renderSegmentRealityCheck(rows) {
       },
       plugins: {
         legend: {
-          labels: { color: "#9fb0d3" }
+          position: "left",
+          align: "center",
+          labels: { color: "#9fb0d3", boxWidth: 12, padding: 14 }
         },
         tooltip: {
           callbacks: {
