@@ -8,7 +8,7 @@
   --accent: #45d0a2;
   --warn: #ffae57;
   --danger: #ff6d6d;
-  --app-top-gap: 18px;
+  --app-top-gap: 48px;
 }
 
 * { box-sizing: border-box; }
