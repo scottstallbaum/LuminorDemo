@@ -170,7 +170,7 @@ textarea {
 .panel-wide { grid-column: span 12; }
 
 .module-panel {
-  grid-column: 1 / 11;
+  grid-column: 1 / 12;
   order: 40;
   min-height: calc(100vh - 270px);
 }
@@ -191,12 +191,13 @@ textarea {
 }
 
 .module-rail {
-  grid-column: 11 / 13;
+  grid-column: 12 / 13;
   order: 40;
   position: sticky;
   top: 138px;
-  width: 162px;
-  justify-self: end;
+  width: 100%;
+  max-width: 162px;
+  justify-self: stretch;
   padding: .34rem .3rem .36rem;
   max-height: none;
   overflow: visible;
@@ -322,14 +323,14 @@ textarea {
 #om-mix-panel,
 #bubble-chart-panel {
   order: 40;
-  grid-column: 1 / 11;
+  grid-column: 1 / 12;
 }
 
 #comparison-panel,
 #insight-strip-panel,
 #sku-ranking-panel {
   order: 40;
-  grid-column: 1 / 11;
+  grid-column: 1 / 12;
 }
 
 .price-walk-legend {
@@ -2978,12 +2979,12 @@ th { color: var(--muted); font-weight: 600; }
   }
 }
 
-/* Keep dashboard module workspace in 10/2 split on desktop.
+/* Keep dashboard module workspace in 11/1 split on desktop.
    This guards against later generic .panel-wide declarations. */
 .layout > .module-panel {
-  grid-column: 1 / 11;
+  grid-column: 1 / 12;
 }
 
 .layout > .module-rail {
-  grid-column: 11 / 13;
+  grid-column: 12 / 13;
 }

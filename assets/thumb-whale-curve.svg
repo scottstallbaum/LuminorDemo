@@ -2,13 +2,8 @@
   <rect width="320" height="180" rx="4" fill="#0d1528"/>
   <line x1="24" y1="150" x2="304" y2="150" stroke="rgba(159,176,211,.3)" stroke-width="1"/>
   <line x1="24" y1="20" x2="24" y2="150" stroke="rgba(159,176,211,.24)" stroke-width="1"/>
-  <!-- zero-profit line -->
-  <line x1="24" y1="96" x2="304" y2="96" stroke="rgba(159,176,211,.34)" stroke-width="1" stroke-dasharray="4 3"/>
-  <!-- adjusted cumulative profit: rises to peak then drops below zero with long tail -->
-  <path d="M24 96 C50 94 72 70 102 46 C130 24 160 22 188 56 C210 84 232 108 252 126 C270 142 286 150 304 156" stroke="#45d0a2" stroke-width="2.8" fill="none"/>
-  <!-- standard cumulative profit: lower peak and earlier decline -->
-  <path d="M24 96 C52 95 78 78 110 58 C138 44 166 46 194 72 C216 94 238 114 258 132 C276 146 290 154 304 160" stroke="#ffae57" stroke-width="2.1" fill="none" stroke-dasharray="5 3"/>
-  <circle cx="152" cy="24" r="3.2" fill="#45d0a2"/>
-  <circle cx="164" cy="44" r="3" fill="#ffae57"/>
-  <circle cx="266" cy="144" r="3.2" fill="#ff8c7a"/>
+  <line x1="24" y1="96" x2="304" y2="96" stroke="rgba(159,176,211,.22)" stroke-width="0.8" stroke-dasharray="4 3"/>
+  <!-- Simple whale curve shape: sharp rise, long plateau, taper back to ~100% at end -->
+  <path d="M24 150 C44 110 72 62 112 42 C156 28 204 30 238 44 C266 56 286 76 304 96"
+        stroke="#45d0a2" stroke-width="2.8" fill="none"/>
 </svg>
