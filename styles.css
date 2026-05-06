@@ -172,7 +172,7 @@ textarea {
 .module-panel {
   grid-column: 1 / 12;
   order: 40;
-  min-height: min(680px, calc(100vh - 270px));
+  min-height: 0;
 }
 
 .module-panel-active {
