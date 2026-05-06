@@ -365,6 +365,7 @@ const els = {
   bubbleChartCompare: document.getElementById("bubble-chart-compare"),
   omMixPanel: document.getElementById("om-mix-panel"),
   omMixDimension: document.getElementById("om-mix-dimension"),
+  omMixClear: document.getElementById("om-mix-clear"),
   omMixSubtitle: document.getElementById("om-mix-subtitle"),
   omMixChart: document.getElementById("om-mix-chart"),
   waterfallShell: document.querySelector(".waterfall-shell"),
@@ -1589,6 +1590,22 @@ function bindOmMixEvents() {
     state.omMixDimension = els.omMixDimension.value;
     render();
   });
+
+  if (els.omMixClear) {
+    els.omMixClear.addEventListener("click", () => {
+      state.omMixDimension = "priceSegment";
+      state.drill.dimension = "plant";
+      state.drill.value = "All";
+      if (els.omMixDimension) {
+        els.omMixDimension.value = state.omMixDimension;
+      }
+      if (els.drillDimension) {
+        els.drillDimension.value = state.drill.dimension;
+      }
+      updateDrillValueOptions();
+      render();
+    });
+  }
 }
 
 function bindSegmentRealityEvents() {
@@ -1764,9 +1781,14 @@ function renderOmMixChart(rows) {
   const totalRevenue = groups.reduce((sum, g) => sum + (g.revenue || 0), 0);
   const portfolioOmPct = totals.revenue ? ((totals.operatingIncome || 0) / totals.revenue) * 100 : 0;
   const dimensionLabel = OM_MIX_DIMENSIONS.find((d) => d.value === state.omMixDimension)?.label || "Segment";
+  const hasOmMixDrill = state.omMixDimension !== "priceSegment" || state.drill.dimension !== "plant" || state.drill.value !== "All";
+
+  if (els.omMixClear) {
+    els.omMixClear.classList.toggle("is-hidden", !hasOmMixDrill);
+  }
 
   if (els.omMixSubtitle) {
-    els.omMixSubtitle.textContent = `${dimensionLabel} · bar width = revenue · y-axis = operating margin % · click a bar to drill`;
+    els.omMixSubtitle.textContent = `${dimensionLabel} · Bar width is revenue, bar height is margin %, bar area is margin $`;
   }
 
   if (!groups.length || totalRevenue <= 0) {
@@ -1907,11 +1929,12 @@ function renderOmMixChart(rows) {
 
   const positionOmTooltip = (event) => {
     if (!omTooltip || omTooltip.classList.contains("is-hidden")) return;
+    const chartRect = els.omMixChart.getBoundingClientRect();
     const pad = 12;
-    const x = event.clientX + 14;
-    const y = event.clientY + 12;
-    const maxLeft = window.innerWidth - omTooltip.offsetWidth - pad;
-    const maxTop = window.innerHeight - omTooltip.offsetHeight - pad;
+    const x = (event.clientX - chartRect.left) + 14;
+    const y = (event.clientY - chartRect.top) - 8;
+    const maxLeft = chartRect.width - omTooltip.offsetWidth - pad;
+    const maxTop = chartRect.height - omTooltip.offsetHeight - pad;
     omTooltip.style.left = `${Math.max(pad, Math.min(x, maxLeft))}px`;
     omTooltip.style.top = `${Math.max(pad, Math.min(y, maxTop))}px`;
   };
@@ -3734,7 +3757,7 @@ function bindWhaleCurveEvents() {
     const dimensionLabel = OM_MIX_DIMENSIONS.find((d) => d.value === state.omMixDimension)?.label || "Segment";
 
     if (els.omMixSubtitle) {
-      els.omMixSubtitle.textContent = `${dimensionLabel} · bar width = revenue · y-axis = operating margin % · click a bar to drill`;
+      els.omMixSubtitle.textContent = `${dimensionLabel} · Bar width is revenue, bar height is margin %, bar area is margin $`;
     }
 
     if (!groups.length || totalRevenue <= 0) {

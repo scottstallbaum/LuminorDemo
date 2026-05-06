@@ -251,10 +251,13 @@
           <h2>Operating Margin Mix by Segment</h2>
           <p class="small" id="om-mix-subtitle"></p>
         </div>
-        <label class="axis-toggle">
-          <span>View</span>
-          <select id="om-mix-dimension"></select>
-        </label>
+        <div class="om-mix-controls">
+          <button id="om-mix-clear" class="ghost is-hidden" type="button">Clear Selections</button>
+          <label class="axis-toggle">
+            <span>View</span>
+            <select id="om-mix-dimension"></select>
+          </label>
+        </div>
       </div>
       <div id="om-mix-chart" class="om-mix-chart"></div>
     </section>

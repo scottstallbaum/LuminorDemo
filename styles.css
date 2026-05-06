@@ -951,6 +951,12 @@ textarea {
   position: relative;
 }
 
+.om-mix-controls {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: .5rem;
+}
+
 .om-mix-svg {
   width: 100%;
   height: auto;
@@ -1041,7 +1047,7 @@ textarea {
 }
 
 .om-mix-tooltip {
-  position: fixed;
+  position: absolute;
   z-index: 25;
   min-width: 230px;
   max-width: 300px;
