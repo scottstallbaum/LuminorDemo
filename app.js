@@ -3536,14 +3536,14 @@ function renderWhaleCurve(rows) {
         {
           label: "As-Reported OM",
           data: stdChartData,
-          borderColor: activeLine === "standard" ? "#ffae57" : "rgba(255,174,87,0.3)",
-          borderWidth: activeLine === "standard" ? 3.5 : 1,
+          borderColor: activeLine === "standard" ? "#ffae57" : "rgba(255,174,87,0.5)",
+          borderWidth: activeLine === "standard" ? 3.5 : 2.5,
           pointRadius: 0,
           pointHoverRadius: 5,
           pointHoverBackgroundColor: "#ffffff",
           tension: 0.35,
           backgroundColor: "transparent",
-          borderDash: [5, 3],
+          borderDash: [6, 4],
           segment: activeLine === "standard" ? {
             borderColor: (ctx) => ctx.p1.parsed.x <= stdPeakX ? "#ffae57" : "#ff6d6d"
           } : {}
@@ -3625,6 +3625,8 @@ function renderWhaleCurve(rows) {
           labels: {
             color: "#9fb0d3",
             boxWidth: 24,
+            usePointStyle: true,
+            pointStyle: "line",
             filter: (item) => item.datasetIndex < 2
           }
         },
