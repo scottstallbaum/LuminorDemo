@@ -187,6 +187,9 @@ textarea {
   order: 40;
   position: sticky;
   top: 138px;
+  width: 196px;
+  justify-self: end;
+  padding: .55rem .5rem .6rem;
   max-height: calc(100vh - 146px);
   overflow-y: auto;
 }
@@ -201,54 +204,74 @@ textarea {
 
 .module-rail-list {
   display: grid;
-  gap: .34rem;
+  gap: .42rem;
 }
 
 .module-thumb {
-  border: 1px solid var(--line);
-  background: #0f182a;
-  border-radius: .44rem;
-  padding: .24rem;
-  display: grid;
-  gap: .14rem;
+  position: relative;
+  border: 1px solid rgba(79,159,255,.28);
+  background: linear-gradient(180deg, #12203a 0%, #0f1a2e 100%);
+  border-radius: .55rem;
+  padding: .2rem;
+  display: block;
+  overflow: hidden;
   cursor: pointer;
   text-align: left;
   color: var(--text);
-  transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+  transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease, background .16s ease;
 }
 
 .module-thumb:hover {
-  border-color: rgba(79,159,255,.68);
+  border-color: rgba(79,159,255,.84);
+  background: linear-gradient(180deg, #152746 0%, #10203a 100%);
   transform: translateX(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.28);
 }
 
 .module-thumb img {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 64px;
   object-fit: cover;
-  border-radius: .28rem;
-  border: 1px solid rgba(159,176,211,.22);
-  max-height: 36px;
-  filter: grayscale(.55) saturate(.65) contrast(1.02);
-  opacity: .88;
+  border-radius: .38rem;
+  border: 1px solid rgba(159,176,211,.32);
+  max-height: none;
+  filter: none;
+  opacity: 1;
 }
 
 .module-thumb span {
-  font-size: .64rem;
-  font-weight: 600;
-  letter-spacing: .01em;
-  color: #d3deef;
+  position: absolute;
+  left: .42rem;
+  bottom: .34rem;
+  z-index: 2;
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .015em;
+  color: #eef4ff;
+  padding: .08rem .3rem;
+  border-radius: .3rem;
+  border: 1px solid rgba(159,176,211,.38);
+  background: rgba(11,18,32,.74);
+  text-shadow: 0 1px 1px rgba(0,0,0,.6);
 }
 
 .module-thumb.is-active {
-  border-color: rgba(69,208,162,.72);
-  box-shadow: 0 0 0 1px rgba(69,208,162,.18) inset;
+  border-color: rgba(69,208,162,.98);
+  background: linear-gradient(180deg, #152a43 0%, #112239 100%);
+  box-shadow: 0 0 0 2px rgba(69,208,162,.34), 0 0 18px rgba(69,208,162,.28);
   transform: none;
 }
 
 .module-thumb.is-active img {
-  filter: grayscale(.18) saturate(.9) contrast(1.04);
-  opacity: .96;
+  border-color: rgba(69,208,162,.7);
+  filter: saturate(1.08) contrast(1.05);
+  opacity: 1;
+}
+
+.module-thumb.is-active span {
+  color: #dcf9ef;
+  border-color: rgba(69,208,162,.74);
+  background: rgba(69,208,162,.2);
 }
 
 .module-thumb:disabled {

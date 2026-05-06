@@ -1,38 +1,27 @@
 <svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="320" height="180" rx="4" fill="#0d1528"/>
-  <!-- axes -->
-  <line x1="24" y1="152" x2="302" y2="152" stroke="rgba(159,176,211,.25)" stroke-width="1"/>
-  <line x1="24" y1="18"  x2="24"  y2="152" stroke="rgba(159,176,211,.25)" stroke-width="1"/>
-  <!-- zero / baseline for stacked bars -->
-  <line x1="24" y1="112" x2="302" y2="112" stroke="rgba(159,176,211,.35)" stroke-width="1"/>
-  <!-- gridline above -->
-  <line x1="24" y1="65"  x2="302" y2="65"  stroke="rgba(159,176,211,.12)" stroke-width="0.5" stroke-dasharray="3 3"/>
+  <line x1="22" y1="150" x2="304" y2="150" stroke="rgba(159,176,211,.3)" stroke-width="1"/>
+  <line x1="22" y1="20" x2="22" y2="150" stroke="rgba(159,176,211,.24)" stroke-width="1"/>
+  <line x1="22" y1="108" x2="304" y2="108" stroke="rgba(159,176,211,.28)" stroke-width="1"/>
+  <line x1="22" y1="68" x2="304" y2="68" stroke="rgba(159,176,211,.14)" stroke-width="0.6" stroke-dasharray="3 3"/>
 
-  <!-- Column 1 (x=58, w=38): Premium — 2 positive segs, 1 small neg -->
-  <!-- seg green (pos, large) -->
-  <rect x="40" y="40"  width="36" height="72" fill="#45d0a2" rx="1" opacity=".9"/>
-  <!-- seg blue (pos, small) above green -->
-  <rect x="40" y="28"  width="36" height="12" fill="#4f9fff"  rx="1" opacity=".85"/>
-  <!-- seg red (neg, tiny) -->
-  <rect x="40" y="112" width="36" height="10" fill="#ff8c7a"  rx="1" opacity=".8"/>
+  <rect x="34" y="72" width="26" height="36" fill="#79c6d6" rx="1"/>
+  <rect x="34" y="58" width="26" height="14" fill="#5fa6d6" rx="1"/>
+  <rect x="34" y="108" width="26" height="14" fill="#ff8c7a" rx="1"/>
 
-  <!-- Column 2 (x=108, w=36): Above Prem — 2 pos segs, 1 neg -->
-  <rect x="90" y="62"  width="36" height="50" fill="#45d0a2" rx="1" opacity=".85"/>
-  <rect x="90" y="48"  width="36" height="14" fill="#ffae57"  rx="1" opacity=".85"/>
-  <rect x="90" y="112" width="36" height="18" fill="#ff8c7a"  rx="1" opacity=".8"/>
+  <rect x="66" y="62" width="26" height="46" fill="#6f8fce" rx="1"/>
+  <rect x="66" y="52" width="26" height="10" fill="#45d0a2" rx="1"/>
+  <rect x="66" y="108" width="26" height="18" fill="#ff8c7a" rx="1"/>
 
-  <!-- Column 3 (x=162, w=34): Budget — 1 pos, 2 neg segs -->
-  <rect x="140" y="88"  width="34" height="24" fill="#4f9fff"  rx="1" opacity=".8"/>
-  <rect x="140" y="112" width="34" height="26" fill="#ff8c7a"  rx="1" opacity=".85"/>
-  <rect x="140" y="138" width="34" height="10" fill="#b28cff"  rx="1" opacity=".75"/>
+  <rect x="98" y="74" width="26" height="34" fill="#5479bb" rx="1"/>
+  <rect x="98" y="108" width="26" height="18" fill="#ff8c7a" rx="1"/>
 
-  <!-- Column 4 (x=208, w=32): Non‑Alc / Unknown — mostly neg -->
-  <rect x="192" y="98"  width="34" height="14" fill="#4f9fff"  rx="1" opacity=".7"/>
-  <rect x="192" y="112" width="34" height="38" fill="#ff8c7a"  rx="1" opacity=".9"/>
+  <rect x="130" y="82" width="26" height="26" fill="#304f84" rx="1"/>
+  <rect x="130" y="108" width="26" height="24" fill="#ff8c7a" rx="1"/>
 
-  <!-- labels -->
-  <text x="58"  y="168" fill="#9fb0d3" font-size="6.5" font-family="Inter,Arial" text-anchor="middle">Premium</text>
-  <text x="108" y="168" fill="#9fb0d3" font-size="6.5" font-family="Inter,Arial" text-anchor="middle">Above</text>
-  <text x="157" y="168" fill="#9fb0d3" font-size="6.5" font-family="Inter,Arial" text-anchor="middle">Budget</text>
-  <text x="209" y="168" fill="#9fb0d3" font-size="6.5" font-family="Inter,Arial" text-anchor="middle">Other</text>
+  <rect x="162" y="88" width="26" height="20" fill="#79c6d6" rx="1"/>
+  <rect x="162" y="108" width="26" height="28" fill="#ff8c7a" rx="1"/>
+
+  <rect x="194" y="92" width="26" height="16" fill="#5fa6d6" rx="1"/>
+  <rect x="194" y="108" width="26" height="36" fill="#ff8c7a" rx="1"/>
 </svg>

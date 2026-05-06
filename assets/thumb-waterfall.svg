@@ -1,30 +1,15 @@
 <svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="320" height="180" rx="4" fill="#0d1528"/>
-  <!-- axes -->
-  <line x1="26" y1="20" x2="26" y2="152" stroke="rgba(159,176,211,.25)" stroke-width="1"/>
-  <line x1="26" y1="152" x2="306" y2="152" stroke="rgba(159,176,211,.25)" stroke-width="1"/>
-  <!-- gridlines -->
-  <line x1="26" y1="100" x2="306" y2="100" stroke="rgba(159,176,211,.12)" stroke-width="0.5" stroke-dasharray="3 3"/>
-  <line x1="26" y1="60"  x2="306" y2="60"  stroke="rgba(159,176,211,.12)" stroke-width="0.5" stroke-dasharray="3 3"/>
-  <!-- Revenue bar -->
-  <rect x="32"  y="30"  width="32" height="122" fill="#5da8ff" rx="2"/>
-  <!-- connector Rev → Cost1 -->
-  <line x1="64" y1="30" x2="72" y2="30" stroke="rgba(159,176,211,.55)" stroke-width="1" stroke-dasharray="3 3"/>
-  <!-- Cost 1: COGS (largest) -->
-  <rect x="72"  y="30"  width="28" height="44" fill="#ff8c7a" rx="2"/>
-  <!-- connector Cost1 → Cost2 -->
-  <line x1="100" y1="74" x2="108" y2="74" stroke="rgba(159,176,211,.55)" stroke-width="1" stroke-dasharray="3 3"/>
-  <!-- Cost 2: SGA -->
-  <rect x="108" y="74"  width="26" height="26" fill="#ff8c7a" rx="2"/>
-  <!-- connector Cost2 → Cost3 -->
-  <line x1="134" y1="100" x2="142" y2="100" stroke="rgba(159,176,211,.55)" stroke-width="1" stroke-dasharray="3 3"/>
-  <!-- Cost 3: Other -->
-  <rect x="142" y="100" width="22" height="18" fill="#ff8c7a" rx="2"/>
-  <!-- connector Cost3 → Result (long jump) -->
-  <line x1="164" y1="118" x2="240" y2="118" stroke="rgba(159,176,211,.55)" stroke-width="1" stroke-dasharray="3 3"/>
-  <!-- Result: Op Income bar from baseline -->
-  <rect x="240" y="118" width="38" height="34" fill="#43c99a" rx="2"/>
-  <!-- labels -->
-  <text x="48"  y="168" fill="#9fb0d3" font-size="7" font-family="Inter,Arial" text-anchor="middle">Revenue</text>
-  <text x="259" y="168" fill="#9fb0d3" font-size="7" font-family="Inter,Arial" text-anchor="middle">Op Inc</text>
+  <line x1="24" y1="152" x2="306" y2="152" stroke="rgba(159,176,211,.32)" stroke-width="1"/>
+  <line x1="24" y1="20" x2="24" y2="152" stroke="rgba(159,176,211,.24)" stroke-width="1"/>
+  <line x1="24" y1="98" x2="306" y2="98" stroke="rgba(159,176,211,.16)" stroke-width="0.6" stroke-dasharray="3 3"/>
+  <rect x="32" y="30" width="34" height="122" fill="#5da8ff" rx="2"/>
+  <line x1="66" y1="30" x2="78" y2="30" stroke="rgba(159,176,211,.62)" stroke-width="1" stroke-dasharray="3 3"/>
+  <rect x="78" y="30" width="28" height="36" fill="#ff8c7a" rx="2"/>
+  <line x1="106" y1="66" x2="116" y2="66" stroke="rgba(159,176,211,.62)" stroke-width="1" stroke-dasharray="3 3"/>
+  <rect x="116" y="66" width="26" height="28" fill="#ff8c7a" rx="2"/>
+  <line x1="142" y1="94" x2="152" y2="94" stroke="rgba(159,176,211,.62)" stroke-width="1" stroke-dasharray="3 3"/>
+  <rect x="152" y="94" width="24" height="20" fill="#ff8c7a" rx="2"/>
+  <line x1="176" y1="114" x2="246" y2="114" stroke="rgba(159,176,211,.62)" stroke-width="1" stroke-dasharray="3 3"/>
+  <rect x="246" y="114" width="40" height="38" fill="#43c99a" rx="2"/>
 </svg>

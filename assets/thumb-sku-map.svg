@@ -1,36 +1,13 @@
 <svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="320" height="180" rx="4" fill="#0d1528"/>
-  <!-- outer axes -->
-  <line x1="28" y1="156" x2="304" y2="156" stroke="rgba(159,176,211,.25)" stroke-width="1"/>
-  <line x1="28" y1="16"  x2="28"  y2="156" stroke="rgba(159,176,211,.25)" stroke-width="1"/>
-  <!-- quadrant dividers (crosshairs at median) -->
-  <!-- vertical: median GM% at x=166 -->
-  <line x1="166" y1="16" x2="166" y2="156" stroke="rgba(159,176,211,.3)" stroke-width="1" stroke-dasharray="4 3"/>
-  <!-- horizontal: OM%=0 at y=100 -->
-  <line x1="28" y1="100" x2="304" y2="100" stroke="rgba(159,176,211,.3)" stroke-width="1" stroke-dasharray="4 3"/>
-
-  <!-- Quadrant labels (faint) -->
-  <text x="34"  y="32"  fill="rgba(159,176,211,.3)" font-size="6" font-family="Inter,Arial">High OM / Low GM</text>
-  <text x="172" y="32"  fill="rgba(159,176,211,.3)" font-size="6" font-family="Inter,Arial">High OM / High GM</text>
-  <text x="34"  y="118" fill="rgba(159,176,211,.3)" font-size="6" font-family="Inter,Arial">Low OM / Low GM</text>
-  <text x="172" y="118" fill="rgba(159,176,211,.3)" font-size="6" font-family="Inter,Arial">Low OM / High GM</text>
-
-  <!-- Bubbles: x=GM%, y=OM%, size=revenue, colored by brand family -->
-  <!-- Premium: high GM, high OM, large -->
-  <circle cx="218" cy="52" r="22" fill="#45d0a2" fill-opacity="0.65" stroke="#45d0a2" stroke-width="1"/>
-  <!-- Core Lager: mid GM, mid-high OM, very large -->
-  <circle cx="140" cy="68" r="26" fill="#4f9fff" fill-opacity="0.6" stroke="#4f9fff" stroke-width="1"/>
-  <!-- IPA: high GM, mod OM -->
-  <circle cx="248" cy="82" r="14" fill="#ffae57" fill-opacity="0.7" stroke="#ffae57" stroke-width="1"/>
-  <!-- Seasonal: very high GM, high OM, small -->
-  <circle cx="278" cy="46" r="9"  fill="#b28cff" fill-opacity="0.75" stroke="#b28cff" stroke-width="1"/>
-  <!-- Non‑Alc: low GM, negative OM -->
-  <circle cx="62"  cy="120" r="11" fill="#ff8c7a" fill-opacity="0.7" stroke="#ff8c7a" stroke-width="1"/>
-  <!-- Malt: very low GM, negative OM, small -->
-  <circle cx="46"  cy="138" r="7"  fill="#ff8c7a" fill-opacity="0.55" stroke="#ff8c7a" stroke-width="1"/>
-
-  <!-- axis labels -->
-  <text x="28"  y="170" fill="#9fb0d3" font-size="6.5" font-family="Inter,Arial">Low GM%</text>
-  <text x="276" y="170" fill="#9fb0d3" font-size="6.5" font-family="Inter,Arial">High</text>
-  <text x="30"  y="99"  fill="#9fb0d3" font-size="6" font-family="Inter,Arial">OM=0</text>
+  <line x1="24" y1="154" x2="304" y2="154" stroke="rgba(159,176,211,.3)" stroke-width="1"/>
+  <line x1="24" y1="18" x2="24" y2="154" stroke="rgba(159,176,211,.24)" stroke-width="1"/>
+  <line x1="164" y1="18" x2="164" y2="154" stroke="rgba(159,176,211,.34)" stroke-width="1" stroke-dasharray="4 3"/>
+  <line x1="24" y1="98" x2="304" y2="98" stroke="rgba(159,176,211,.34)" stroke-width="1" stroke-dasharray="4 3"/>
+  <circle cx="216" cy="50" r="20" fill="#45d0a2" fill-opacity="0.86" stroke="#45d0a2" stroke-width="1"/>
+  <circle cx="140" cy="64" r="24" fill="#4f9fff" fill-opacity="0.82" stroke="#4f9fff" stroke-width="1"/>
+  <circle cx="248" cy="82" r="13" fill="#ffae57" fill-opacity="0.9" stroke="#ffae57" stroke-width="1"/>
+  <circle cx="274" cy="46" r="9" fill="#b28cff" fill-opacity="0.9" stroke="#b28cff" stroke-width="1"/>
+  <circle cx="62" cy="120" r="11" fill="#ff8c7a" fill-opacity="0.88" stroke="#ff8c7a" stroke-width="1"/>
+  <circle cx="46" cy="138" r="7" fill="#ff8c7a" fill-opacity="0.75" stroke="#ff8c7a" stroke-width="1"/>
 </svg>
