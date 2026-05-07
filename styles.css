@@ -1109,6 +1109,8 @@ textarea {
   flex-wrap: wrap;
   color: var(--muted);
   font-size: .8rem;
+  margin-top: -.2rem;
+  padding-left: 66px;
 }
 
 .om-mix-legend .swatch {
