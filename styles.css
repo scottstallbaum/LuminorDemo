@@ -342,6 +342,11 @@ textarea {
   margin: .05rem 0 .55rem;
 }
 
+#segment-reality-legend {
+  margin: .02rem 0 .38rem;
+  padding-left: 80px;
+}
+
 .price-walk-legend-item {
   display: inline-flex;
   align-items: center;
