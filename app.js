@@ -335,6 +335,7 @@ const els = {
   segmentRealityClear: document.getElementById("segment-reality-clear"),
   segmentRealitySubtitle: document.getElementById("segment-reality-subtitle"),
   segmentRealityEmpty: document.getElementById("segment-reality-empty"),
+  segmentRealityLegend: document.getElementById("segment-reality-legend"),
   segmentRealityChart: document.getElementById("segment-reality-chart"),
   segmentRealityFooter: document.getElementById("segment-reality-footer"),
   priceWalkPanel: document.getElementById("price-walk-panel"),
@@ -358,16 +359,19 @@ const els = {
   whaleCurvePanel: document.getElementById("whale-curve-panel"),
   whaleCurveReport: document.getElementById("whale-curve-report"),
   whaleCurveClear: document.getElementById("whale-curve-clear"),
+  whaleCurveLegend: document.getElementById("whale-curve-legend"),
   bubbleChartPanel: document.getElementById("bubble-chart-panel"),
   bubbleChart: document.getElementById("bubble-chart"),
   bubbleChartSubtitle: document.getElementById("bubble-chart-subtitle"),
   bubbleChartBack: document.getElementById("bubble-chart-back"),
   bubbleChartClear: document.getElementById("bubble-chart-clear"),
   bubbleChartCompare: document.getElementById("bubble-chart-compare"),
+  bubbleChartLegend: document.getElementById("bubble-chart-legend"),
   omMixPanel: document.getElementById("om-mix-panel"),
   omMixDimension: document.getElementById("om-mix-dimension"),
   omMixClear: document.getElementById("om-mix-clear"),
   omMixSubtitle: document.getElementById("om-mix-subtitle"),
+  omMixLegend: document.getElementById("om-mix-legend"),
   omMixChart: document.getElementById("om-mix-chart"),
   waterfallShell: document.querySelector(".waterfall-shell"),
   waterfall: document.getElementById("waterfall"),
@@ -1803,8 +1807,17 @@ function renderOmMixChart(rows) {
   }
 
   if (!groups.length || totalRevenue <= 0) {
+    if (els.omMixLegend) els.omMixLegend.innerHTML = "";
     els.omMixChart.innerHTML = '<div class="sku-ranking-empty">No data for current filters.</div>';
     return;
+  }
+
+  if (els.omMixLegend) {
+    els.omMixLegend.innerHTML = `
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:rgba(14,123,97,.8); border:1px solid rgba(99,225,191,.8)"></span><span>At/above company OM avg</span></span>
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:rgba(124,46,18,.8); border:1px solid rgba(255,149,108,.8)"></span><span>Below company OM avg</span></span>
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:#8f82ff; border:1px solid #b8adff"></span><span>Company OM avg</span></span>
+    `;
   }
 
   const vals = groups.map((g) => g.omPct || 0).concat([portfolioOmPct, 0]);
@@ -1913,11 +1926,6 @@ function renderOmMixChart(rows) {
 
   els.omMixChart.innerHTML = `
     <div class="om-mix-shell">
-      <div class="om-mix-legend">
-        <span><i class="swatch good"></i>At/above company OM avg</span>
-        <span><i class="swatch bad"></i>Below company OM avg</span>
-        <span><i class="swatch avg"></i>Company OM avg</span>
-      </div>
       <svg class="om-mix-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Operating Margin mix chart">
         ${grid}
         <line class="om-mix-zero" x1="${margin.left}" y1="${zeroY.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${zeroY.toFixed(2)}"></line>
@@ -3310,6 +3318,7 @@ function renderSegmentRealityCheck(rows) {
       segmentRealityChart.destroy();
       segmentRealityChart = null;
     }
+    if (els.segmentRealityLegend) els.segmentRealityLegend.innerHTML = "";
     if (els.segmentRealityEmpty) els.segmentRealityEmpty.classList.remove("is-hidden");
     renderSegmentRealityFooter([]);
     return;
@@ -3321,6 +3330,13 @@ function renderSegmentRealityCheck(rows) {
   const reportedOm = groupsWithAverage.map((g) => (g.clientReportedOmPct || 0) * 100);
   const alignedOm = groupsWithAverage.map((g) => (g.alignedOmPct || 0) * 100);
   const averageIndex = groupsWithAverage.findIndex((g) => g.isSystemAverage);
+
+  if (els.segmentRealityLegend) {
+    els.segmentRealityLegend.innerHTML = `
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:rgba(255,174,87,.82)"></span><span>As-Reported OM%</span></span>
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:rgba(69,208,162,.82)"></span><span>Adjusted OM%</span></span>
+    `;
+  }
 
   if (segmentRealityChart) {
     segmentRealityChart.destroy();
@@ -3371,11 +3387,7 @@ function renderSegmentRealityCheck(rows) {
         render();
       },
       plugins: {
-        legend: {
-          position: "top",
-          align: "start",
-          labels: { color: "#9fb0d3", boxWidth: 12, padding: 14 }
-        },
+        legend: { display: false },
         tooltip: {
           callbacks: {
             afterBody: (items) => {
@@ -3564,6 +3576,13 @@ function renderWhaleCurve(rows) {
   const adjChartData = points.map((p) => ({ x: p.x * 100, y: p.y }));
   const stdChartData = stdPoints.map((p) => ({ x: p.x * 100, y: p.y }));
 
+  if (els.whaleCurveLegend) {
+    els.whaleCurveLegend.innerHTML = skuCount > 0 ? `
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:#45d0a2"></span><span>Adjusted OM</span></span>
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:#ffae57"></span><span>As-Reported OM</span></span>
+    ` : "";
+  }
+
   const adjPeakX = points[peakIndex]?.x * 100 || 100;
   const stdPeakX = stdPoints[stdPeakIndex]?.x * 100 || 100;
 
@@ -3684,18 +3703,7 @@ function renderWhaleCurve(rows) {
       },
       interaction: { mode: "index", intersect: false },
       plugins: {
-        legend: {
-          display: true,
-          position: "top",
-          align: "start",
-          labels: {
-            color: "#9fb0d3",
-            boxWidth: 24,
-            usePointStyle: true,
-            pointStyle: "line",
-            filter: (item) => item.datasetIndex < 2
-          }
-        },
+        legend: { display: false },
         tooltip: {
           callbacks: {
             title: (items) => `${items[0].parsed.x.toFixed(1)}% of SKUs`,
@@ -3784,8 +3792,17 @@ function bindWhaleCurveEvents() {
     }
 
     if (!groups.length || totalRevenue <= 0) {
+      if (els.omMixLegend) els.omMixLegend.innerHTML = "";
       els.omMixChart.innerHTML = '<div class="sku-ranking-empty">No data for current filters.</div>';
       return;
+    }
+
+    if (els.omMixLegend) {
+      els.omMixLegend.innerHTML = `
+        <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:rgba(14,123,97,.8); border:1px solid rgba(99,225,191,.8)"></span><span>At/above company OM avg</span></span>
+        <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:rgba(124,46,18,.8); border:1px solid rgba(255,149,108,.8)"></span><span>Below company OM avg</span></span>
+        <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:#8f82ff; border:1px solid #b8adff"></span><span>Company OM avg</span></span>
+      `;
     }
 
     const vals = groups.map((g) => g.omPct || 0).concat([portfolioOmPct, 0]);
@@ -3856,11 +3873,6 @@ function bindWhaleCurveEvents() {
 
     els.omMixChart.innerHTML = `
       <div class="om-mix-shell">
-        <div class="om-mix-legend">
-          <span><i class="swatch good"></i>At/above company OM avg</span>
-          <span><i class="swatch bad"></i>Below company OM avg</span>
-          <span><i class="swatch avg"></i>Company OM avg</span>
-        </div>
         <svg class="om-mix-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Operating Margin mix chart">
           ${grid}
           <line class="om-mix-zero" x1="${margin.left}" y1="${zeroY.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${zeroY.toFixed(2)}"></line>
@@ -3951,6 +3963,7 @@ function renderBubbleChart(rows) {
 
   if (!families.length) {
     if (bubbleChart) { bubbleChart.destroy(); bubbleChart = null; }
+    if (els.bubbleChartLegend) els.bubbleChartLegend.innerHTML = "";
     if (els.bubbleChartBack) els.bubbleChartBack.classList.add("is-hidden");
     if (els.bubbleChartCompare) els.bubbleChartCompare.classList.add("is-hidden");
     if (els.bubbleChartClear) els.bubbleChartClear.classList.add("is-hidden");
@@ -4075,6 +4088,12 @@ function renderBubbleChart(rows) {
     }))
   }));
 
+  if (els.bubbleChartLegend) {
+    els.bubbleChartLegend.innerHTML = datasets.map((d) => `
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:${d.backgroundColor}; border-color:${d.borderColor}"></span><span>${d.label}</span></span>
+    `).join("");
+  }
+
   const quadrantPlugin = {
     id: "bubbleQuadrants",
     beforeDraw(chart) {
@@ -4125,12 +4144,7 @@ function renderBubbleChart(rows) {
         render();
       },
       plugins: {
-        legend: {
-          display: true,
-          position: "top",
-          align: "start",
-          labels: { color: "#9fb0d3", boxWidth: 12, padding: 16, font: { size: 12 } }
-        },
+        legend: { display: false },
         tooltip: {
           callbacks: {
             title: () => "",
