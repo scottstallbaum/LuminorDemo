@@ -1109,7 +1109,7 @@ textarea {
   flex-wrap: wrap;
   color: var(--muted);
   font-size: .8rem;
-  margin-top: -.55rem;
+  margin: .08rem 0 .32rem;
   padding-left: 66px;
 }
 

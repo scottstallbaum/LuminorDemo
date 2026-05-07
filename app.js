@@ -1913,6 +1913,11 @@ function renderOmMixChart(rows) {
 
   els.omMixChart.innerHTML = `
     <div class="om-mix-shell">
+      <div class="om-mix-legend">
+        <span><i class="swatch good"></i>At/above company OM avg</span>
+        <span><i class="swatch bad"></i>Below company OM avg</span>
+        <span><i class="swatch avg"></i>Company OM avg</span>
+      </div>
       <svg class="om-mix-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Operating Margin mix chart">
         ${grid}
         <line class="om-mix-zero" x1="${margin.left}" y1="${zeroY.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${zeroY.toFixed(2)}"></line>
@@ -1923,11 +1928,6 @@ function renderOmMixChart(rows) {
         <text class="om-mix-ytitle" transform="translate(16, ${(margin.top + (plotH / 2)).toFixed(2)}) rotate(-90)" text-anchor="middle">Operating margin %</text>
       </svg>
       <div class="om-mix-tooltip is-hidden" id="om-mix-tooltip"></div>
-      <div class="om-mix-legend">
-        <span><i class="swatch good"></i>At/above company OM avg</span>
-        <span><i class="swatch bad"></i>Below company OM avg</span>
-        <span><i class="swatch avg"></i>Company OM avg</span>
-      </div>
     </div>
   `;
 
@@ -3686,6 +3686,8 @@ function renderWhaleCurve(rows) {
       plugins: {
         legend: {
           display: true,
+          position: "top",
+          align: "start",
           labels: {
             color: "#9fb0d3",
             boxWidth: 24,
@@ -3854,6 +3856,11 @@ function bindWhaleCurveEvents() {
 
     els.omMixChart.innerHTML = `
       <div class="om-mix-shell">
+        <div class="om-mix-legend">
+          <span><i class="swatch good"></i>At/above company OM avg</span>
+          <span><i class="swatch bad"></i>Below company OM avg</span>
+          <span><i class="swatch avg"></i>Company OM avg</span>
+        </div>
         <svg class="om-mix-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Operating Margin mix chart">
           ${grid}
           <line class="om-mix-zero" x1="${margin.left}" y1="${zeroY.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${zeroY.toFixed(2)}"></line>
@@ -3862,11 +3869,6 @@ function bindWhaleCurveEvents() {
           ${bars}
           <text class="om-mix-ytitle" transform="translate(16, ${(margin.top + (plotH / 2)).toFixed(2)}) rotate(-90)" text-anchor="middle">Operating margin %</text>
         </svg>
-        <div class="om-mix-legend">
-          <span><i class="swatch good"></i>At/above company OM avg</span>
-          <span><i class="swatch bad"></i>Below company OM avg</span>
-          <span><i class="swatch avg"></i>Company OM avg</span>
-        </div>
       </div>
     `;
 
@@ -4125,7 +4127,8 @@ function renderBubbleChart(rows) {
       plugins: {
         legend: {
           display: true,
-          position: "bottom",
+          position: "top",
+          align: "start",
           labels: { color: "#9fb0d3", boxWidth: 12, padding: 16, font: { size: 12 } }
         },
         tooltip: {
