@@ -194,6 +194,7 @@ textarea {
 
 .module-rail {
   grid-column: 12 / 13;
+  order: 40;
   position: sticky;
   top: calc(138px + var(--app-top-gap));
   width: 100%;
