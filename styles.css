@@ -54,7 +54,7 @@ h1 {
 }
 
 .layout {
-  padding: .95rem .95rem .8rem;
+  padding: .95rem 190px .8rem .95rem;
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: .55rem;
