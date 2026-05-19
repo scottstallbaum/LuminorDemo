@@ -56,9 +56,11 @@ h1 {
 .layout {
   padding: .95rem .95rem .8rem;
   display: grid;
-  grid-template-columns: repeat(11, 1fr) 160px;
+  grid-template-columns: repeat(12, 1fr);
   gap: .55rem;
   align-items: start;
+  max-width: 1600px;
+  width: 100%;
 }
 .panel {
   background: var(--panel);
@@ -195,14 +197,16 @@ textarea {
 .module-rail {
   grid-column: 12 / 13;
   order: 40;
-  position: sticky;
+  position: fixed !important;
+  right: 12px;
   top: calc(138px + var(--app-top-gap));
-  width: 100%;
-  max-width: 162px;
+  width: 160px;
+  max-width: 160px;
   justify-self: stretch;
   padding: .34rem .3rem .36rem;
   max-height: none;
   overflow: visible;
+  z-index: 50;
 }
 
 .module-rail h2 {

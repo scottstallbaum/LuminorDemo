@@ -4433,7 +4433,6 @@ function render() {
   safeRenderSection("singleMode", () => renderSingleMode(totals));
   safeRenderSection("summaryKpis", () => renderSummaryKpis(totals, focusedRows));
   safeRenderSection("insightStrip", () => renderInsightStrip(focusedRows));
-  safeRenderSection("moduleWorkspace", () => renderModuleWorkspace());
   safeRenderSection("segmentReality", () => renderSegmentRealityCheck(focusedRows));
   safeRenderSection("priceSegmentWalk", () => renderPriceSegmentWalk());
   safeRenderSection("skuRanking", () => renderSkuRanking(focusedRows, {
@@ -4443,6 +4442,7 @@ function render() {
   safeRenderSection("omMix", () => renderOmMixChart(focusedRows));
   safeRenderSection("bubbleChart", () => renderBubbleChart(focusedRows));
   safeRenderSection("breakdown", () => renderBreakdownPanel(totals));
+  safeRenderSection("moduleWorkspace", () => renderModuleWorkspace());
 }
 
 let initFailed = false;
