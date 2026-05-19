@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Luminor Insight Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20260519-v1" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Luminor Insight - Profitability Dashboard</h1>
+    </div>
+    <nav class="topbar-nav">
+      <a href="simulator.html" class="ghost topbar-back">Portfolio Management →</a>
+      <a href="plant-loading.html" class="ghost topbar-back">Plant Loading →</a>
+      <a href="new-product-costing.html" class="ghost topbar-back">New Product Costing →</a>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <section class="panel controls controls-full compact-controls">
+      <div class="compact-controls-head">
+        <h2>Global Filters</h2>
+        <button id="btn-reset" class="ghost controls-reset-btn" type="button">Reset Filters</button>
+      </div>
+      <div class="grid-two compact-grid">
+        <label>
+          Plant
+          <select id="filter-plant"></select>
+        </label>
+        <label>
+          Price Segment
+          <select id="filter-price-segment"></select>
+        </label>
+        <label>
+          Brand
+          <select id="filter-brand"></select>
+        </label>
+        <label>
+          Packaging
+          <select id="filter-packaging"></select>
+        </label>
+        <label>
+          Drill Dimension
+          <select id="drill-dimension"></select>
+        </label>
+        <label>
+          Drill Value
+          <select id="drill-value"></select>
+        </label>
+      </div>
+    </section>
+
+    <section id="summary-kpis" class="kpis">
+      <article class="kpi">
+        <p>Revenue</p>
+        <h3 id="kpi-revenue">$0</h3>
+        <p id="kpi-revenue-per-sku" class="kpi-subvalue">$0.00 / SKU</p>
+      </article>
+      <article class="kpi">
+        <p>Gross Margin</p>
+        <h3 id="kpi-gross-margin">$0</h3>
+        <p id="kpi-gross-margin-per-sku" class="kpi-subvalue">$0.00 / SKU</p>
+      </article>
+      <article class="kpi">
+        <p>Operating Income</p>
+        <h3 id="kpi-operating-income">$0</h3>
+        <p id="kpi-operating-income-per-sku" class="kpi-subvalue">$0.00 / SKU</p>
+      </article>
+      <article class="kpi">
+        <p>Volume</p>
+        <h3 id="kpi-volume">0 bbl</h3>
+        <p id="kpi-volume-per-sku" class="kpi-subvalue">0 bbl / SKU</p>
+      </article>
+    </section>
+
+    <section id="single-waterfall-panel" class="panel panel-wide module-panel" data-module="waterfall">
+      <h2>Revenue to Operating Income Waterfall</h2>
+      <div class="waterfall-shell">
+        <div id="waterfall" class="waterfall"></div>
+        <aside class="breakdown-panel" aria-live="polite">
+          <div class="breakdown-head">
+            <h3 id="breakdown-title">Breakdown</h3>
+            <button id="breakdown-close" class="ghost breakdown-close" type="button" aria-label="Close breakdown">Close</button>
+          </div>
+          <p id="breakdown-subtitle" class="small">Click Conversion Costs or SG&amp;A in the waterfall to see breakdown details.</p>
+          <div id="breakdown-empty" class="breakdown-empty">No breakdown selected.</div>
+          <div id="breakdown-content" class="breakdown-content is-hidden">
+            <canvas id="breakdown-chart" height="112"></canvas>
+            <div id="breakdown-legend" class="breakdown-legend"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="segment-reality-panel" class="panel panel-wide module-panel" data-module="std-adj">
+      <div class="panel-head panel-head-inline">
+        <div>
+          <h2>Adjusted v. Standard Cost Comparison</h2>
+          <div id="segment-reality-legend" class="price-walk-legend" aria-label="Adjusted vs standard legend"></div>
+        </div>
+        <div class="segment-reality-controls">
+          <button id="segment-reality-clear" class="ghost is-hidden" type="button">Clear Selections</button>
+          <label>
+            Group By
+            <select id="segment-reality-dimension">
+              <option value="priceSegment">Price Segment</option>
+              <option value="brandFamily">Brand Family</option>
+              <option value="plant">Plant</option>
+              <option value="containerType">Container Type</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <p id="segment-reality-empty" class="small is-hidden">No client standard conversion values are available in the current filter scope.</p>
+      <div class="segment-reality-chart-wrap">
+        <canvas id="segment-reality-chart" height="320"></canvas>
+      </div>
+      <div id="segment-reality-footer" class="segment-reality-footer"></div>
+    </section>
+
+    <section id="price-walk-panel" class="panel panel-wide module-panel" data-module="profit-walk">
+      <div class="panel-head">
+        <h2>SKU Volume to Operating Profit Walk (by segment)</h2>
+      </div>
+      <div id="price-walk-legend" class="price-walk-legend" aria-label="Price segment legend"></div>
+      <div class="price-walk-chart-wrap">
+        <svg id="price-walk-svg" class="price-walk-svg" role="img" aria-label="Price segment walk chart"></svg>
+        <div id="price-walk-tooltip" class="price-walk-tooltip is-hidden" role="tooltip"></div>
+      </div>
+    </section>
+
+    <section id="insight-strip-panel" class="panel panel-wide is-hidden">
+      <div class="panel-head">
+        <h2>Portfolio Insights</h2>
+        <p id="insight-strip-subtitle" class="small"></p>
+      </div>
+      <div id="insight-strip" class="insight-strip"></div>
+    </section>
+
+    <section id="comparison-panel" class="panel panel-wide is-hidden">
+      <div class="panel-head panel-head-inline">
+        <h2>Waterfall Comparison</h2>
+        <label class="axis-toggle">
+          <span>Y Axis</span>
+          <select id="axis-mode">
+            <option value="dollar">$</option>
+            <option value="percent">%</option>
+          </select>
+        </label>
+      </div>
+      <div class="comparison-waterfalls">
+        <article class="comparison-card">
+          <div class="comparison-card-head">
+            <h3>Base Case</h3>
+            <p id="comparison-current-summary" class="small"></p>
+          </div>
+          <div id="comparison-current-waterfall" class="waterfall"></div>
+          <section class="sku-ranking-panel sku-ranking-panel-inline">
+            <div class="panel-head panel-head-inline sku-ranking-head">
+              <h3>Top / Bottom 10 SKUs</h3>
+            </div>
+            <div class="sku-ranking-grid">
+              <article class="sku-ranking-card">
+                <h4>Top 10</h4>
+                <div id="comparison-current-top-list"></div>
+              </article>
+              <article class="sku-ranking-card">
+                <h4>Bottom 10</h4>
+                <div id="comparison-current-bottom-list"></div>
+              </article>
+            </div>
+          </section>
+        </article>
+        <article class="comparison-card">
+          <div class="comparison-card-head">
+            <h3>Comparison Case</h3>
+            <p id="comparison-compare-summary" class="small"></p>
+          </div>
+          <div id="comparison-compare-waterfall" class="waterfall"></div>
+          <section class="sku-ranking-panel sku-ranking-panel-inline">
+            <div class="panel-head panel-head-inline sku-ranking-head">
+              <h3>Top / Bottom 10 SKUs</h3>
+            </div>
+            <div class="sku-ranking-grid">
+              <article class="sku-ranking-card">
+                <h4>Top 10</h4>
+                <div id="comparison-compare-top-list"></div>
+              </article>
+              <article class="sku-ranking-card">
+                <h4>Bottom 10</h4>
+                <div id="comparison-compare-bottom-list"></div>
+              </article>
+            </div>
+          </section>
+        </article>
+      </div>
+    </section>
+
+    <section id="sku-ranking-panel" class="panel panel-wide module-panel is-hidden" data-module="top-bottom-10">
+      <div class="panel-head panel-head-inline sku-ranking-head">
+        <div>
+          <h2>Top / Bottom 10 SKUs</h2>
+        </div>
+        <label class="axis-toggle sku-metric-toggle">
+          <span>Rank By</span>
+          <select id="sku-ranking-metric">
+            <option value="revenue">Revenue</option>
+            <option value="grossMargin">GM $</option>
+            <option value="gmPct">GM %</option>
+            <option value="operatingIncome">Op Margin $</option>
+            <option value="omPct">Op Margin %</option>
+          </select>
+        </label>
+      </div>
+      <div class="sku-ranking-grid">
+        <article class="sku-ranking-card">
+          <h3>Top 10</h3>
+          <div id="sku-top-list"></div>
+        </article>
+        <article class="sku-ranking-card">
+          <h3>Bottom 10</h3>
+          <div id="sku-bottom-list"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="whale-curve-panel" class="panel panel-wide module-panel" data-module="whale-curve">
+      <div class="panel-head panel-head-inline">
+        <div>
+          <h2>Profit Concentration (Whale Curve)</h2>
+          <p class="small" id="whale-curve-subtitle"></p>
+        </div>
+        <button id="whale-curve-clear" class="ghost is-hidden" type="button">Clear Selection</button>
+      </div>
+      <div id="whale-curve-legend" class="price-walk-legend" aria-label="Whale curve legend"></div>
+      <div class="whale-curve-body">
+        <div class="whale-curve-shell">
+          <canvas id="whale-curve-chart"></canvas>
+        </div>
+        <aside id="whale-curve-report" class="whale-curve-report">
+          <p class="whale-report-empty">Click two points on the curve to see a range report.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="om-mix-panel" class="panel panel-wide module-panel" data-module="margin-mix">
+      <div class="panel-head panel-head-inline">
+        <div>
+          <h2>Operating Margin Mix by Segment</h2>
+          <p class="small" id="om-mix-subtitle"></p>
+        </div>
+        <div class="om-mix-controls">
+          <button id="om-mix-clear" class="ghost is-hidden" type="button">Clear Selections</button>
+          <label class="axis-toggle">
+            <span>View</span>
+            <select id="om-mix-dimension"></select>
+          </label>
+        </div>
+      </div>
+      <div id="om-mix-legend" class="price-walk-legend" aria-label="Operating margin mix legend"></div>
+      <div id="om-mix-chart" class="om-mix-chart"></div>
+    </section>
+
+    <section id="bubble-chart-panel" class="panel panel-wide module-panel" data-module="sku-map">
+      <div class="panel-head panel-head-inline">
+        <div>
+          <h2>SKU Portfolio Map</h2>
+          <p class="small" id="bubble-chart-subtitle"></p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="bubble-chart-clear" class="ghost is-hidden" type="button">Clear Selected</button>
+          <button id="bubble-chart-compare" class="ghost is-hidden" type="button">Compare Selected</button>
+          <button id="bubble-chart-back" class="ghost is-hidden" type="button">Back to Brand Family View</button>
+        </div>
+      </div>
+      <div id="bubble-chart-legend" class="price-walk-legend" aria-label="SKU portfolio legend"></div>
+      <div class="bubble-chart-shell">
+        <canvas id="bubble-chart"></canvas>
+      </div>
+    </section>
+
+    <aside id="module-rail" class="panel module-rail">
+      <h2>Views</h2>
+      <div class="module-rail-list" role="tablist" aria-label="Dashboard views">
+        <button class="module-thumb" type="button" data-module="waterfall" role="tab" aria-label="Waterfall">
+          <img src="assets/thumb-waterfall.svg?v=20260506-v11" alt="Waterfall preview" loading="lazy" />
+          <span>Waterfall</span>
+        </button>
+        <button class="module-thumb" type="button" data-module="std-adj" role="tab" aria-label="Std vs Adj">
+          <img src="assets/thumb-std-adj.svg?v=20260506-v11" alt="Standard vs adjusted preview" loading="lazy" />
+          <span>Std vs Adj</span>
+        </button>
+        <button class="module-thumb" type="button" data-module="whale-curve" role="tab" aria-label="Whale Curve">
+          <img src="assets/thumb-whale-curve.svg?v=20260506-v13" alt="Whale curve preview" loading="lazy" />
+          <span>Whale Curve</span>
+        </button>
+        <button class="module-thumb" type="button" data-module="profit-walk" role="tab" aria-label="Profit Walk">
+          <img src="assets/thumb-profit-walk.svg?v=20260506-v11" alt="Profit walk preview" loading="lazy" />
+          <span>Profit Walk</span>
+        </button>
+        <button class="module-thumb" type="button" data-module="margin-mix" role="tab" aria-label="Margin Mix">
+          <img src="assets/thumb-margin-mix.svg?v=20260506-v11" alt="Margin mix preview" loading="lazy" />
+          <span>Margin Mix</span>
+        </button>
+        <button class="module-thumb" type="button" data-module="sku-map" role="tab" aria-label="SKU Map">
+          <img src="assets/thumb-sku-map.svg?v=20260506-v11" alt="SKU map preview" loading="lazy" />
+          <span>SKU Map</span>
+        </button>
+        <button class="module-thumb" type="button" data-module="top-bottom-10" role="tab" aria-label="Top / Bottom 10">
+          <img src="assets/thumb-top-bottom-10.svg?v=20260506-v15" alt="Top and bottom ten preview" loading="lazy" />
+          <span>Top/Bottom 10</span>
+        </button>
+      </div>
+    </aside>
+
+  </main>
+
+  <noscript>
+    <div style="padding:12px 14px;background:#7a1f1f;color:#ffd9d9;font:600 13px/1.35 Arial,sans-serif;">
+      JavaScript is required for this dashboard. Enable JavaScript and reload.
+    </div>
+  </noscript>
+
+  <div id="sku-tooltip" class="sku-tooltip is-hidden"></div>
+
+  <script src="data/demo-cost-data.js?v=20260505-rail1"></script>
+  <script src="data/demo-std-conversion-data.js?v=20260505-rail1"></script>
+  <script src="data/demo-descriptor-data.js?v=20260505-rail1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="scripts/chart-fallback.js?v=20260505-rail1"></script>
+  <script src="scripts/startup-guard.js?v=20260505-rail1"></script>
+  <script src="app.js?v=20260519-v1"></script>
+</body>
+</html>
