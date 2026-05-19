@@ -616,6 +616,43 @@ function renderPriceSegmentWalk() {
         "data-abs": formatPriceWalkAbsolute(column.unit, (val / 100) * column.totalValue)
       });
 
+      // Animate bar rising from baseline
+      const baseY = yOf(0);
+      const dur = 0.4 + (colIdx * 0.04);
+
+      const anim = document.createElementNS(NS, "animate");
+      anim.setAttribute("attributeName", "y");
+      anim.setAttribute("from", String(baseY));
+      anim.setAttribute("to", String(y));
+      anim.setAttribute("dur", `${dur}s`);
+      anim.setAttribute("begin", "0s");
+      anim.setAttribute("fill", "freeze");
+      anim.setAttribute("calcMode", "spline");
+      anim.setAttribute("keySplines", "0.34 1.56 0.64 1");
+      anim.setAttribute("keyTimes", "0;1");
+      r.appendChild(anim);
+
+      const animH = document.createElementNS(NS, "animate");
+      animH.setAttribute("attributeName", "height");
+      animH.setAttribute("from", "0");
+      animH.setAttribute("to", String(h));
+      animH.setAttribute("dur", `${dur}s`);
+      animH.setAttribute("begin", "0s");
+      animH.setAttribute("fill", "freeze");
+      animH.setAttribute("calcMode", "spline");
+      animH.setAttribute("keySplines", "0.34 1.56 0.64 1");
+      animH.setAttribute("keyTimes", "0;1");
+      r.appendChild(animH);
+
+      const animOp = document.createElementNS(NS, "animate");
+      animOp.setAttribute("attributeName", "opacity");
+      animOp.setAttribute("from", "0");
+      animOp.setAttribute("to", "1");
+      animOp.setAttribute("dur", `${dur * 0.6}s`);
+      animOp.setAttribute("begin", "0s");
+      animOp.setAttribute("fill", "freeze");
+      r.appendChild(animOp);
+
       colGroup.appendChild(r);
       segmentLayout[segIdx] = {
         centerY: (y1 + y2) / 2,
@@ -1551,8 +1588,17 @@ function renderModuleWorkspace() {
   modulePanels.forEach((panel) => {
     const moduleId = panel.getAttribute("data-module");
     const isActive = moduleId === state.activeModule;
-    panel.classList.toggle("is-hidden", !isActive);
-    panel.classList.toggle("module-panel-active", isActive);
+
+    if (isActive) {
+      panel.classList.remove("is-hidden");
+      panel.classList.remove("module-panel-active");
+      // Force reflow so removing and re-adding the class triggers the animation fresh
+      void panel.offsetWidth;
+      panel.classList.add("module-panel-active");
+    } else {
+      panel.classList.remove("module-panel-active");
+      panel.classList.add("is-hidden");
+    }
   });
 
   if (els.comparisonPanel) {
@@ -1873,9 +1919,16 @@ function renderOmMixChart(rows) {
     const barTitle = `${g.label}: ${barLabel} OM, ${revLabel} revenue`;
     labelRecords.push({ x: textX, barW, label: labelPrimary });
 
+    const animDur = (0.4 + idx * 0.05).toFixed(2);
+    const rectY = Math.min(yTop, yBottom);
+
     return `
       <g>
-        <rect class="om-mix-bar ${barClass} ${isClickable ? "om-mix-bar-click" : ""}" data-idx="${idx}" data-drill="${drillVal}" x="${barX.toFixed(2)}" y="${Math.min(yTop, yBottom).toFixed(2)}" width="${barW.toFixed(2)}" height="${barH.toFixed(2)}"></rect>
+        <rect class="om-mix-bar ${barClass} ${isClickable ? "om-mix-bar-click" : ""}" data-idx="${idx}" data-drill="${drillVal}" x="${barX.toFixed(2)}" y="${rectY.toFixed(2)}" width="${barW.toFixed(2)}" height="${barH.toFixed(2)}">
+          <animate attributeName="y" from="${zeroY.toFixed(2)}" to="${rectY.toFixed(2)}" dur="${animDur}s" begin="0s" fill="freeze" calcMode="spline" keySplines="0.34 1.56 0.64 1" keyTimes="0;1"/>
+          <animate attributeName="height" from="0" to="${barH.toFixed(2)}" dur="${animDur}s" begin="0s" fill="freeze" calcMode="spline" keySplines="0.34 1.56 0.64 1" keyTimes="0;1"/>
+          <animate attributeName="opacity" from="0" to="1" dur="${(parseFloat(animDur) * 0.6).toFixed(2)}s" begin="0s" fill="freeze"/>
+        </rect>
       </g>
     `;
   }).join("");
@@ -4380,6 +4433,7 @@ function render() {
   safeRenderSection("singleMode", () => renderSingleMode(totals));
   safeRenderSection("summaryKpis", () => renderSummaryKpis(totals, focusedRows));
   safeRenderSection("insightStrip", () => renderInsightStrip(focusedRows));
+  safeRenderSection("moduleWorkspace", () => renderModuleWorkspace());
   safeRenderSection("segmentReality", () => renderSegmentRealityCheck(focusedRows));
   safeRenderSection("priceSegmentWalk", () => renderPriceSegmentWalk());
   safeRenderSection("skuRanking", () => renderSkuRanking(focusedRows, {
@@ -4389,7 +4443,6 @@ function render() {
   safeRenderSection("omMix", () => renderOmMixChart(focusedRows));
   safeRenderSection("bubbleChart", () => renderBubbleChart(focusedRows));
   safeRenderSection("breakdown", () => renderBreakdownPanel(totals));
-  safeRenderSection("moduleWorkspace", () => renderModuleWorkspace());
 }
 
 let initFailed = false;
