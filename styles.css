@@ -498,7 +498,7 @@ textarea {
   display: none;
 }
 .waterfall-shell.has-breakdown {
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) clamp(220px, 24vw, 280px);
 }
 .waterfall-shell.has-breakdown .breakdown-panel {
   display: block;
