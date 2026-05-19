@@ -227,7 +227,7 @@ textarea {
   border: 1px solid rgba(79,159,255,.28);
   background: linear-gradient(180deg, #12203a 0%, #0f1a2e 100%);
   border-radius: .44rem;
-  padding: .12rem;
+  padding: .16rem;
   display: block;
   overflow: hidden;
   cursor: pointer;
@@ -245,7 +245,7 @@ textarea {
 
 .module-thumb img {
   width: 100%;
-  height: 42px;
+  height: 64px;
   object-fit: cover;
   border-radius: .28rem;
   border: 1px solid rgba(159,176,211,.32);
