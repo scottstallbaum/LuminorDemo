@@ -625,7 +625,7 @@ function renderPriceSegmentWalk() {
       anim.setAttribute("from", String(baseY));
       anim.setAttribute("to", String(y));
       anim.setAttribute("dur", `${dur}s`);
-      anim.setAttribute("begin", "0s");
+      anim.setAttribute("begin", "indefinite");
       anim.setAttribute("fill", "freeze");
       anim.setAttribute("calcMode", "spline");
       anim.setAttribute("keySplines", "0.34 1.56 0.64 1");
@@ -637,7 +637,7 @@ function renderPriceSegmentWalk() {
       animH.setAttribute("from", "0");
       animH.setAttribute("to", String(h));
       animH.setAttribute("dur", `${dur}s`);
-      animH.setAttribute("begin", "0s");
+      animH.setAttribute("begin", "indefinite");
       animH.setAttribute("fill", "freeze");
       animH.setAttribute("calcMode", "spline");
       animH.setAttribute("keySplines", "0.34 1.56 0.64 1");
@@ -649,7 +649,7 @@ function renderPriceSegmentWalk() {
       animOp.setAttribute("from", "0");
       animOp.setAttribute("to", "1");
       animOp.setAttribute("dur", `${dur * 0.6}s`);
-      animOp.setAttribute("begin", "0s");
+      animOp.setAttribute("begin", "indefinite");
       animOp.setAttribute("fill", "freeze");
       r.appendChild(animOp);
 
@@ -1595,6 +1595,15 @@ function renderModuleWorkspace() {
       // Force reflow so removing and re-adding the class triggers the animation fresh
       void panel.offsetWidth;
       panel.classList.add("module-panel-active");
+      panel.querySelectorAll("animate, animateTransform").forEach((animNode) => {
+        if (typeof animNode.beginElement === "function") {
+          try {
+            animNode.beginElement();
+          } catch (_) {
+            // Ignore animation engine errors to avoid blocking panel rendering.
+          }
+        }
+      });
     } else {
       panel.classList.remove("module-panel-active");
       panel.classList.add("is-hidden");
@@ -1925,9 +1934,9 @@ function renderOmMixChart(rows) {
     return `
       <g>
         <rect class="om-mix-bar ${barClass} ${isClickable ? "om-mix-bar-click" : ""}" data-idx="${idx}" data-drill="${drillVal}" x="${barX.toFixed(2)}" y="${rectY.toFixed(2)}" width="${barW.toFixed(2)}" height="${barH.toFixed(2)}">
-          <animate attributeName="y" from="${zeroY.toFixed(2)}" to="${rectY.toFixed(2)}" dur="${animDur}s" begin="0s" fill="freeze" calcMode="spline" keySplines="0.34 1.56 0.64 1" keyTimes="0;1"/>
-          <animate attributeName="height" from="0" to="${barH.toFixed(2)}" dur="${animDur}s" begin="0s" fill="freeze" calcMode="spline" keySplines="0.34 1.56 0.64 1" keyTimes="0;1"/>
-          <animate attributeName="opacity" from="0" to="1" dur="${(parseFloat(animDur) * 0.6).toFixed(2)}s" begin="0s" fill="freeze"/>
+          <animate attributeName="y" from="${zeroY.toFixed(2)}" to="${rectY.toFixed(2)}" dur="${animDur}s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.34 1.56 0.64 1" keyTimes="0;1"/>
+          <animate attributeName="height" from="0" to="${barH.toFixed(2)}" dur="${animDur}s" begin="indefinite" fill="freeze" calcMode="spline" keySplines="0.34 1.56 0.64 1" keyTimes="0;1"/>
+          <animate attributeName="opacity" from="0" to="1" dur="${(parseFloat(animDur) * 0.6).toFixed(2)}s" begin="indefinite" fill="freeze"/>
         </rect>
       </g>
     `;
@@ -3796,161 +3805,6 @@ function renderWhaleCurve(rows) {
 }
 
 function bindWhaleCurveEvents() {
-  function buildOmMixGroups(rows) {
-    const dimension = state.omMixDimension;
-    let groups = aggregateByDimension(rows, dimension)
-      .filter((g) => (g.revenue || 0) > 0)
-      .map((g) => ({
-        ...g,
-        omPct: g.revenue ? (g.operatingIncome / g.revenue) * 100 : 0,
-        isOther: false
-      }));
-
-    if (dimension === "brandFamily") {
-      groups.sort((a, b) => (b.revenue || 0) - (a.revenue || 0));
-      const top = groups.slice(0, 10);
-      const remainder = groups.slice(10);
-      if (remainder.length) {
-        const other = remainder.reduce((acc, g) => {
-          acc.revenue += g.revenue || 0;
-          acc.volume += g.volume || 0;
-          acc.operatingIncome += g.operatingIncome || 0;
-          return acc;
-        }, {
-          label: "Other",
-          revenue: 0,
-          volume: 0,
-          operatingIncome: 0,
-          isOther: true
-        });
-        other.omPct = other.revenue ? (other.operatingIncome / other.revenue) * 100 : 0;
-        groups = [...top, other];
-      } else {
-        groups = top;
-      }
-    }
-
-    return groups.sort((a, b) => (b.omPct || 0) - (a.omPct || 0));
-  }
-
-  function renderOmMixChart(rows) {
-    if (!els.omMixPanel || !els.omMixChart) return;
-
-    const groups = buildOmMixGroups(rows);
-    const totals = aggregate(rows);
-    const totalRevenue = groups.reduce((sum, g) => sum + (g.revenue || 0), 0);
-    const portfolioOmPct = totals.revenue ? ((totals.operatingIncome || 0) / totals.revenue) * 100 : 0;
-    if (els.omMixSubtitle) {
-      els.omMixSubtitle.textContent = "Bar width is revenue, bar height is margin %, bar area is margin $";
-    }
-
-    if (!groups.length || totalRevenue <= 0) {
-      if (els.omMixLegend) els.omMixLegend.innerHTML = "";
-      els.omMixChart.innerHTML = '<div class="sku-ranking-empty">No data for current filters.</div>';
-      return;
-    }
-
-    if (els.omMixLegend) {
-      els.omMixLegend.innerHTML = `
-        <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:rgba(14,123,97,.8); border:1px solid rgba(99,225,191,.8)"></span><span>At/above company OM avg</span></span>
-        <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:rgba(124,46,18,.8); border:1px solid rgba(255,149,108,.8)"></span><span>Below company OM avg</span></span>
-        <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:#8f82ff; border:1px solid #b8adff"></span><span>Company OM avg</span></span>
-      `;
-    }
-
-    const vals = groups.map((g) => g.omPct || 0).concat([portfolioOmPct, 0]);
-    const minVal = Math.min(...vals);
-    const maxVal = Math.max(...vals);
-    let yMin = Math.floor((minVal - 2) / 5) * 5;
-    let yMax = Math.ceil((maxVal + 2) / 5) * 5;
-    if (yMax - yMin < 15) {
-      yMax += 5;
-      yMin -= 5;
-    }
-
-    const width = 1060;
-    const height = 430;
-    const margin = { top: 16, right: 18, bottom: 110, left: 66 };
-    const plotW = width - margin.left - margin.right;
-    const plotH = height - margin.top - margin.bottom;
-
-    const y = (v) => margin.top + ((yMax - v) / (yMax - yMin)) * plotH;
-    const zeroY = y(0);
-    const avgY = y(portfolioOmPct);
-
-    const tickStep = 10;
-    const yTicks = [];
-    for (let tick = Math.ceil(yMin / tickStep) * tickStep; tick <= yMax; tick += tickStep) {
-      yTicks.push(tick);
-    }
-
-    let cumulative = 0;
-    const bars = groups.map((g, idx) => {
-      const share = (g.revenue || 0) / totalRevenue;
-      const barX = margin.left + (cumulative * plotW);
-      const barW = Math.max(8, share * plotW);
-      cumulative += share;
-
-      const value = g.omPct || 0;
-      const yTop = y(Math.max(value, 0));
-      const yBottom = y(Math.min(value, 0));
-      const barH = Math.max(2, Math.abs(yBottom - yTop));
-      const isGood = value >= portfolioOmPct;
-      const barClass = isGood ? "om-mix-bar-good" : "om-mix-bar-bad";
-      const isClickable = !(state.omMixDimension === "brandFamily" && g.isOther);
-      const drillVal = encodeURIComponent(g.label);
-      const barLabel = `${Math.round(value)}%`;
-      const revLabel = toMoney(g.revenue || 0).replace(".00", "");
-      const textX = barX + (barW / 2);
-      const showNameInside = barW > 94;
-      const shortName = String(g.label || "").length > 16 ? `${String(g.label).slice(0, 15)}…` : String(g.label);
-
-      return `
-        <g>
-          <rect class="om-mix-bar ${barClass} ${isClickable ? "om-mix-bar-click" : ""}" data-idx="${idx}" data-drill="${drillVal}" x="${barX.toFixed(2)}" y="${Math.min(yTop, yBottom).toFixed(2)}" width="${barW.toFixed(2)}" height="${barH.toFixed(2)}"></rect>
-          ${showNameInside ? `<text class="om-mix-text-main" x="${textX.toFixed(2)}" y="${(Math.min(yTop, yBottom) + 26).toFixed(2)}" text-anchor="middle">${barLabel}</text>` : ""}
-          ${showNameInside ? `<text class="om-mix-text-sub" x="${textX.toFixed(2)}" y="${(Math.min(yTop, yBottom) + 48).toFixed(2)}" text-anchor="middle">${shortName}</text>` : ""}
-          <text class="om-mix-rev" x="${textX.toFixed(2)}" y="${(zeroY - 10).toFixed(2)}" text-anchor="middle">${revLabel}</text>
-          <text class="om-mix-xlabel" transform="translate(${(barX + 4).toFixed(2)}, ${(zeroY + 22).toFixed(2)}) rotate(-38)">${g.label}</text>
-        </g>
-      `;
-    }).join("");
-
-    const grid = yTicks.map((tick) => {
-      const yy = y(tick);
-      return `
-        <line class="om-mix-grid" x1="${margin.left}" y1="${yy.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${yy.toFixed(2)}"></line>
-        <text class="om-mix-ytick" x="${(margin.left - 6).toFixed(2)}" y="${(yy + 4).toFixed(2)}" text-anchor="end">${tick}%</text>
-      `;
-    }).join("");
-
-    els.omMixChart.innerHTML = `
-      <div class="om-mix-shell">
-        <svg class="om-mix-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Operating Margin mix chart">
-          ${grid}
-          <line class="om-mix-zero" x1="${margin.left}" y1="${zeroY.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${zeroY.toFixed(2)}"></line>
-          <line class="om-mix-avg" x1="${margin.left}" y1="${avgY.toFixed(2)}" x2="${(width - margin.right).toFixed(2)}" y2="${avgY.toFixed(2)}"></line>
-          <text class="om-mix-avg-label" x="${(width - margin.right - 2).toFixed(2)}" y="${(avgY - 8).toFixed(2)}" text-anchor="end">Company OM avg ${portfolioOmPct.toFixed(1)}%</text>
-          ${bars}
-          <text class="om-mix-ytitle" transform="translate(16, ${(margin.top + (plotH / 2)).toFixed(2)}) rotate(-90)" text-anchor="middle">Operating margin %</text>
-        </svg>
-      </div>
-    `;
-
-    els.omMixChart.querySelectorAll(".om-mix-bar-click").forEach((node) => {
-      node.addEventListener("click", () => {
-        const drillValue = decodeURIComponent(node.getAttribute("data-drill") || "");
-        const sameSelection = state.drill.dimension === state.omMixDimension && state.drill.value === drillValue;
-        state.drill.dimension = state.omMixDimension;
-        state.drill.value = sameSelection ? "All" : drillValue;
-        if (els.drillDimension) {
-          els.drillDimension.value = state.drill.dimension;
-        }
-        updateDrillValueOptions();
-        render();
-      });
-    });
-  }
   els.whaleCurveClear?.addEventListener("click", () => {
     state.whaleCurveSelection = { point1: null, point2: null };
     state.whaleCurveActiveLine = "adjusted";
