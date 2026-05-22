@@ -3640,8 +3640,10 @@ function renderWhaleCurve(rows) {
 
   if (els.whaleCurveLegend) {
     els.whaleCurveLegend.innerHTML = skuCount > 0 ? `
-      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:#45d0a2"></span><span>Adjusted OM</span></span>
-      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:#ffae57"></span><span>As-Reported OM</span></span>
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:#45d0a2"></span><span>Margin-positive SKU</span></span>
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:#ff6d6d"></span><span>Margin-negative SKU</span></span>
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:linear-gradient(180deg, transparent 44%, #cfdcf3 44%, #cfdcf3 56%, transparent 56%); border:0;"></span><span>Adjusted (solid line)</span></span>
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:repeating-linear-gradient(90deg, #cfdcf3 0 6px, transparent 6px 10px); border:0;"></span><span>As-Reported (dashed line)</span></span>
     ` : "";
   }
 
@@ -3681,7 +3683,7 @@ function renderWhaleCurve(rows) {
         {
           label: "As-Reported OM",
           data: stdChartData,
-          borderColor: activeLine === "standard" ? "#ffae57" : "rgba(255,174,87,0.5)",
+          borderColor: activeLine === "standard" ? "#45d0a2" : "rgba(69,208,162,0.45)",
           borderWidth: activeLine === "standard" ? 3.5 : 2.5,
           pointRadius: 0,
           pointHoverRadius: 5,
@@ -3690,7 +3692,7 @@ function renderWhaleCurve(rows) {
           backgroundColor: "transparent",
           borderDash: [6, 4],
           segment: activeLine === "standard" ? {
-            borderColor: (ctx) => ctx.p1.parsed.x <= stdPeakX ? "#ffae57" : "#ff6d6d"
+            borderColor: (ctx) => ctx.p1.parsed.x <= stdPeakX ? "#45d0a2" : "#ff6d6d"
           } : {}
         },
         {
@@ -3706,7 +3708,7 @@ function renderWhaleCurve(rows) {
           label: "As-Reported Peak",
           data: [{ x: stdPoints[stdPeakIndex]?.x * 100, y: stdPeakValue }],
           borderColor: "transparent",
-          backgroundColor: "#ffae57",
+          backgroundColor: "#45d0a2",
           pointRadius: 7,
           pointHoverRadius: 9,
           type: "scatter"
