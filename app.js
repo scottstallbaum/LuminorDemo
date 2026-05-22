@@ -3395,8 +3395,8 @@ function renderSegmentRealityCheck(rows) {
 
   if (els.segmentRealityLegend) {
     els.segmentRealityLegend.innerHTML = `
-      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:rgba(255,174,87,.82)"></span><span>As-Reported OM%</span></span>
-      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:rgba(69,208,162,.82)"></span><span>Adjusted OM%</span></span>
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:rgba(95,166,214,.82)"></span><span>As-Reported OM%</span></span>
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:rgba(121,198,214,.82)"></span><span>Adjusted OM%</span></span>
     `;
   }
 
@@ -3413,16 +3413,16 @@ function renderSegmentRealityCheck(rows) {
         {
           label: "As-Reported OM%",
           data: reportedOm,
-          backgroundColor: "rgba(255, 174, 87, 0.82)",
-          borderColor: "rgba(255, 174, 87, 1)",
+          backgroundColor: "rgba(95, 166, 214, 0.82)",
+          borderColor: "rgba(95, 166, 214, 1)",
           borderWidth: 1,
           borderRadius: 5
         },
         {
           label: "Adjusted OM%",
           data: alignedOm,
-          backgroundColor: "rgba(69, 208, 162, 0.82)",
-          borderColor: "rgba(69, 208, 162, 1)",
+          backgroundColor: "rgba(121, 198, 214, 0.82)",
+          borderColor: "rgba(121, 198, 214, 1)",
           borderWidth: 1,
           borderRadius: 5
         }
