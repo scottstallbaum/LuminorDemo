@@ -3691,9 +3691,13 @@ function renderWhaleCurve(rows) {
           tension: 0.35,
           backgroundColor: "transparent",
           borderDash: [6, 4],
-          segment: activeLine === "standard" ? {
-            borderColor: (ctx) => ctx.p1.parsed.x <= stdPeakX ? "#45d0a2" : "#ff6d6d"
-          } : {}
+          segment: {
+            borderColor: (ctx) => {
+              const isPositive = ctx.p1.parsed.x <= stdPeakX;
+              if (activeLine === "standard") return isPositive ? "#45d0a2" : "#ff6d6d";
+              return isPositive ? "rgba(69,208,162,0.65)" : "rgba(255,109,109,0.55)";
+            }
+          }
         },
         {
           label: "Adjusted Peak",
