@@ -3416,7 +3416,7 @@ function renderSegmentRealityCheck(rows) {
           backgroundColor: "rgba(63, 99, 161, 0.9)",
           borderColor: "rgba(63, 99, 161, 1)",
           borderWidth: 1,
-          borderRadius: 5
+          borderRadius: 0
         },
         {
           label: "Adjusted OM%",
@@ -3424,7 +3424,7 @@ function renderSegmentRealityCheck(rows) {
           backgroundColor: "rgba(121, 198, 214, 0.82)",
           borderColor: "rgba(121, 198, 214, 1)",
           borderWidth: 1,
-          borderRadius: 5
+          borderRadius: 0
         }
       ]
     },
