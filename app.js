@@ -2521,7 +2521,7 @@ function renderWaterfall(target, totals, options = {}) {
 
     return `
       <g>
-        <rect class="${cls}${isClickable ? " wf-clickable" : ""}${isActive ? " wf-active" : ""}" data-step-key="${step.key || ""}" x="${x.toFixed(2)}" y="${rectY.toFixed(2)}" width="${barW.toFixed(2)}" height="${rectH.toFixed(2)}" rx="5" ${isClickable ? 'title="Click for breakdown"' : ""} />
+        <rect class="${cls}${isClickable ? " wf-clickable" : ""}${isActive ? " wf-active" : ""}" data-step-key="${step.key || ""}" x="${x.toFixed(2)}" y="${rectY.toFixed(2)}" width="${barW.toFixed(2)}" height="${rectH.toFixed(2)}" rx="0" ${isClickable ? 'title="Click for breakdown"' : ""} />
         <text class="wf-value" x="${cx.toFixed(2)}" y="${valueY.toFixed(2)}" text-anchor="middle">${valueLabel}</text>
         <text class="wf-pct" x="${cx.toFixed(2)}" y="${pctY.toFixed(2)}" text-anchor="middle">(${toPct(step.pct)})</text>
         ${labelLines.map((line, i) => `<text class="wf-label" x="${cx.toFixed(2)}" y="${(labelBaseY + (i * 13)).toFixed(2)}" text-anchor="middle">${line}</text>`).join("")}
