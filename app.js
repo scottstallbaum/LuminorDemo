@@ -3643,7 +3643,7 @@ function renderWhaleCurve(rows) {
       <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:#45d0a2"></span><span>Margin-positive SKU</span></span>
       <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:#ff6d6d"></span><span>Margin-negative SKU</span></span>
       <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:linear-gradient(180deg, transparent 44%, #cfdcf3 44%, #cfdcf3 56%, transparent 56%); border:0;"></span><span>Adjusted (solid line)</span></span>
-      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:repeating-linear-gradient(90deg, #cfdcf3 0 6px, transparent 6px 10px); border:0;"></span><span>As-Reported (dashed line)</span></span>
+      <span class="price-walk-legend-item"><span class="price-walk-legend-swatch" style="background:none; border:0; width:14px; height:0; border-top:2px dashed #cfdcf3; border-radius:0;"></span><span>As-Reported (dashed line)</span></span>
     ` : "";
   }
 
