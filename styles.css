@@ -153,7 +153,7 @@ textarea {
   box-shadow: 0 12px 26px rgba(0, 0, 0, .12);
 }
 .kpi p { margin: 0; color: var(--muted); font-size: .72rem; }
-.kpi h3 { margin: .2rem 0 .06rem; font-size: 1rem; line-height: 1.1; }
+.kpi h3 { margin: .2rem 0 .06rem; font-size: 1.35rem; line-height: 1.1; }
 .kpi h3.is-positive { color: var(--accent); }
 .kpi h3.is-negative { color: var(--danger); }
 .kpi-subvalue {
